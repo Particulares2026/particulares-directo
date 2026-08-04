@@ -15,6 +15,7 @@ type Anuncio = {
   ubicacion: string | null;
   palabras_clave: string[];
   nombre_contacto: string;
+  telefono_contacto: string | null;
   email_contacto: string;
   user_id: string;
   operacion?: string | null;
@@ -155,7 +156,8 @@ export default function AnuncioCard({
       )}
 
       <p className="text-xs text-stone-400 mt-2">
-        Contacto: {anuncio.nombre_contacto} · {anuncio.email_contacto}
+        Contacto: {anuncio.nombre_contacto}
+        {anuncio.telefono_contacto ? ` · ${anuncio.telefono_contacto}` : ""}
       </p>
     </div>
   );

@@ -10,11 +10,13 @@ export default function AnuncioForm({
   userId,
   categoria,
   defaultNombre,
+  defaultTelefono,
   defaultEmail,
 }: {
   userId: string;
   categoria: string;
   defaultNombre: string;
+  defaultTelefono: string;
   defaultEmail: string;
 }) {
   const supabase = createClient();
@@ -28,6 +30,7 @@ export default function AnuncioForm({
   const [palabrasClave, setPalabrasClave] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [nombreContacto, setNombreContacto] = useState(defaultNombre);
+  const [telefonoContacto, setTelefonoContacto] = useState(defaultTelefono);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -65,6 +68,7 @@ export default function AnuncioForm({
         .map((k) => k.trim())
         .filter(Boolean),
       nombre_contacto: nombreContacto.trim(),
+      telefono_contacto: telefonoContacto.trim(),
       email_contacto: defaultEmail,
       operacion: esInmobiliaria ? operacion : null,
       provincia: esInmobiliaria ? provincia || null : null,
@@ -183,7 +187,7 @@ export default function AnuncioForm({
             />
             <input
               className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
-              placeholder="Habitaciones"
+              placeholder="Nº Habitaciones"
               type="number"
               min="0"
               value={habitaciones}
@@ -191,7 +195,7 @@ export default function AnuncioForm({
             />
             <input
               className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
-              placeholder="Baños"
+              placeholder="Nº Baños"
               type="number"
               min="0"
               value={banos}
@@ -278,6 +282,14 @@ export default function AnuncioForm({
         placeholder="Nombre de contacto"
         value={nombreContacto}
         onChange={(e) => setNombreContacto(e.target.value)}
+        required
+      />
+      <input
+        className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+        placeholder="Número de teléfono de contacto"
+        type="tel"
+        value={telefonoContacto}
+        onChange={(e) => setTelefonoContacto(e.target.value)}
         required
       />
       {error && <p className="text-sm text-red-600">{error}</p>}

@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 export default function RegistroPage() {
   const supabase = createClient();
   const [nombre, setNombre] = useState("");
+  const [telefono, setTelefono] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -23,7 +24,7 @@ export default function RegistroPage() {
       email,
       password,
       options: {
-        data: { nombre },
+        data: { nombre, telefono },
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
@@ -48,6 +49,14 @@ export default function RegistroPage() {
           placeholder="Tu nombre"
           value={nombre}
           onChange={(e) => setNombre(e.target.value)}
+          required
+        />
+        <input
+          className="w-full border border-stone-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent"
+          placeholder="Número de teléfono"
+          type="tel"
+          value={telefono}
+          onChange={(e) => setTelefono(e.target.value)}
           required
         />
         <input

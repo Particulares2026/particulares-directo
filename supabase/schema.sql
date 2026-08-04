@@ -12,6 +12,7 @@ create table if not exists public.anuncios (
   ubicacion text,
   palabras_clave text[] not null default '{}',
   nombre_contacto text not null,
+  telefono_contacto text,
   email_contacto text not null,
   created_at timestamptz not null default now(),
   -- Campos específicos de la categoría inmobiliaria (null para el resto de categorías).

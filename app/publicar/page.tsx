@@ -44,12 +44,13 @@ export default async function PublicarPage({
     <main className="max-w-sm mx-auto px-4 py-10">
       <h1 className="font-serif text-xl mb-1">Publicar en {nombreCategoria(categoria)}</h1>
       <p className="text-sm text-stone-500 mb-6">
-        Se publicará con tu nombre y correo para que puedan contactarte.
+        Se publicará con tu nombre y tu teléfono para que puedan contactarte.
       </p>
       <AnuncioForm
         userId={user.id}
         categoria={categoria}
         defaultNombre={(user.user_metadata as any)?.nombre || ""}
+        defaultTelefono={(user.user_metadata as any)?.telefono || ""}
         defaultEmail={user.email || ""}
       />
     </main>

@@ -212,13 +212,13 @@ export default function FiltrosInmobiliaria({
 
         <div className="flex flex-wrap gap-2 items-start">
           <select className={SELECT_CLASS} value={habitaciones} onChange={(e) => setHabitaciones(e.target.value)}>
-            <option value="">Habitaciones</option>
+            <option value="">Nº Habitaciones</option>
             {[1, 2, 3, 4, 5].map((n) => (
               <option key={n} value={n}>{n}+ hab.</option>
             ))}
           </select>
           <select className={SELECT_CLASS} value={banos} onChange={(e) => setBanos(e.target.value)}>
-            <option value="">Baños</option>
+            <option value="">Nº Baños</option>
             {[1, 2, 3].map((n) => (
               <option key={n} value={n}>{n}+ baños</option>
             ))}
@@ -230,11 +230,14 @@ export default function FiltrosInmobiliaria({
               onClick={() => setCaracteristicasAbierto((v) => !v)}
               className={
                 SELECT_CLASS +
-                " " +
+                " inline-flex items-center gap-1 " +
                 (caracteristicas.length > 0 ? "border-fuchsia-600 text-fuchsia-700 font-medium" : "")
               }
             >
               Características{caracteristicas.length > 0 ? ` (${caracteristicas.length})` : ""}
+              <span aria-hidden="true" className={"text-xs transition-transform " + (caracteristicasAbierto ? "rotate-180" : "")}>
+                ▾
+              </span>
             </button>
             {caracteristicasAbierto && (
               <div className="absolute z-10 mt-1 w-56 border border-stone-200 rounded-lg bg-white shadow-md p-2 space-y-1">
@@ -259,10 +262,10 @@ export default function FiltrosInmobiliaria({
               type="button"
               onClick={() => setSoloFavoritos((v) => !v)}
               className={
-                "text-sm px-3 py-2 rounded-lg border w-full sm:w-auto " +
+                "text-sm px-3 py-2 rounded-lg border font-medium w-full sm:w-auto " +
                 (soloFavoritos
-                  ? "border-fuchsia-600 bg-fuchsia-50 text-fuchsia-700 font-medium"
-                  : "border-stone-300 text-stone-500")
+                  ? "border-blue-600 bg-blue-600 text-white"
+                  : "border-blue-600 bg-blue-50 text-blue-700 hover:bg-blue-100")
               }
             >
               ★ Solo mis favoritos
