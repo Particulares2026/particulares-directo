@@ -16,6 +16,28 @@ import {
 } from "@/lib/inmobiliaria";
 import { PREFIJOS_TELEFONO, parseTelefono } from "@/lib/telefono";
 
+type AnuncioExistente = {
+  id: string;
+  tipo?: "busco" | "ofrezco";
+  titulo?: string;
+  ubicacion?: string | null;
+  palabras_clave?: string[];
+  descripcion?: string | null;
+  nombre_contacto?: string;
+  telefono_contacto?: string | null;
+  operacion?: string | null;
+  provincia?: string | null;
+  tipo_inmueble?: string | null;
+  precio?: number | null;
+  habitaciones?: number | null;
+  banos?: number | null;
+  amueblado?: boolean | null;
+  tamano?: number | null;
+  caracteristicas?: string[];
+  duracion_alquiler?: string | null;
+  fotos?: string[];
+};
+
 export default function AnuncioForm({
   userId,
   categoria,
@@ -29,7 +51,7 @@ export default function AnuncioForm({
   defaultNombre: string;
   defaultTelefono: string;
   defaultEmail: string;
-  anuncioExistente?: any;
+  anuncioExistente?: AnuncioExistente;
 }) {
   const supabase = createClient();
   const router = useRouter();
