@@ -79,7 +79,8 @@ export default function AnuncioForm({
     let ultimoError: string | null = null;
     try {
       for (const file of files) {
-        const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}-${file.name}`;
+        const extension = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+        const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
         const { error: uploadError } = await supabase.storage.from(FOTOS_BUCKET).upload(path, file);
         if (uploadError) {
           ultimoError = uploadError.message;
