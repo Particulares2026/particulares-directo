@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { etiquetasTipo } from "@/lib/categorias";
 
 type Anuncio = {
   id: string;
-  tipo: "busco_empleo" | "ofrezco_empleo";
+  categoria: string;
+  tipo: "busco" | "ofrezco";
   titulo: string;
   descripcion: string | null;
   ubicacion: string | null;
@@ -35,7 +37,8 @@ export default function AnuncioCard({
     if (!error) router.refresh();
   };
 
-  const esOferta = anuncio.tipo === "ofrezco_empleo";
+  const esOferta = anuncio.tipo === "ofrezco";
+  const [etiquetaBusco, etiquetaOfrezco] = etiquetasTipo(anuncio.categoria);
 
   return (
     <div className="border border-stone-200 rounded-xl p-4">
@@ -49,7 +52,7 @@ export default function AnuncioCard({
                 : "bg-teal-50 text-teal-700 border-teal-200")
             }
           >
-            {esOferta ? "Ofrece empleo" : "Busca empleo"}
+            {esOferta ? etiquetaOfrezco : etiquetaBusco}
           </span>
           <p className="font-medium text-stone-900 mt-1.5">{anuncio.titulo}</p>
           {anuncio.ubicacion && (

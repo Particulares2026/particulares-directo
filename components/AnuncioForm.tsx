@@ -3,19 +3,23 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { etiquetasTipo } from "@/lib/categorias";
 
 export default function AnuncioForm({
   userId,
+  categoria,
   defaultNombre,
   defaultEmail,
 }: {
   userId: string;
+  categoria: string;
   defaultNombre: string;
   defaultEmail: string;
 }) {
   const supabase = createClient();
   const router = useRouter();
-  const [tipo, setTipo] = useState<"busco_empleo" | "ofrezco_empleo">("busco_empleo");
+  const [tipo, setTipo] = useState<"busco" | "ofrezco">("busco");
+  const [etiquetaBusco, etiquetaOfrezco] = etiquetasTipo(categoria);
   const [titulo, setTitulo] = useState("");
   const [ubicacion, setUbicacion] = useState("");
   const [palabrasClave, setPalabrasClave] = useState("");
@@ -31,6 +35,7 @@ export default function AnuncioForm({
 
     const { error } = await supabase.from("anuncios").insert({
       user_id: userId,
+      categoria,
       tipo,
       titulo: titulo.trim(),
       ubicacion: ubicacion.trim(),
@@ -57,27 +62,27 @@ export default function AnuncioForm({
       <div className="flex gap-2">
         <button
           type="button"
-          onClick={() => setTipo("busco_empleo")}
+          onClick={() => setTipo("busco")}
           className={
             "flex-1 text-sm py-2 rounded-lg border " +
-            (tipo === "busco_empleo"
+            (tipo === "busco"
               ? "border-teal-700 bg-teal-50 text-teal-800 font-medium"
               : "border-stone-200 text-stone-500")
           }
         >
-          Busco empleo
+          {etiquetaBusco}
         </button>
         <button
           type="button"
-          onClick={() => setTipo("ofrezco_empleo")}
+          onClick={() => setTipo("ofrezco")}
           className={
             "flex-1 text-sm py-2 rounded-lg border " +
-            (tipo === "ofrezco_empleo"
+            (tipo === "ofrezco"
               ? "border-amber-600 bg-amber-50 text-amber-700 font-medium"
               : "border-stone-200 text-stone-500")
           }
         >
-          Ofrezco empleo
+          {etiquetaOfrezco}
         </button>
       </div>
       <input
