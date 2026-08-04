@@ -3,7 +3,13 @@
 import { useMemo, useState } from "react";
 import AnuncioCard from "./AnuncioCard";
 import { createClient } from "@/lib/supabase/client";
-import { PROVINCIAS, TIPOS_INMUEBLE, OPERACIONES } from "@/lib/inmobiliaria";
+import {
+  PROVINCIAS,
+  TIPOS_INMUEBLE,
+  OPERACIONES,
+  CARACTERISTICAS,
+  DURACIONES_ALQUILER,
+} from "@/lib/inmobiliaria";
 
 function tokenize(text: string) {
   return text
@@ -36,10 +42,21 @@ export default function FiltrosInmobiliaria({
   const [tipoInmueble, setTipoInmueble] = useState("");
   const [precioMin, setPrecioMin] = useState("");
   const [precioMax, setPrecioMax] = useState("");
+  const [tamanoMin, setTamanoMin] = useState("");
+  const [tamanoMax, setTamanoMax] = useState("");
   const [habitaciones, setHabitaciones] = useState("");
   const [banos, setBanos] = useState("");
   const [amueblado, setAmueblado] = useState("");
+  const [duracionAlquiler, setDuracionAlquiler] = useState("");
+  const [caracteristicas, setCaracteristicas] = useState<string[]>([]);
+  const [caracteristicasAbierto, setCaracteristicasAbierto] = useState(false);
   const [favoritos, setFavoritos] = useState<Set<string>>(new Set(favoritosIniciales));
+
+  const toggleCaracteristica = (valor: string) => {
+    setCaracteristicas((prev) =>
+      prev.includes(valor) ? prev.filter((c) => c !== valor) : [...prev, valor]
+    );
+  };
 
   const toggleFavorito = async (anuncioId: string) => {
     if (!currentUserId) return;
@@ -62,8 +79,10 @@ export default function FiltrosInmobiliaria({
 
   const filtrados = useMemo(() => {
     const tokens = tokenize(query);
-    const min = precioMin ? Number(precioMin) : null;
-    const max = precioMax ? Number(precioMax) : null;
+    const precioMinN = precioMin ? Number(precioMin) : null;
+    const precioMaxN = precioMax ? Number(precioMax) : null;
+    const tamanoMinN = tamanoMin ? Number(tamanoMin) : null;
+    const tamanoMaxN = tamanoMax ? Number(tamanoMax) : null;
     const habMin = habitaciones ? Number(habitaciones) : null;
     const banosMin = banos ? Number(banos) : null;
 
@@ -76,19 +95,27 @@ export default function FiltrosInmobiliaria({
       }
       if (operacion && a.operacion !== operacion) return false;
       if (tipo && a.tipo !== tipo) return false;
-      if (soloFavoritos && !favoritos.has(a.id)) return false;
       if (provincia && a.provincia !== provincia) return false;
       if (tipoInmueble && a.tipo_inmueble !== tipoInmueble) return false;
-      if (min != null && (a.precio == null || a.precio < min)) return false;
-      if (max != null && (a.precio == null || a.precio > max)) return false;
+      if (precioMinN != null && (a.precio == null || a.precio < precioMinN)) return false;
+      if (precioMaxN != null && (a.precio == null || a.precio > precioMaxN)) return false;
+      if (tamanoMinN != null && (a.tamano == null || a.tamano < tamanoMinN)) return false;
+      if (tamanoMaxN != null && (a.tamano == null || a.tamano > tamanoMaxN)) return false;
       if (habMin != null && (a.habitaciones == null || a.habitaciones < habMin)) return false;
       if (banosMin != null && (a.banos == null || a.banos < banosMin)) return false;
       if (amueblado && (a.amueblado == null || (a.amueblado ? "si" : "no") !== amueblado)) return false;
+      if (duracionAlquiler && a.duracion_alquiler !== duracionAlquiler) return false;
+      if (caracteristicas.length > 0) {
+        const tiene: string[] = a.caracteristicas || [];
+        if (!caracteristicas.every((c) => tiene.includes(c))) return false;
+      }
+      if (soloFavoritos && !favoritos.has(a.id)) return false;
       return true;
     });
   }, [
-    anuncios, query, operacion, tipo, soloFavoritos, favoritos,
-    provincia, tipoInmueble, precioMin, precioMax, habitaciones, banos, amueblado,
+    anuncios, query, operacion, tipo, provincia, tipoInmueble,
+    precioMin, precioMax, tamanoMin, tamanoMax, habitaciones, banos,
+    amueblado, duracionAlquiler, caracteristicas, soloFavoritos, favoritos,
   ]);
 
   return (
@@ -130,39 +157,60 @@ export default function FiltrosInmobiliaria({
             <option value="si">Amueblado</option>
             <option value="no">Sin amueblar</option>
           </select>
-          {currentUserId && (
-            <button
-              type="button"
-              onClick={() => setSoloFavoritos((v) => !v)}
-              className={
-                "text-sm px-3 py-2 rounded-lg border " +
-                (soloFavoritos
-                  ? "border-fuchsia-600 bg-fuchsia-50 text-fuchsia-700 font-medium"
-                  : "border-stone-300 text-stone-500")
-              }
-            >
-              ★ Solo mis favoritos
-            </button>
-          )}
         </div>
 
         <div className="flex flex-wrap gap-2">
+          <select
+            className={SELECT_CLASS}
+            value={duracionAlquiler}
+            onChange={(e) => setDuracionAlquiler(e.target.value)}
+          >
+            <option value="">Temporada o larga estancia</option>
+            {DURACIONES_ALQUILER.map((d) => (
+              <option key={d.valor} value={d.valor}>{d.label}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
           <input
-            className={INPUT_CLASS + " w-28"}
-            placeholder="Precio mín. €"
+            className={INPUT_CLASS}
+            placeholder="Precio mínimo €"
             type="number"
             min="0"
             value={precioMin}
             onChange={(e) => setPrecioMin(e.target.value)}
           />
           <input
-            className={INPUT_CLASS + " w-28"}
-            placeholder="Precio máx. €"
+            className={INPUT_CLASS}
+            placeholder="Precio máximo €"
             type="number"
             min="0"
             value={precioMax}
             onChange={(e) => setPrecioMax(e.target.value)}
           />
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <input
+            className={INPUT_CLASS}
+            placeholder="Tamaño mínimo m²"
+            type="number"
+            min="0"
+            value={tamanoMin}
+            onChange={(e) => setTamanoMin(e.target.value)}
+          />
+          <input
+            className={INPUT_CLASS}
+            placeholder="Tamaño máximo m²"
+            type="number"
+            min="0"
+            value={tamanoMax}
+            onChange={(e) => setTamanoMax(e.target.value)}
+          />
+        </div>
+
+        <div className="flex flex-wrap gap-2 items-start">
           <select className={SELECT_CLASS} value={habitaciones} onChange={(e) => setHabitaciones(e.target.value)}>
             <option value="">Habitaciones</option>
             {[1, 2, 3, 4, 5].map((n) => (
@@ -175,7 +223,52 @@ export default function FiltrosInmobiliaria({
               <option key={n} value={n}>{n}+ baños</option>
             ))}
           </select>
+
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setCaracteristicasAbierto((v) => !v)}
+              className={
+                SELECT_CLASS +
+                " " +
+                (caracteristicas.length > 0 ? "border-fuchsia-600 text-fuchsia-700 font-medium" : "")
+              }
+            >
+              Características{caracteristicas.length > 0 ? ` (${caracteristicas.length})` : ""}
+            </button>
+            {caracteristicasAbierto && (
+              <div className="absolute z-10 mt-1 w-56 border border-stone-200 rounded-lg bg-white shadow-md p-2 space-y-1">
+                {CARACTERISTICAS.map((c) => (
+                  <label key={c.valor} className="flex items-center gap-2 text-sm px-1.5 py-1 rounded hover:bg-stone-50">
+                    <input
+                      type="checkbox"
+                      checked={caracteristicas.includes(c.valor)}
+                      onChange={() => toggleCaracteristica(c.valor)}
+                    />
+                    {c.label}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
+
+        {currentUserId && (
+          <div className="pt-1">
+            <button
+              type="button"
+              onClick={() => setSoloFavoritos((v) => !v)}
+              className={
+                "text-sm px-3 py-2 rounded-lg border w-full sm:w-auto " +
+                (soloFavoritos
+                  ? "border-fuchsia-600 bg-fuchsia-50 text-fuchsia-700 font-medium"
+                  : "border-stone-300 text-stone-500")
+              }
+            >
+              ★ Solo mis favoritos
+            </button>
+          </div>
+        )}
       </div>
 
       <p className="text-sm text-stone-500 mb-3">

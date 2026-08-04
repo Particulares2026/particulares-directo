@@ -24,3 +24,20 @@ export const OPERACIONES: { valor: string; label: string }[] = [
   { valor: "venta", label: "Venta" },
   { valor: "alquiler", label: "Alquiler" },
 ];
+
+export const CARACTERISTICAS: { valor: string; label: string }[] = [
+  { valor: "aire_acondicionado", label: "Aire acondicionado" },
+  { valor: "armarios_empotrados", label: "Armarios empotrados" },
+  { valor: "ascensor", label: "Ascensor" },
+  { valor: "balcon_terraza", label: "Balcón o terraza" },
+  { valor: "exterior", label: "Exterior" },
+  { valor: "garaje", label: "Garaje" },
+  { valor: "jardin", label: "Jardín" },
+  { valor: "piscina", label: "Piscina" },
+  { valor: "trastero", label: "Trastero" },
+];
+
+export const DURACIONES_ALQUILER: { valor: string; label: string }[] = [
+  { valor: "temporada", label: "Alquiler de temporada" },
+  { valor: "larga_estancia", label: "Larga estancia" },
+];

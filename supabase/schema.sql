@@ -23,7 +23,10 @@ create table if not exists public.anuncios (
   precio numeric,
   habitaciones int,
   banos int,
-  amueblado boolean
+  amueblado boolean,
+  tamano numeric,
+  caracteristicas text[] not null default '{}',
+  duracion_alquiler text check (duracion_alquiler in ('temporada', 'larga_estancia'))
 );
 
 create index if not exists anuncios_categoria_idx on public.anuncios (categoria);

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { etiquetasTipo } from "@/lib/categorias";
-import { TIPOS_INMUEBLE, OPERACIONES } from "@/lib/inmobiliaria";
+import { TIPOS_INMUEBLE, OPERACIONES, CARACTERISTICAS, DURACIONES_ALQUILER } from "@/lib/inmobiliaria";
 
 type Anuncio = {
   id: string;
@@ -24,6 +24,9 @@ type Anuncio = {
   habitaciones?: number | null;
   banos?: number | null;
   amueblado?: boolean | null;
+  tamano?: number | null;
+  caracteristicas?: string[];
+  duracion_alquiler?: string | null;
 };
 
 export default function AnuncioCard({
@@ -111,9 +114,26 @@ export default function AnuncioCard({
       {esInmobiliaria && (
         <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-sm text-stone-600">
           {anuncio.precio != null && <span>{anuncio.precio.toLocaleString("es-ES")} €</span>}
+          {anuncio.tamano != null && <span>{anuncio.tamano} m²</span>}
           {anuncio.habitaciones != null && <span>{anuncio.habitaciones} hab.</span>}
           {anuncio.banos != null && <span>{anuncio.banos} baños</span>}
           {anuncio.amueblado != null && <span>{anuncio.amueblado ? "Amueblado" : "Sin amueblar"}</span>}
+          {anuncio.duracion_alquiler && (
+            <span>{DURACIONES_ALQUILER.find((d) => d.valor === anuncio.duracion_alquiler)?.label}</span>
+          )}
+        </div>
+      )}
+
+      {esInmobiliaria && anuncio.caracteristicas && anuncio.caracteristicas.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          {anuncio.caracteristicas.map((c) => (
+            <span
+              key={c}
+              className="text-xs px-2 py-0.5 rounded-full border border-fuchsia-200 bg-fuchsia-50 text-fuchsia-700"
+            >
+              {CARACTERISTICAS.find((x) => x.valor === c)?.label ?? c}
+            </span>
+          ))}
         </div>
       )}
 

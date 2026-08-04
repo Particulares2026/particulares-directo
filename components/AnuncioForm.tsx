@@ -4,7 +4,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { etiquetasTipo } from "@/lib/categorias";
-import { PROVINCIAS, TIPOS_INMUEBLE, OPERACIONES } from "@/lib/inmobiliaria";
+import { PROVINCIAS, TIPOS_INMUEBLE, OPERACIONES, CARACTERISTICAS, DURACIONES_ALQUILER } from "@/lib/inmobiliaria";
 
 export default function AnuncioForm({
   userId,
@@ -38,6 +38,15 @@ export default function AnuncioForm({
   const [habitaciones, setHabitaciones] = useState("");
   const [banos, setBanos] = useState("");
   const [amueblado, setAmueblado] = useState("sin_dato");
+  const [tamano, setTamano] = useState("");
+  const [caracteristicas, setCaracteristicas] = useState<string[]>([]);
+  const [duracionAlquiler, setDuracionAlquiler] = useState("");
+
+  const toggleCaracteristica = (valor: string) => {
+    setCaracteristicas((prev) =>
+      prev.includes(valor) ? prev.filter((c) => c !== valor) : [...prev, valor]
+    );
+  };
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -64,6 +73,9 @@ export default function AnuncioForm({
       habitaciones: esInmobiliaria && habitaciones ? Number(habitaciones) : null,
       banos: esInmobiliaria && banos ? Number(banos) : null,
       amueblado: esInmobiliaria && amueblado !== "sin_dato" ? amueblado === "si" : null,
+      tamano: esInmobiliaria && tamano ? Number(tamano) : null,
+      caracteristicas: esInmobiliaria ? caracteristicas : [],
+      duracion_alquiler: esInmobiliaria && operacion === "alquiler" && duracionAlquiler ? duracionAlquiler : null,
     });
 
     setLoading(false);
@@ -186,6 +198,14 @@ export default function AnuncioForm({
               onChange={(e) => setBanos(e.target.value)}
             />
           </div>
+          <input
+            className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+            placeholder="Tamaño (m²)"
+            type="number"
+            min="0"
+            value={tamano}
+            onChange={(e) => setTamano(e.target.value)}
+          />
           <select
             className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
             value={amueblado}
@@ -195,6 +215,42 @@ export default function AnuncioForm({
             <option value="si">Amueblado</option>
             <option value="no">Sin amueblar</option>
           </select>
+
+          {operacion === "alquiler" && (
+            <select
+              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+              value={duracionAlquiler}
+              onChange={(e) => setDuracionAlquiler(e.target.value)}
+            >
+              <option value="">Duración del alquiler: sin especificar</option>
+              {DURACIONES_ALQUILER.map((d) => (
+                <option key={d.valor} value={d.valor}>
+                  {d.label}
+                </option>
+              ))}
+            </select>
+          )}
+
+          <div>
+            <p className="text-sm text-stone-500 mb-1.5">Características</p>
+            <div className="flex flex-wrap gap-1.5">
+              {CARACTERISTICAS.map((c) => (
+                <button
+                  key={c.valor}
+                  type="button"
+                  onClick={() => toggleCaracteristica(c.valor)}
+                  className={
+                    "text-xs px-2.5 py-1.5 rounded-full border " +
+                    (caracteristicas.includes(c.valor)
+                      ? "border-fuchsia-600 bg-fuchsia-50 text-fuchsia-700 font-medium"
+                      : "border-stone-200 text-stone-500")
+                  }
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </>
       )}
 
