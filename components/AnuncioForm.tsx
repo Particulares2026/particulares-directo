@@ -56,6 +56,18 @@ export default function AnuncioForm({
   const [fotos, setFotos] = useState<string[]>([]);
   const [subiendoFotos, setSubiendoFotos] = useState(false);
   const [fotosError, setFotosError] = useState<string | null>(null);
+  const [fotoArrastrada, setFotoArrastrada] = useState<number | null>(null);
+
+  const moverFoto = (destino: number) => {
+    if (fotoArrastrada === null || fotoArrastrada === destino) return;
+    setFotos((prev) => {
+      const siguiente = [...prev];
+      const [movida] = siguiente.splice(fotoArrastrada, 1);
+      siguiente.splice(destino, 0, movida);
+      return siguiente;
+    });
+    setFotoArrastrada(null);
+  };
 
   const toggleCaracteristica = (valor: string) => {
     setCaracteristicas((prev) =>
@@ -316,9 +328,27 @@ export default function AnuncioForm({
             </p>
             {fotos.length > 0 && (
               <div className="grid grid-cols-4 gap-2 mb-2">
-                {fotos.map((url) => (
-                  <div key={url} className="relative">
+                {fotos.map((url, i) => (
+                  <div
+                    key={url}
+                    draggable
+                    onDragStart={() => setFotoArrastrada(i)}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      moverFoto(i);
+                    }}
+                    onDragEnd={() => setFotoArrastrada(null)}
+                    className={
+                      "relative cursor-move " + (fotoArrastrada === i ? "opacity-40" : "")
+                    }
+                  >
                     <img src={url} alt="" className="w-full aspect-square object-cover rounded-lg border border-stone-200" />
+                    {i === 0 && (
+                      <span className="absolute bottom-1 left-1 text-[10px] px-1.5 py-0.5 rounded bg-stone-900/80 text-white">
+                        Portada
+                      </span>
+                    )}
                     <button
                       type="button"
                       onClick={() => eliminarFoto(url)}
@@ -330,6 +360,9 @@ export default function AnuncioForm({
                   </div>
                 ))}
               </div>
+            )}
+            {fotos.length > 1 && (
+              <p className="text-xs text-stone-400 mb-2">Arrastra las fotos para cambiar el orden.</p>
             )}
             {fotos.length < MAX_FOTOS && (
               <input
