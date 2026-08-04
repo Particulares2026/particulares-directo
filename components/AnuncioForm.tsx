@@ -14,6 +14,7 @@ import {
   MAX_FOTOS,
   extraerPathStorage,
 } from "@/lib/inmobiliaria";
+import { PREFIJOS_TELEFONO, parseTelefono } from "@/lib/telefono";
 
 export default function AnuncioForm({
   userId,
@@ -42,7 +43,9 @@ export default function AnuncioForm({
   const [palabrasClave, setPalabrasClave] = useState((anuncioExistente?.palabras_clave ?? []).join(", "));
   const [descripcion, setDescripcion] = useState(anuncioExistente?.descripcion ?? "");
   const [nombreContacto, setNombreContacto] = useState(anuncioExistente?.nombre_contacto ?? defaultNombre);
-  const [telefonoContacto, setTelefonoContacto] = useState(anuncioExistente?.telefono_contacto ?? defaultTelefono);
+  const telefonoInicial = parseTelefono(anuncioExistente?.telefono_contacto ?? defaultTelefono);
+  const [prefijoTelefono, setPrefijoTelefono] = useState(telefonoInicial.prefijo);
+  const [numeroTelefono, setNumeroTelefono] = useState(telefonoInicial.numero);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -55,7 +58,7 @@ export default function AnuncioForm({
   );
   const [banos, setBanos] = useState(anuncioExistente?.banos != null ? String(anuncioExistente.banos) : "");
   const [amueblado, setAmueblado] = useState(
-    anuncioExistente?.amueblado == null ? "sin_dato" : anuncioExistente.amueblado ? "si" : "no"
+    anuncioExistente?.amueblado == null ? "" : anuncioExistente.amueblado ? "si" : "no"
   );
   const [tamano, setTamano] = useState(anuncioExistente?.tamano != null ? String(anuncioExistente.tamano) : "");
   const [caracteristicas, setCaracteristicas] = useState<string[]>(anuncioExistente?.caracteristicas ?? []);
@@ -125,8 +128,15 @@ export default function AnuncioForm({
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
+
+    const numeroLimpio = numeroTelefono.trim();
+    if (!/^\d{6,12}$/.test(numeroLimpio)) {
+      setError("Introduce un número de teléfono completo (solo dígitos, 6 a 12 números).");
+      return;
+    }
+
+    setLoading(true);
 
     const payload = {
       categoria,
@@ -139,7 +149,7 @@ export default function AnuncioForm({
         .map((k) => k.trim())
         .filter(Boolean),
       nombre_contacto: nombreContacto.trim(),
-      telefono_contacto: telefonoContacto.trim(),
+      telefono_contacto: `${prefijoTelefono} ${numeroLimpio}`,
       email_contacto: defaultEmail,
       operacion: esInmobiliaria ? operacion : null,
       provincia: esInmobiliaria ? provincia || null : null,
@@ -147,7 +157,7 @@ export default function AnuncioForm({
       precio: esInmobiliaria && precio ? Number(precio) : null,
       habitaciones: esInmobiliaria && habitaciones ? Number(habitaciones) : null,
       banos: esInmobiliaria && banos ? Number(banos) : null,
-      amueblado: esInmobiliaria && amueblado !== "sin_dato" ? amueblado === "si" : null,
+      amueblado: esInmobiliaria ? amueblado === "si" : null,
       tamano: esInmobiliaria && tamano ? Number(tamano) : null,
       caracteristicas: esInmobiliaria ? caracteristicas : [],
       duracion_alquiler: esInmobiliaria && operacion === "alquiler" && duracionAlquiler ? duracionAlquiler : null,
@@ -231,6 +241,7 @@ export default function AnuncioForm({
               className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
               value={tipoInmueble}
               onChange={(e) => setTipoInmueble(e.target.value)}
+              required
             >
               {TIPOS_INMUEBLE.map((t) => (
                 <option key={t.valor} value={t.valor}>
@@ -260,6 +271,7 @@ export default function AnuncioForm({
               min="0"
               value={precio}
               onChange={(e) => setPrecio(e.target.value)}
+              required
             />
             <input
               className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
@@ -268,6 +280,7 @@ export default function AnuncioForm({
               min="0"
               value={habitaciones}
               onChange={(e) => setHabitaciones(e.target.value)}
+              required
             />
             <input
               className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
@@ -276,6 +289,7 @@ export default function AnuncioForm({
               min="0"
               value={banos}
               onChange={(e) => setBanos(e.target.value)}
+              required
             />
           </div>
           <input
@@ -285,13 +299,15 @@ export default function AnuncioForm({
             min="0"
             value={tamano}
             onChange={(e) => setTamano(e.target.value)}
+            required
           />
           <select
             className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
             value={amueblado}
             onChange={(e) => setAmueblado(e.target.value)}
+            required
           >
-            <option value="sin_dato">Amueblado: sin especificar</option>
+            <option value="" disabled>Amueblado o sin amueblar</option>
             <option value="si">Amueblado</option>
             <option value="no">Sin amueblar</option>
           </select>
@@ -301,8 +317,9 @@ export default function AnuncioForm({
               className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
               value={duracionAlquiler}
               onChange={(e) => setDuracionAlquiler(e.target.value)}
+              required
             >
-              <option value="">Duración del alquiler: sin especificar</option>
+              <option value="" disabled>Temporada o larga estancia</option>
               {DURACIONES_ALQUILER.map((d) => (
                 <option key={d.valor} value={d.valor}>
                   {d.label}
@@ -395,12 +412,14 @@ export default function AnuncioForm({
         placeholder="Ciudad o modalidad (ej. Sevilla, remoto)"
         value={ubicacion}
         onChange={(e) => setUbicacion(e.target.value)}
+        required
       />
       <input
         className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
         placeholder="Palabras clave separadas por comas"
         value={palabrasClave}
         onChange={(e) => setPalabrasClave(e.target.value)}
+        required
       />
       <textarea
         className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 resize-none"
@@ -408,6 +427,7 @@ export default function AnuncioForm({
         placeholder="Descripción"
         value={descripcion}
         onChange={(e) => setDescripcion(e.target.value)}
+        required
       />
       <input
         className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
@@ -416,14 +436,30 @@ export default function AnuncioForm({
         onChange={(e) => setNombreContacto(e.target.value)}
         required
       />
-      <input
-        className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
-        placeholder="Número de teléfono de contacto"
-        type="tel"
-        value={telefonoContacto}
-        onChange={(e) => setTelefonoContacto(e.target.value)}
-        required
-      />
+      <div className="flex gap-2">
+        <select
+          className="w-28 shrink-0 border border-stone-300 rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+          value={prefijoTelefono}
+          onChange={(e) => setPrefijoTelefono(e.target.value)}
+          required
+        >
+          {PREFIJOS_TELEFONO.map((p) => (
+            <option key={p.codigo} value={p.codigo}>
+              {p.codigo} {p.pais}
+            </option>
+          ))}
+        </select>
+        <input
+          className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+          placeholder="Número de teléfono de contacto"
+          type="tel"
+          inputMode="numeric"
+          pattern="\d{6,12}"
+          value={numeroTelefono}
+          onChange={(e) => setNumeroTelefono(e.target.value.replace(/[^0-9]/g, ""))}
+          required
+        />
+      </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
       <button
         disabled={loading || subiendoFotos}
