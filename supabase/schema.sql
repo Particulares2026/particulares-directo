@@ -27,7 +27,8 @@ create table if not exists public.anuncios (
   amueblado boolean,
   tamano numeric,
   caracteristicas text[] not null default '{}',
-  duracion_alquiler text check (duracion_alquiler in ('temporada', 'larga_estancia'))
+  duracion_alquiler text check (duracion_alquiler in ('temporada', 'larga_estancia')),
+  fotos text[] not null default '{}'
 );
 
 create index if not exists anuncios_categoria_idx on public.anuncios (categoria);
@@ -87,3 +88,22 @@ create policy "Los usuarios eliminan solo sus propios favoritos"
   on public.favoritos for delete
   to authenticated
   using (auth.uid() = user_id);
+
+-- Bucket público para las fotos de los anuncios de inmobiliaria.
+insert into storage.buckets (id, name, public)
+  values ('inmuebles', 'inmuebles', true)
+  on conflict (id) do nothing;
+
+create policy "Las fotos de inmuebles son visibles para todos"
+  on storage.objects for select
+  using (bucket_id = 'inmuebles');
+
+create policy "Los usuarios suben fotos a su propia carpeta"
+  on storage.objects for insert
+  to authenticated
+  with check (bucket_id = 'inmuebles' and (storage.foldername(name))[1] = auth.uid()::text);
+
+create policy "Los usuarios eliminan solo sus propias fotos"
+  on storage.objects for delete
+  to authenticated
+  using (bucket_id = 'inmuebles' and (storage.foldername(name))[1] = auth.uid()::text);

@@ -41,3 +41,13 @@ export const DURACIONES_ALQUILER: { valor: string; label: string }[] = [
   { valor: "temporada", label: "Alquiler de temporada" },
   { valor: "larga_estancia", label: "Larga estancia" },
 ];
+
+export const FOTOS_BUCKET = "inmuebles";
+export const MAX_FOTOS = 10;
+
+export function extraerPathStorage(url: string): string | null {
+  const marker = `/object/public/${FOTOS_BUCKET}/`;
+  const idx = url.indexOf(marker);
+  if (idx === -1) return null;
+  return decodeURIComponent(url.slice(idx + marker.length));
+}

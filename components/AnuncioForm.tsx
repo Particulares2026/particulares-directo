@@ -1,10 +1,19 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { etiquetasTipo } from "@/lib/categorias";
-import { PROVINCIAS, TIPOS_INMUEBLE, OPERACIONES, CARACTERISTICAS, DURACIONES_ALQUILER } from "@/lib/inmobiliaria";
+import {
+  PROVINCIAS,
+  TIPOS_INMUEBLE,
+  OPERACIONES,
+  CARACTERISTICAS,
+  DURACIONES_ALQUILER,
+  FOTOS_BUCKET,
+  MAX_FOTOS,
+  extraerPathStorage,
+} from "@/lib/inmobiliaria";
 
 export default function AnuncioForm({
   userId,
@@ -44,11 +53,46 @@ export default function AnuncioForm({
   const [tamano, setTamano] = useState("");
   const [caracteristicas, setCaracteristicas] = useState<string[]>([]);
   const [duracionAlquiler, setDuracionAlquiler] = useState("");
+  const [fotos, setFotos] = useState<string[]>([]);
+  const [subiendoFotos, setSubiendoFotos] = useState(false);
+  const [fotosError, setFotosError] = useState<string | null>(null);
 
   const toggleCaracteristica = (valor: string) => {
     setCaracteristicas((prev) =>
       prev.includes(valor) ? prev.filter((c) => c !== valor) : [...prev, valor]
     );
+  };
+
+  const handleFotosChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    if (fotos.length + files.length > MAX_FOTOS) {
+      setFotosError(`Puedes subir un máximo de ${MAX_FOTOS} fotos.`);
+      e.target.value = "";
+      return;
+    }
+
+    setFotosError(null);
+    setSubiendoFotos(true);
+    const nuevas: string[] = [];
+    for (const file of files) {
+      const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}-${file.name}`;
+      const { error: uploadError } = await supabase.storage.from(FOTOS_BUCKET).upload(path, file);
+      if (!uploadError) {
+        const { data } = supabase.storage.from(FOTOS_BUCKET).getPublicUrl(path);
+        nuevas.push(data.publicUrl);
+      }
+    }
+    setFotos((prev) => [...prev, ...nuevas]);
+    setSubiendoFotos(false);
+    e.target.value = "";
+  };
+
+  const eliminarFoto = async (url: string) => {
+    setFotos((prev) => prev.filter((f) => f !== url));
+    const path = extraerPathStorage(url);
+    if (path) await supabase.storage.from(FOTOS_BUCKET).remove([path]);
   };
 
   const submit = async (e: FormEvent) => {
@@ -80,6 +124,7 @@ export default function AnuncioForm({
       tamano: esInmobiliaria && tamano ? Number(tamano) : null,
       caracteristicas: esInmobiliaria ? caracteristicas : [],
       duracion_alquiler: esInmobiliaria && operacion === "alquiler" && duracionAlquiler ? duracionAlquiler : null,
+      fotos: esInmobiliaria ? fotos : [],
     });
 
     setLoading(false);
@@ -255,6 +300,41 @@ export default function AnuncioForm({
               ))}
             </div>
           </div>
+
+          <div>
+            <p className="text-sm text-stone-500 mb-1.5">
+              Fotos ({fotos.length}/{MAX_FOTOS})
+            </p>
+            {fotos.length > 0 && (
+              <div className="grid grid-cols-4 gap-2 mb-2">
+                {fotos.map((url) => (
+                  <div key={url} className="relative">
+                    <img src={url} alt="" className="w-full aspect-square object-cover rounded-lg border border-stone-200" />
+                    <button
+                      type="button"
+                      onClick={() => eliminarFoto(url)}
+                      aria-label="Quitar foto"
+                      className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-stone-900 text-white text-xs leading-none flex items-center justify-center"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {fotos.length < MAX_FOTOS && (
+              <input
+                className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm file:mr-3 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:bg-stone-100 file:text-stone-700"
+                type="file"
+                accept="image/*"
+                multiple
+                disabled={subiendoFotos}
+                onChange={handleFotosChange}
+              />
+            )}
+            {subiendoFotos && <p className="text-xs text-stone-400 mt-1">Subiendo fotos…</p>}
+            {fotosError && <p className="text-xs text-red-600 mt-1">{fotosError}</p>}
+          </div>
         </>
       )}
 
@@ -294,7 +374,7 @@ export default function AnuncioForm({
       />
       {error && <p className="text-sm text-red-600">{error}</p>}
       <button
-        disabled={loading}
+        disabled={loading || subiendoFotos}
         className="w-full bg-stone-900 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-stone-800 disabled:opacity-40"
       >
         {loading ? "Publicando…" : "Publicar anuncio"}

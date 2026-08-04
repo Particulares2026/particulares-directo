@@ -4,7 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { etiquetasTipo } from "@/lib/categorias";
-import { TIPOS_INMUEBLE, OPERACIONES, CARACTERISTICAS, DURACIONES_ALQUILER } from "@/lib/inmobiliaria";
+import {
+  TIPOS_INMUEBLE,
+  OPERACIONES,
+  CARACTERISTICAS,
+  DURACIONES_ALQUILER,
+  FOTOS_BUCKET,
+  extraerPathStorage,
+} from "@/lib/inmobiliaria";
 
 type Anuncio = {
   id: string;
@@ -28,6 +35,7 @@ type Anuncio = {
   tamano?: number | null;
   caracteristicas?: string[];
   duracion_alquiler?: string | null;
+  fotos?: string[];
 };
 
 export default function AnuncioCard({
@@ -49,6 +57,10 @@ export default function AnuncioCard({
     if (!confirm("¿Eliminar este anuncio? No se puede deshacer.")) return;
     setDeleting(true);
     const { error } = await supabase.from("anuncios").delete().eq("id", anuncio.id);
+    if (!error && anuncio.fotos && anuncio.fotos.length > 0) {
+      const paths = anuncio.fotos.map(extraerPathStorage).filter((p): p is string => Boolean(p));
+      if (paths.length > 0) await supabase.storage.from(FOTOS_BUCKET).remove(paths);
+    }
     setDeleting(false);
     if (!error) router.refresh();
   };
@@ -111,6 +123,20 @@ export default function AnuncioCard({
           )}
         </div>
       </div>
+
+      {esInmobiliaria && anuncio.fotos && anuncio.fotos.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto mt-2">
+          {anuncio.fotos.map((url, i) => (
+            <a key={i} href={url} target="_blank" rel="noreferrer" className="shrink-0">
+              <img
+                src={url}
+                alt=""
+                className="h-28 w-28 object-cover rounded-lg border border-stone-200"
+              />
+            </a>
+          ))}
+        </div>
+      )}
 
       {esInmobiliaria && (
         <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-sm text-stone-600">
