@@ -186,7 +186,7 @@ export default function AnuncioForm({
       fotos: esInmobiliaria ? fotos : [],
     };
 
-    const { error } = esEdicion
+    const { error } = anuncioExistente
       ? await supabase.from("anuncios").update(payload).eq("id", anuncioExistente.id)
       : await supabase.from("anuncios").insert({ user_id: userId, ...payload });
 
