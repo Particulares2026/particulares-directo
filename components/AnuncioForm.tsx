@@ -76,15 +76,23 @@ export default function AnuncioForm({
     setFotosError(null);
     setSubiendoFotos(true);
     const nuevas: string[] = [];
-    for (const file of files) {
-      const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}-${file.name}`;
-      const { error: uploadError } = await supabase.storage.from(FOTOS_BUCKET).upload(path, file);
-      if (!uploadError) {
+    let ultimoError: string | null = null;
+    try {
+      for (const file of files) {
+        const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}-${file.name}`;
+        const { error: uploadError } = await supabase.storage.from(FOTOS_BUCKET).upload(path, file);
+        if (uploadError) {
+          ultimoError = uploadError.message;
+          continue;
+        }
         const { data } = supabase.storage.from(FOTOS_BUCKET).getPublicUrl(path);
         nuevas.push(data.publicUrl);
       }
+    } catch (err: any) {
+      ultimoError = err?.message || "Error inesperado al subir la foto.";
     }
     setFotos((prev) => [...prev, ...nuevas]);
+    if (ultimoError) setFotosError(ultimoError);
     setSubiendoFotos(false);
     e.target.value = "";
   };
