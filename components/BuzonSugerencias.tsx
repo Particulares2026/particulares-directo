@@ -1,14 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 export default function BuzonSugerencias() {
+  const [montado, setMontado] = useState(false);
   const [abierto, setAbierto] = useState(false);
   const [tipo, setTipo] = useState<"error" | "sugerencia">("sugerencia");
   const [mensaje, setMensaje] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [enviado, setEnviado] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setMontado(true);
+  }, []);
+
+  useEffect(() => {
+    if (!abierto) return;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [abierto]);
 
   const cerrar = () => {
     setAbierto(false);
@@ -57,13 +71,13 @@ export default function BuzonSugerencias() {
         Contacto
       </button>
 
-      {abierto && (
+      {montado && abierto && createPortal(
         <div
-          className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/40 z-[100] flex items-center justify-center p-4 overflow-y-auto"
           onClick={cerrar}
         >
           <div
-            className="bg-white rounded-2xl max-w-sm w-full p-6 relative"
+            className="bg-white rounded-2xl max-w-sm w-full p-6 relative my-auto max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -167,7 +181,8 @@ export default function BuzonSugerencias() {
               </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
