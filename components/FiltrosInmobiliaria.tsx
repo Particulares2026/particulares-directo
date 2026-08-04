@@ -230,14 +230,14 @@ export default function FiltrosInmobiliaria({
               onClick={() => setCaracteristicasAbierto((v) => !v)}
               className={
                 SELECT_CLASS +
-                " inline-flex items-center gap-1 " +
+                " inline-flex items-center justify-between gap-2 " +
                 (caracteristicas.length > 0 ? "border-fuchsia-600 text-fuchsia-700 font-medium" : "")
               }
             >
-              Características{caracteristicas.length > 0 ? ` (${caracteristicas.length})` : ""}
-              <span aria-hidden="true" className={"text-xs transition-transform " + (caracteristicasAbierto ? "rotate-180" : "")}>
-                ▾
-              </span>
+              <span>Características{caracteristicas.length > 0 ? ` (${caracteristicas.length})` : ""}</span>
+              <svg aria-hidden="true" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </button>
             {caracteristicasAbierto && (
               <div className="absolute z-10 mt-1 w-56 border border-stone-200 rounded-lg bg-white shadow-md p-2 space-y-1">

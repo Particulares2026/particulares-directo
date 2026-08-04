@@ -30,9 +30,11 @@ export const CARACTERISTICAS: { valor: string; label: string }[] = [
   { valor: "armarios_empotrados", label: "Armarios empotrados" },
   { valor: "ascensor", label: "Ascensor" },
   { valor: "balcon_terraza", label: "Balcón o terraza" },
+  { valor: "calefaccion", label: "Calefacción" },
   { valor: "exterior", label: "Exterior" },
   { valor: "garaje", label: "Garaje" },
   { valor: "jardin", label: "Jardín" },
+  { valor: "mascotas", label: "Mascotas" },
   { valor: "piscina", label: "Piscina" },
   { valor: "trastero", label: "Trastero" },
 ];
