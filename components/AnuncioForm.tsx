@@ -21,39 +21,46 @@ export default function AnuncioForm({
   defaultNombre,
   defaultTelefono,
   defaultEmail,
+  anuncioExistente,
 }: {
   userId: string;
   categoria: string;
   defaultNombre: string;
   defaultTelefono: string;
   defaultEmail: string;
+  anuncioExistente?: any;
 }) {
   const supabase = createClient();
   const router = useRouter();
   const esInmobiliaria = categoria === "inmobiliaria";
+  const esEdicion = Boolean(anuncioExistente);
 
-  const [tipo, setTipo] = useState<"busco" | "ofrezco">("busco");
+  const [tipo, setTipo] = useState<"busco" | "ofrezco">(anuncioExistente?.tipo ?? "busco");
   const [etiquetaBusco, etiquetaOfrezco] = etiquetasTipo(categoria);
-  const [titulo, setTitulo] = useState("");
-  const [ubicacion, setUbicacion] = useState("");
-  const [palabrasClave, setPalabrasClave] = useState("");
-  const [descripcion, setDescripcion] = useState("");
-  const [nombreContacto, setNombreContacto] = useState(defaultNombre);
-  const [telefonoContacto, setTelefonoContacto] = useState(defaultTelefono);
+  const [titulo, setTitulo] = useState(anuncioExistente?.titulo ?? "");
+  const [ubicacion, setUbicacion] = useState(anuncioExistente?.ubicacion ?? "");
+  const [palabrasClave, setPalabrasClave] = useState((anuncioExistente?.palabras_clave ?? []).join(", "));
+  const [descripcion, setDescripcion] = useState(anuncioExistente?.descripcion ?? "");
+  const [nombreContacto, setNombreContacto] = useState(anuncioExistente?.nombre_contacto ?? defaultNombre);
+  const [telefonoContacto, setTelefonoContacto] = useState(anuncioExistente?.telefono_contacto ?? defaultTelefono);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const [operacion, setOperacion] = useState("venta");
-  const [provincia, setProvincia] = useState("");
-  const [tipoInmueble, setTipoInmueble] = useState("piso");
-  const [precio, setPrecio] = useState("");
-  const [habitaciones, setHabitaciones] = useState("");
-  const [banos, setBanos] = useState("");
-  const [amueblado, setAmueblado] = useState("sin_dato");
-  const [tamano, setTamano] = useState("");
-  const [caracteristicas, setCaracteristicas] = useState<string[]>([]);
-  const [duracionAlquiler, setDuracionAlquiler] = useState("");
-  const [fotos, setFotos] = useState<string[]>([]);
+  const [operacion, setOperacion] = useState(anuncioExistente?.operacion ?? "venta");
+  const [provincia, setProvincia] = useState(anuncioExistente?.provincia ?? "");
+  const [tipoInmueble, setTipoInmueble] = useState(anuncioExistente?.tipo_inmueble ?? "piso");
+  const [precio, setPrecio] = useState(anuncioExistente?.precio != null ? String(anuncioExistente.precio) : "");
+  const [habitaciones, setHabitaciones] = useState(
+    anuncioExistente?.habitaciones != null ? String(anuncioExistente.habitaciones) : ""
+  );
+  const [banos, setBanos] = useState(anuncioExistente?.banos != null ? String(anuncioExistente.banos) : "");
+  const [amueblado, setAmueblado] = useState(
+    anuncioExistente?.amueblado == null ? "sin_dato" : anuncioExistente.amueblado ? "si" : "no"
+  );
+  const [tamano, setTamano] = useState(anuncioExistente?.tamano != null ? String(anuncioExistente.tamano) : "");
+  const [caracteristicas, setCaracteristicas] = useState<string[]>(anuncioExistente?.caracteristicas ?? []);
+  const [duracionAlquiler, setDuracionAlquiler] = useState(anuncioExistente?.duracion_alquiler ?? "");
+  const [fotos, setFotos] = useState<string[]>(anuncioExistente?.fotos ?? []);
   const [subiendoFotos, setSubiendoFotos] = useState(false);
   const [fotosError, setFotosError] = useState<string | null>(null);
   const [fotoArrastrada, setFotoArrastrada] = useState<number | null>(null);
@@ -121,8 +128,7 @@ export default function AnuncioForm({
     setLoading(true);
     setError(null);
 
-    const { error } = await supabase.from("anuncios").insert({
-      user_id: userId,
+    const payload = {
       categoria,
       tipo,
       titulo: titulo.trim(),
@@ -146,7 +152,11 @@ export default function AnuncioForm({
       caracteristicas: esInmobiliaria ? caracteristicas : [],
       duracion_alquiler: esInmobiliaria && operacion === "alquiler" && duracionAlquiler ? duracionAlquiler : null,
       fotos: esInmobiliaria ? fotos : [],
-    });
+    };
+
+    const { error } = esEdicion
+      ? await supabase.from("anuncios").update(payload).eq("id", anuncioExistente.id)
+      : await supabase.from("anuncios").insert({ user_id: userId, ...payload });
 
     setLoading(false);
     if (error) {
@@ -419,7 +429,13 @@ export default function AnuncioForm({
         disabled={loading || subiendoFotos}
         className="w-full bg-stone-900 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-stone-800 disabled:opacity-40"
       >
-        {loading ? "Publicando…" : "Publicar anuncio"}
+        {loading
+          ? esEdicion
+            ? "Guardando…"
+            : "Publicando…"
+          : esEdicion
+          ? "Guardar cambios"
+          : "Publicar anuncio"}
       </button>
     </form>
   );

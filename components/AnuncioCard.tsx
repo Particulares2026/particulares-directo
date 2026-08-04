@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { etiquetasTipo } from "@/lib/categorias";
@@ -111,6 +112,11 @@ export default function AnuncioCard({
             >
               {esFavorito ? "★" : "☆"}
             </button>
+          )}
+          {isOwner && (
+            <Link href={`/editar/${anuncio.id}`} className="text-xs text-teal-700 hover:underline">
+              Editar
+            </Link>
           )}
           {isOwner && (
             <button
