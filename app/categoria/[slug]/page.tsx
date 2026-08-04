@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Buscador from "@/components/Buscador";
+import FiltrosInmobiliaria from "@/components/FiltrosInmobiliaria";
 import { esCategoriaValida, nombreCategoria } from "@/lib/categorias";
 
 export default async function CategoriaPage({
@@ -24,6 +25,15 @@ export default async function CategoriaPage({
     data: { user },
   } = await supabase.auth.getUser();
 
+  let favoritosIniciales: string[] = [];
+  if (user && params.slug === "inmobiliaria") {
+    const { data: favoritos } = await supabase
+      .from("favoritos")
+      .select("anuncio_id")
+      .eq("user_id", user.id);
+    favoritosIniciales = (favoritos || []).map((f) => f.anuncio_id);
+  }
+
   return (
     <main className="max-w-2xl mx-auto px-4 md:px-8 py-8">
       <Link href="/" className="text-sm text-stone-500 hover:text-stone-700">
@@ -40,7 +50,15 @@ export default async function CategoriaPage({
         </Link>
       </div>
 
-      <Buscador anuncios={anuncios || []} currentUserId={user?.id ?? null} />
+      {params.slug === "inmobiliaria" ? (
+        <FiltrosInmobiliaria
+          anuncios={anuncios || []}
+          currentUserId={user?.id ?? null}
+          favoritosIniciales={favoritosIniciales}
+        />
+      ) : (
+        <Buscador anuncios={anuncios || []} currentUserId={user?.id ?? null} />
+      )}
     </main>
   );
 }

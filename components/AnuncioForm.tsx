@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { etiquetasTipo } from "@/lib/categorias";
+import { PROVINCIAS, TIPOS_INMUEBLE, OPERACIONES } from "@/lib/inmobiliaria";
 
 export default function AnuncioForm({
   userId,
@@ -18,6 +19,8 @@ export default function AnuncioForm({
 }) {
   const supabase = createClient();
   const router = useRouter();
+  const esInmobiliaria = categoria === "inmobiliaria";
+
   const [tipo, setTipo] = useState<"busco" | "ofrezco">("busco");
   const [etiquetaBusco, etiquetaOfrezco] = etiquetasTipo(categoria);
   const [titulo, setTitulo] = useState("");
@@ -27,6 +30,14 @@ export default function AnuncioForm({
   const [nombreContacto, setNombreContacto] = useState(defaultNombre);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const [operacion, setOperacion] = useState("venta");
+  const [provincia, setProvincia] = useState("");
+  const [tipoInmueble, setTipoInmueble] = useState("piso");
+  const [precio, setPrecio] = useState("");
+  const [habitaciones, setHabitaciones] = useState("");
+  const [banos, setBanos] = useState("");
+  const [amueblado, setAmueblado] = useState("sin_dato");
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -46,6 +57,13 @@ export default function AnuncioForm({
         .filter(Boolean),
       nombre_contacto: nombreContacto.trim(),
       email_contacto: defaultEmail,
+      operacion: esInmobiliaria ? operacion : null,
+      provincia: esInmobiliaria ? provincia || null : null,
+      tipo_inmueble: esInmobiliaria ? tipoInmueble : null,
+      precio: esInmobiliaria && precio ? Number(precio) : null,
+      habitaciones: esInmobiliaria && habitaciones ? Number(habitaciones) : null,
+      banos: esInmobiliaria && banos ? Number(banos) : null,
+      amueblado: esInmobiliaria && amueblado !== "sin_dato" ? amueblado === "si" : null,
     });
 
     setLoading(false);
@@ -85,6 +103,27 @@ export default function AnuncioForm({
           {etiquetaOfrezco}
         </button>
       </div>
+
+      {esInmobiliaria && (
+        <div className="flex gap-2">
+          {OPERACIONES.map((o) => (
+            <button
+              key={o.valor}
+              type="button"
+              onClick={() => setOperacion(o.valor)}
+              className={
+                "flex-1 text-sm py-2 rounded-lg border " +
+                (operacion === o.valor
+                  ? "border-fuchsia-600 bg-fuchsia-50 text-fuchsia-700 font-medium"
+                  : "border-stone-200 text-stone-500")
+              }
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       <input
         className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
         placeholder="Título del anuncio"
@@ -92,6 +131,73 @@ export default function AnuncioForm({
         onChange={(e) => setTitulo(e.target.value)}
         required
       />
+
+      {esInmobiliaria && (
+        <>
+          <div className="grid grid-cols-2 gap-2">
+            <select
+              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+              value={tipoInmueble}
+              onChange={(e) => setTipoInmueble(e.target.value)}
+            >
+              {TIPOS_INMUEBLE.map((t) => (
+                <option key={t.valor} value={t.valor}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
+            <select
+              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+              value={provincia}
+              onChange={(e) => setProvincia(e.target.value)}
+              required
+            >
+              <option value="">Provincia</option>
+              {PROVINCIAS.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <input
+              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+              placeholder="Precio (€)"
+              type="number"
+              min="0"
+              value={precio}
+              onChange={(e) => setPrecio(e.target.value)}
+            />
+            <input
+              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+              placeholder="Habitaciones"
+              type="number"
+              min="0"
+              value={habitaciones}
+              onChange={(e) => setHabitaciones(e.target.value)}
+            />
+            <input
+              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+              placeholder="Baños"
+              type="number"
+              min="0"
+              value={banos}
+              onChange={(e) => setBanos(e.target.value)}
+            />
+          </div>
+          <select
+            className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+            value={amueblado}
+            onChange={(e) => setAmueblado(e.target.value)}
+          >
+            <option value="sin_dato">Amueblado: sin especificar</option>
+            <option value="si">Amueblado</option>
+            <option value="no">Sin amueblar</option>
+          </select>
+        </>
+      )}
+
       <input
         className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
         placeholder="Ciudad o modalidad (ej. Sevilla, remoto)"

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { etiquetasTipo } from "@/lib/categorias";
+import { TIPOS_INMUEBLE, OPERACIONES } from "@/lib/inmobiliaria";
 
 type Anuncio = {
   id: string;
@@ -16,14 +17,25 @@ type Anuncio = {
   nombre_contacto: string;
   email_contacto: string;
   user_id: string;
+  operacion?: string | null;
+  provincia?: string | null;
+  tipo_inmueble?: string | null;
+  precio?: number | null;
+  habitaciones?: number | null;
+  banos?: number | null;
+  amueblado?: boolean | null;
 };
 
 export default function AnuncioCard({
   anuncio,
   isOwner,
+  esFavorito,
+  onToggleFavorito,
 }: {
   anuncio: Anuncio;
   isOwner: boolean;
+  esFavorito?: boolean;
+  onToggleFavorito?: () => void;
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -39,36 +51,71 @@ export default function AnuncioCard({
 
   const esOferta = anuncio.tipo === "ofrezco";
   const [etiquetaBusco, etiquetaOfrezco] = etiquetasTipo(anuncio.categoria);
+  const esInmobiliaria = anuncio.categoria === "inmobiliaria";
 
   return (
     <div className="border border-stone-200 rounded-xl p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <span
-            className={
-              "text-xs font-medium px-2 py-0.5 rounded-full border " +
-              (esOferta
-                ? "bg-amber-50 text-amber-700 border-amber-200"
-                : "bg-teal-50 text-teal-700 border-teal-200")
-            }
-          >
-            {esOferta ? etiquetaOfrezco : etiquetaBusco}
-          </span>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span
+              className={
+                "text-xs font-medium px-2 py-0.5 rounded-full border " +
+                (esOferta
+                  ? "bg-amber-50 text-amber-700 border-amber-200"
+                  : "bg-teal-50 text-teal-700 border-teal-200")
+              }
+            >
+              {esOferta ? etiquetaOfrezco : etiquetaBusco}
+            </span>
+            {esInmobiliaria && anuncio.operacion && (
+              <span className="text-xs font-medium px-2 py-0.5 rounded-full border bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200">
+                {OPERACIONES.find((o) => o.valor === anuncio.operacion)?.label}
+              </span>
+            )}
+            {esInmobiliaria && anuncio.tipo_inmueble && (
+              <span className="text-xs font-medium px-2 py-0.5 rounded-full border bg-stone-50 text-stone-600 border-stone-200">
+                {TIPOS_INMUEBLE.find((t) => t.valor === anuncio.tipo_inmueble)?.label}
+              </span>
+            )}
+          </div>
           <p className="font-medium text-stone-900 mt-1.5">{anuncio.titulo}</p>
-          {anuncio.ubicacion && (
-            <p className="text-sm text-stone-500">{anuncio.ubicacion}</p>
+          {(anuncio.provincia || anuncio.ubicacion) && (
+            <p className="text-sm text-stone-500">
+              {[anuncio.provincia, anuncio.ubicacion].filter(Boolean).join(" · ")}
+            </p>
           )}
         </div>
-        {isOwner && (
-          <button
-            onClick={eliminar}
-            disabled={deleting}
-            className="text-xs text-red-500 hover:underline shrink-0 disabled:opacity-40"
-          >
-            {deleting ? "Eliminando…" : "Eliminar"}
-          </button>
-        )}
+        <div className="flex items-center gap-2 shrink-0">
+          {onToggleFavorito && (
+            <button
+              onClick={onToggleFavorito}
+              aria-label={esFavorito ? "Quitar de favoritos" : "Añadir a favoritos"}
+              className={"text-lg leading-none " + (esFavorito ? "text-fuchsia-600" : "text-stone-300 hover:text-stone-400")}
+            >
+              {esFavorito ? "★" : "☆"}
+            </button>
+          )}
+          {isOwner && (
+            <button
+              onClick={eliminar}
+              disabled={deleting}
+              className="text-xs text-red-500 hover:underline disabled:opacity-40"
+            >
+              {deleting ? "Eliminando…" : "Eliminar"}
+            </button>
+          )}
+        </div>
       </div>
+
+      {esInmobiliaria && (
+        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-sm text-stone-600">
+          {anuncio.precio != null && <span>{anuncio.precio.toLocaleString("es-ES")} €</span>}
+          {anuncio.habitaciones != null && <span>{anuncio.habitaciones} hab.</span>}
+          {anuncio.banos != null && <span>{anuncio.banos} baños</span>}
+          {anuncio.amueblado != null && <span>{anuncio.amueblado ? "Amueblado" : "Sin amueblar"}</span>}
+        </div>
+      )}
 
       {anuncio.descripcion && (
         <p className="text-sm text-stone-600 mt-2">{anuncio.descripcion}</p>
