@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import LogoutButton from "./LogoutButton";
+import BuzonSugerencias from "./BuzonSugerencias";
 
 export default async function Header() {
   const supabase = createClient();
@@ -43,6 +44,7 @@ export default async function Header() {
         </span>
       </Link>
       <nav className="flex items-center gap-3 md:gap-4 text-sm">
+        <BuzonSugerencias />
         {user ? (
           <>
             <Link
