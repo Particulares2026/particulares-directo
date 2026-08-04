@@ -53,6 +53,7 @@ export default function AnuncioCard({
   const router = useRouter();
   const supabase = createClient();
   const [deleting, setDeleting] = useState(false);
+  const [fotoAmpliada, setFotoAmpliada] = useState<string | null>(null);
 
   const eliminar = async () => {
     if (!confirm("¿Eliminar este anuncio? No se puede deshacer.")) return;
@@ -131,16 +132,35 @@ export default function AnuncioCard({
       </div>
 
       {esInmobiliaria && anuncio.fotos && anuncio.fotos.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto mt-2">
-          {anuncio.fotos.map((url, i) => (
-            <a key={i} href={url} target="_blank" rel="noreferrer" className="shrink-0">
-              <img
-                src={url}
-                alt=""
-                className="h-28 w-28 object-cover rounded-lg border border-stone-200"
-              />
-            </a>
-          ))}
+        <div className="relative mt-2">
+          <div className="flex gap-2 overflow-x-auto">
+            {anuncio.fotos.map((url, i) => (
+              <a
+                key={i}
+                href={url}
+                target="_blank"
+                rel="noreferrer"
+                className="shrink-0"
+                onMouseEnter={() => setFotoAmpliada(url)}
+                onMouseLeave={() => setFotoAmpliada(null)}
+                onTouchStart={() => setFotoAmpliada(url)}
+                onTouchEnd={() => setFotoAmpliada(null)}
+              >
+                <img
+                  src={url}
+                  alt=""
+                  className="h-28 w-28 object-cover rounded-lg border border-stone-200"
+                />
+              </a>
+            ))}
+          </div>
+          {fotoAmpliada && (
+            <img
+              src={fotoAmpliada}
+              alt=""
+              className="pointer-events-none absolute left-0 top-0 z-20 w-56 h-56 max-w-[75vw] max-h-[75vw] object-cover rounded-lg border border-stone-300 shadow-lg"
+            />
+          )}
         </div>
       )}
 
