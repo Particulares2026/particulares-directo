@@ -31,6 +31,7 @@ export async function POST(request: Request) {
   });
 
   if (error) {
+    console.error("Error al enviar con Resend:", JSON.stringify(error));
     return NextResponse.json({ error: "No se pudo enviar el mensaje." }, { status: 502 });
   }
 
