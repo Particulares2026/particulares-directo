@@ -11,6 +11,8 @@ function tokenize(text: string) {
     .filter(Boolean);
 }
 
+const POR_PAGINA = 20;
+
 export default function Buscador({
   anuncios,
   currentUserId,
@@ -19,6 +21,7 @@ export default function Buscador({
   currentUserId: string | null;
 }) {
   const [query, setQuery] = useState("");
+  const [visibles, setVisibles] = useState(POR_PAGINA);
 
   const filtrados = useMemo(() => {
     const tokens = tokenize(query);
@@ -37,7 +40,10 @@ export default function Buscador({
         className="w-full border border-stone-300 rounded-lg px-3 py-2.5 text-sm mb-5 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent"
         placeholder="Busca por puesto, habilidad o ciudad (ej. React, Sevilla)"
         value={query}
-        onChange={(e) => setQuery(e.target.value)}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          setVisibles(POR_PAGINA);
+        }}
       />
 
       {anuncios.length === 0 && (
@@ -53,10 +59,20 @@ export default function Buscador({
       )}
 
       <div className="space-y-3">
-        {filtrados.map((a) => (
+        {filtrados.slice(0, visibles).map((a) => (
           <AnuncioCard key={a.id} anuncio={a} isOwner={a.user_id === currentUserId} />
         ))}
       </div>
+
+      {filtrados.length > visibles && (
+        <button
+          type="button"
+          onClick={() => setVisibles((v) => v + POR_PAGINA)}
+          className="w-full mt-3 text-sm border border-stone-300 rounded-lg py-2.5 text-stone-600 hover:bg-stone-50"
+        >
+          Cargar más
+        </button>
+      )}
     </div>
   );
 }

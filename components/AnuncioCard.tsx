@@ -142,7 +142,7 @@ export default function AnuncioCard({
         </div>
       </div>
 
-      {esInmobiliaria && anuncio.fotos && anuncio.fotos.length > 0 && (
+      {anuncio.fotos && anuncio.fotos.length > 0 && (
         <div className="relative mt-2">
           <div className="flex gap-2 overflow-x-auto">
             {anuncio.fotos.map((url, i) => (
@@ -160,6 +160,7 @@ export default function AnuncioCard({
                 <img
                   src={url}
                   alt=""
+                  loading="lazy"
                   className="h-28 w-28 object-cover rounded-lg border border-stone-200"
                 />
               </a>

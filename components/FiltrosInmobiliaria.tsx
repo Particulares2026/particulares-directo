@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import AnuncioCard from "./AnuncioCard";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -19,6 +19,8 @@ function tokenize(text: string) {
     .map((t) => t.trim())
     .filter(Boolean);
 }
+
+const POR_PAGINA = 20;
 
 const SELECT_CLASS =
   "border border-stone-300 rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white";
@@ -53,6 +55,7 @@ export default function FiltrosInmobiliaria({
   const [caracteristicas, setCaracteristicas] = useState<string[]>([]);
   const [caracteristicasAbierto, setCaracteristicasAbierto] = useState(false);
   const [favoritos, setFavoritos] = useState<Set<string>>(new Set(favoritosIniciales));
+  const [visibles, setVisibles] = useState(POR_PAGINA);
 
   const toggleCaracteristica = (valor: string) => {
     setCaracteristicas((prev) =>
@@ -120,6 +123,10 @@ export default function FiltrosInmobiliaria({
     precioMin, precioMax, tamanoMin, tamanoMax, habitaciones, banos,
     amueblado, duracionAlquiler, caracteristicas, estado, soloFavoritos, favoritos,
   ]);
+
+  useEffect(() => {
+    setVisibles(POR_PAGINA);
+  }, [filtrados]);
 
   return (
     <div>
@@ -310,7 +317,7 @@ export default function FiltrosInmobiliaria({
       )}
 
       <div className="space-y-3">
-        {filtrados.map((a) => (
+        {filtrados.slice(0, visibles).map((a) => (
           <AnuncioCard
             key={a.id}
             anuncio={a}
@@ -320,6 +327,16 @@ export default function FiltrosInmobiliaria({
           />
         ))}
       </div>
+
+      {filtrados.length > visibles && (
+        <button
+          type="button"
+          onClick={() => setVisibles((v) => v + POR_PAGINA)}
+          className="w-full mt-3 text-sm border border-stone-300 rounded-lg py-2.5 text-stone-600 hover:bg-stone-50"
+        >
+          Cargar más
+        </button>
+      )}
     </div>
   );
 }

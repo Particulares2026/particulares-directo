@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AnuncioCard from "@/components/AnuncioCard";
+import EliminarCuentaButton from "@/components/EliminarCuentaButton";
 
 export default async function MisAnunciosPage() {
   const supabase = createClient();
@@ -40,6 +41,8 @@ export default async function MisAnunciosPage() {
           <AnuncioCard key={a.id} anuncio={a} isOwner={true} />
         ))}
       </div>
+
+      <EliminarCuentaButton />
     </main>
   );
 }
