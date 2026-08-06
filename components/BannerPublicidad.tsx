@@ -5,83 +5,101 @@ import { useEffect, useState } from "react";
 const TEXTO = "Cádiz Paraíso Natural";
 const INTERVALO_MS = 4500;
 
-function SlideAmanecer() {
+function FiltroGrano({ id }: { id: string }) {
+  return (
+    <filter id={id} x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="ruido" />
+      <feColorMatrix in="ruido" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.05 0" />
+    </filter>
+  );
+}
+
+function SlideArena() {
   return (
     <svg viewBox="0 0 800 300" preserveAspectRatio="xMidYMid slice" className="absolute inset-0 w-full h-full">
       <defs>
-        <linearGradient id="cieloA" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#fb923c" />
-          <stop offset="45%" stopColor="#f472b6" />
-          <stop offset="100%" stopColor="#7dd3fc" />
+        <linearGradient id="arena" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#fde9c8" />
+          <stop offset="55%" stopColor="#eec27f" />
+          <stop offset="100%" stopColor="#c98a4b" />
         </linearGradient>
-        <linearGradient id="marA" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#38bdf8" />
-          <stop offset="100%" stopColor="#0369a1" />
-        </linearGradient>
+        <FiltroGrano id="granoArena" />
       </defs>
-      <rect width="800" height="180" fill="url(#cieloA)" />
-      <circle cx="640" cy="150" r="46" fill="#fef3c7" opacity="0.95" />
-      <rect y="170" width="800" height="130" fill="url(#marA)" />
-      <path d="M0 178 Q 200 165 400 178 T 800 178 V 300 H 0 Z" fill="#0c4a6e" opacity="0.35" />
-      <path d="M120 230 q10 -12 20 0" stroke="#f0f9ff" strokeWidth="3" fill="none" opacity="0.6" />
-      <path d="M160 250 q10 -12 20 0" stroke="#f0f9ff" strokeWidth="3" fill="none" opacity="0.5" />
-      <path d="M60 260 q10 -12 20 0" stroke="#f0f9ff" strokeWidth="3" fill="none" opacity="0.5" />
-      <path d="M40 120 q18 -14 36 0 M90 110 q18 -14 36 0" stroke="#fde68a" strokeWidth="3" fill="none" opacity="0.8" />
+      <rect width="800" height="300" fill="url(#arena)" />
+      <rect width="800" height="300" filter="url(#granoArena)" opacity="0.5" />
+      <path d="M0 90 Q 200 70 420 95 T 800 85" stroke="#b9784a" strokeWidth="3" fill="none" opacity="0.35" />
+      <path d="M0 150 Q 250 130 500 155 T 800 140" stroke="#b9784a" strokeWidth="3" fill="none" opacity="0.3" />
+      <g transform="translate(620,180) rotate(12)">
+        <path
+          d="M0 -46 L13 -13 L48 -10 L20 12 L29 46 L0 26 L-29 46 L-20 12 L-48 -10 L-13 -13 Z"
+          fill="#e07a3e"
+          stroke="#a4501f"
+          strokeWidth="2"
+        />
+        <circle cx="0" cy="0" r="7" fill="#a4501f" opacity="0.4" />
+      </g>
+      <g transform="translate(140,210)">
+        <ellipse cx="0" cy="0" rx="16" ry="10" fill="#f4d9a8" stroke="#c98a4b" strokeWidth="1.5" />
+      </g>
     </svg>
   );
 }
 
-function SlideMediodia() {
+function SlideOlas() {
   return (
     <svg viewBox="0 0 800 300" preserveAspectRatio="xMidYMid slice" className="absolute inset-0 w-full h-full">
       <defs>
-        <linearGradient id="cieloM" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#38bdf8" />
-          <stop offset="100%" stopColor="#bae6fd" />
+        <linearGradient id="oceano" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#0e7490" />
+          <stop offset="55%" stopColor="#1596b0" />
+          <stop offset="100%" stopColor="#5fd4d9" />
         </linearGradient>
-        <linearGradient id="marM" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#2dd4bf" />
-          <stop offset="100%" stopColor="#0d9488" />
-        </linearGradient>
+        <FiltroGrano id="granoOlas" />
+        <filter id="desenfoque">
+          <feGaussianBlur stdDeviation="3.5" />
+        </filter>
       </defs>
-      <rect width="800" height="150" fill="url(#cieloM)" />
-      <circle cx="120" cy="70" r="34" fill="#fde047" />
-      <rect y="150" width="800" height="90" fill="url(#marM)" />
-      <rect y="240" width="800" height="60" fill="#fde68a" />
-      <path d="M0 150 Q 200 138 400 150 T 800 150 V 170 H 0 Z" fill="#5eead4" opacity="0.6" />
-      <path d="M600 300 L620 190 L640 300 Z" fill="#166534" />
-      <path d="M610 200 q30 -20 55 -5" stroke="#16a34a" strokeWidth="8" fill="none" strokeLinecap="round" />
-      <path d="M610 205 q-30 -15 -50 5" stroke="#16a34a" strokeWidth="8" fill="none" strokeLinecap="round" />
-      <circle cx="250" cy="260" r="10" fill="#fca5a5" />
-      <rect x="240" y="260" width="20" height="4" fill="#fca5a5" />
+      <rect width="800" height="300" fill="url(#oceano)" />
+      <rect width="800" height="300" filter="url(#granoOlas)" opacity="0.4" />
+      <g filter="url(#desenfoque)" opacity="0.85">
+        <path d="M-20 200 Q 60 180 140 205 T 300 195 T 460 210 T 620 190 T 800 205 V300 H-20 Z" fill="#f0fdff" opacity="0.55" />
+        <path d="M-20 235 Q 90 215 200 240 T 420 230 T 640 245 T 820 225 V300 H-20 Z" fill="#ffffff" opacity="0.7" />
+      </g>
+      <path d="M-20 260 Q 100 245 220 265 T 460 258 T 700 268 T 820 255" stroke="#ffffff" strokeWidth="2" fill="none" opacity="0.6" />
     </svg>
   );
 }
 
-function SlideAtardecer() {
+function SlideReflejo() {
   return (
     <svg viewBox="0 0 800 300" preserveAspectRatio="xMidYMid slice" className="absolute inset-0 w-full h-full">
       <defs>
-        <linearGradient id="cieloT" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#7c3aed" />
-          <stop offset="55%" stopColor="#f97316" />
-          <stop offset="100%" stopColor="#fbbf24" />
+        <linearGradient id="cieloR" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#f8b25c" />
+          <stop offset="100%" stopColor="#fcd98a" />
         </linearGradient>
-        <linearGradient id="marT" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#fb923c" />
-          <stop offset="100%" stopColor="#7c2d12" />
+        <linearGradient id="marR" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#f6c177" />
+          <stop offset="100%" stopColor="#c97b3d" />
         </linearGradient>
+        <radialGradient id="brillo" cx="50%" cy="0%" r="70%">
+          <stop offset="0%" stopColor="#fff7e6" stopOpacity="0.95" />
+          <stop offset="100%" stopColor="#fff7e6" stopOpacity="0" />
+        </radialGradient>
+        <FiltroGrano id="granoReflejo" />
       </defs>
-      <rect width="800" height="180" fill="url(#cieloT)" />
-      <circle cx="400" cy="175" r="55" fill="#fef9c3" />
-      <rect y="170" width="800" height="130" fill="url(#marT)" />
-      <path d="M0 340 L60 200 L130 260 L220 170 L320 260 L420 195 L520 260 L620 210 L720 260 L800 220 V300 H0 Z" fill="#1e1b4b" opacity="0.55" />
-      <path d="M100 90 q10 -8 20 0 M140 80 q10 -8 20 0 M180 95 q10 -8 20 0" stroke="#1e1b4b" strokeWidth="3" fill="none" opacity="0.6" />
+      <rect width="800" height="150" fill="url(#cieloR)" />
+      <circle cx="400" cy="150" r="260" fill="url(#brillo)" />
+      <circle cx="400" cy="140" r="30" fill="#fffceb" />
+      <rect y="150" width="800" height="150" fill="url(#marR)" />
+      <rect width="800" height="300" filter="url(#granoReflejo)" opacity="0.45" />
+      <path d="M390 155 L410 155 L430 300 L370 300 Z" fill="#fff7e6" opacity="0.25" />
+      <path d="M370 190 L430 190 M360 220 L440 220 M350 255 L450 255" stroke="#fff7e6" strokeWidth="3" opacity="0.25" />
     </svg>
   );
 }
 
-const SLIDES = [SlideAmanecer, SlideMediodia, SlideAtardecer];
+const SLIDES = [SlideArena, SlideOlas, SlideReflejo];
 
 export default function BannerPublicidad() {
   const [indice, setIndice] = useState(0);
@@ -96,7 +114,7 @@ export default function BannerPublicidad() {
   return (
     <div
       className="relative overflow-hidden w-full shrink-0"
-      style={{ height: "clamp(180px, 28vw, 340px)" }}
+      style={{ height: "clamp(120px, 16vw, 200px)" }}
     >
       {SLIDES.map((Slide, i) => (
         <div
@@ -108,7 +126,7 @@ export default function BannerPublicidad() {
         >
           <Slide />
           <div className="absolute inset-0 flex items-center justify-center">
-            <p className="font-serif text-2xl sm:text-3xl md:text-4xl font-medium text-white text-center px-4 drop-shadow-[0_2px_6px_rgba(0,0,0,0.45)]">
+            <p className="font-serif text-xl sm:text-2xl md:text-3xl font-medium text-white text-center px-4 drop-shadow-[0_2px_6px_rgba(0,0,0,0.45)]">
               {TEXTO}
             </p>
           </div>
