@@ -24,7 +24,7 @@ export async function POST(request: Request) {
   const asunto = tipo === "error" ? "Nuevo reporte de error" : "Nueva sugerencia";
 
   const { error } = await resend.emails.send({
-    from: "Particulares Directo <onboarding@resend.dev>",
+    from: "Particulares Directo <contacto@particularesdirecto.com>",
     to: destinatario,
     subject: `[Particulares Directo] ${asunto}`,
     text: mensaje.trim(),
