@@ -30,8 +30,17 @@ export default function BannerPublicidad() {
             (i === indice ? "opacity-100" : "opacity-0 pointer-events-none")
           }
         >
-          <img src={src} alt="" className="absolute inset-0 w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-black/25" />
+          <img
+            src={src}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl brightness-75"
+          />
+          <img
+            src={src}
+            alt=""
+            className="absolute inset-0 w-full h-full object-contain brightness-125 saturate-125 contrast-105"
+          />
+          <div className="absolute inset-0 bg-black/15" />
           <div className="absolute inset-0 flex items-center justify-center">
             <p className="font-serif text-xl sm:text-2xl md:text-3xl font-medium text-white text-center px-4 drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)]">
               {TEXTO}
