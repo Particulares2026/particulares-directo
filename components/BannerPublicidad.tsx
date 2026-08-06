@@ -94,7 +94,10 @@ export default function BannerPublicidad() {
   }, []);
 
   return (
-    <div className="relative overflow-hidden h-40 sm:h-48 md:h-56">
+    <div
+      className="relative overflow-hidden w-full shrink-0"
+      style={{ height: "clamp(180px, 28vw, 340px)" }}
+    >
       {SLIDES.map((Slide, i) => (
         <div
           key={i}
