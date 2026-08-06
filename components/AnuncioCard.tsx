@@ -10,6 +10,7 @@ import {
   OPERACIONES,
   CARACTERISTICAS,
   DURACIONES_ALQUILER,
+  ESTADOS_INMUEBLE,
   FOTOS_BUCKET,
   extraerPathStorage,
 } from "@/lib/inmobiliaria";
@@ -37,6 +38,7 @@ type Anuncio = {
   caracteristicas?: string[];
   duracion_alquiler?: string | null;
   fotos?: string[];
+  estado?: string | null;
 };
 
 export default function AnuncioCard({
@@ -94,6 +96,15 @@ export default function AnuncioCard({
             {esInmobiliaria && anuncio.tipo_inmueble && (
               <span className="text-xs font-medium px-2 py-0.5 rounded-full border bg-stone-50 text-stone-600 border-stone-200">
                 {TIPOS_INMUEBLE.find((t) => t.valor === anuncio.tipo_inmueble)?.label}
+              </span>
+            )}
+            {esInmobiliaria && anuncio.estado && (
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full border bg-stone-50 text-stone-600 border-stone-200">
+                <span
+                  className={"w-2 h-2 rounded-full " + ESTADOS_INMUEBLE.find((e) => e.valor === anuncio.estado)?.color}
+                  aria-hidden="true"
+                />
+                {ESTADOS_INMUEBLE.find((e) => e.valor === anuncio.estado)?.label}
               </span>
             )}
           </div>

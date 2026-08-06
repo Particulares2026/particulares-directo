@@ -10,6 +10,7 @@ import {
   OPERACIONES,
   CARACTERISTICAS,
   DURACIONES_ALQUILER,
+  ESTADOS_INMUEBLE,
   FOTOS_BUCKET,
   MAX_FOTOS,
   extraerPathStorage,
@@ -36,6 +37,7 @@ type AnuncioExistente = {
   caracteristicas?: string[];
   duracion_alquiler?: string | null;
   fotos?: string[];
+  estado?: string | null;
 };
 
 export default function AnuncioForm({
@@ -85,6 +87,7 @@ export default function AnuncioForm({
   const [tamano, setTamano] = useState(anuncioExistente?.tamano != null ? String(anuncioExistente.tamano) : "");
   const [caracteristicas, setCaracteristicas] = useState<string[]>(anuncioExistente?.caracteristicas ?? []);
   const [duracionAlquiler, setDuracionAlquiler] = useState(anuncioExistente?.duracion_alquiler ?? "");
+  const [estado, setEstado] = useState(anuncioExistente?.estado ?? "");
   const [fotos, setFotos] = useState<string[]>(anuncioExistente?.fotos ?? []);
   const [subiendoFotos, setSubiendoFotos] = useState(false);
   const [fotosError, setFotosError] = useState<string | null>(null);
@@ -157,6 +160,10 @@ export default function AnuncioForm({
       setError("Introduce un número de teléfono completo (solo dígitos, 6 a 12 números).");
       return;
     }
+    if (esInmobiliaria && !estado) {
+      setError("Elige el estado del inmueble.");
+      return;
+    }
 
     setLoading(true);
 
@@ -184,6 +191,7 @@ export default function AnuncioForm({
       caracteristicas: esInmobiliaria ? caracteristicas : [],
       duracion_alquiler: esInmobiliaria && operacion === "alquiler" && duracionAlquiler ? duracionAlquiler : null,
       fotos: esInmobiliaria ? fotos : [],
+      estado: esInmobiliaria ? estado : null,
     };
 
     const { error } = anuncioExistente
@@ -349,6 +357,28 @@ export default function AnuncioForm({
               ))}
             </select>
           )}
+
+          <div>
+            <p className="text-sm text-stone-500 mb-1.5">Estado del inmueble</p>
+            <div className="flex gap-2">
+              {ESTADOS_INMUEBLE.map((e) => (
+                <button
+                  key={e.valor}
+                  type="button"
+                  onClick={() => setEstado(e.valor)}
+                  className={
+                    "flex-1 flex items-center justify-center gap-1.5 text-sm py-2 rounded-lg border " +
+                    (estado === e.valor
+                      ? "border-stone-900 bg-stone-50 text-stone-900 font-medium"
+                      : "border-stone-200 text-stone-500")
+                  }
+                >
+                  <span className={"w-2.5 h-2.5 rounded-full shrink-0 " + e.color} aria-hidden="true" />
+                  {e.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <div>
             <p className="text-sm text-stone-500 mb-1.5">Características</p>

@@ -44,6 +44,12 @@ export const DURACIONES_ALQUILER: { valor: string; label: string }[] = [
   { valor: "larga_estancia", label: "Larga estancia" },
 ];
 
+export const ESTADOS_INMUEBLE: { valor: string; label: string; color: string }[] = [
+  { valor: "nuevo", label: "Nuevo", color: "bg-green-500" },
+  { valor: "para_entrar", label: "Para entrar", color: "bg-amber-500" },
+  { valor: "necesita_reformas", label: "Necesita reformas", color: "bg-red-500" },
+];
+
 export const FOTOS_BUCKET = "inmuebles";
 export const MAX_FOTOS = 10;
 

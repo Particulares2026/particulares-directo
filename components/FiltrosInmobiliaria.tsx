@@ -9,6 +9,7 @@ import {
   OPERACIONES,
   CARACTERISTICAS,
   DURACIONES_ALQUILER,
+  ESTADOS_INMUEBLE,
 } from "@/lib/inmobiliaria";
 
 function tokenize(text: string) {
@@ -48,6 +49,7 @@ export default function FiltrosInmobiliaria({
   const [banos, setBanos] = useState("");
   const [amueblado, setAmueblado] = useState("");
   const [duracionAlquiler, setDuracionAlquiler] = useState("");
+  const [estado, setEstado] = useState("");
   const [caracteristicas, setCaracteristicas] = useState<string[]>([]);
   const [caracteristicasAbierto, setCaracteristicasAbierto] = useState(false);
   const [favoritos, setFavoritos] = useState<Set<string>>(new Set(favoritosIniciales));
@@ -109,13 +111,14 @@ export default function FiltrosInmobiliaria({
         const tiene: string[] = a.caracteristicas || [];
         if (!caracteristicas.every((c) => tiene.includes(c))) return false;
       }
+      if (estado && a.estado !== estado) return false;
       if (soloFavoritos && !favoritos.has(a.id)) return false;
       return true;
     });
   }, [
     anuncios, query, operacion, tipo, provincia, tipoInmueble,
     precioMin, precioMax, tamanoMin, tamanoMax, habitaciones, banos,
-    amueblado, duracionAlquiler, caracteristicas, soloFavoritos, favoritos,
+    amueblado, duracionAlquiler, caracteristicas, estado, soloFavoritos, favoritos,
   ]);
 
   return (
@@ -256,13 +259,13 @@ export default function FiltrosInmobiliaria({
           </div>
         </div>
 
-        {currentUserId && (
-          <div className="pt-1">
+        <div className="pt-1 flex flex-wrap items-center gap-2">
+          {currentUserId && (
             <button
               type="button"
               onClick={() => setSoloFavoritos((v) => !v)}
               className={
-                "text-sm px-3 py-2 rounded-lg border font-medium w-full sm:w-auto " +
+                "text-sm px-3 py-2 rounded-lg border font-medium " +
                 (soloFavoritos
                   ? "border-blue-600 bg-blue-600 text-white"
                   : "border-blue-600 bg-blue-50 text-blue-700 hover:bg-blue-100")
@@ -270,8 +273,24 @@ export default function FiltrosInmobiliaria({
             >
               ★ Solo mis favoritos
             </button>
-          </div>
-        )}
+          )}
+          {ESTADOS_INMUEBLE.map((e) => (
+            <button
+              key={e.valor}
+              type="button"
+              onClick={() => setEstado((prev) => (prev === e.valor ? "" : e.valor))}
+              className={
+                "inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg border " +
+                (estado === e.valor
+                  ? "border-stone-900 bg-stone-50 text-stone-900 font-medium"
+                  : "border-stone-300 text-stone-500")
+              }
+            >
+              <span className={"w-2.5 h-2.5 rounded-full shrink-0 " + e.color} aria-hidden="true" />
+              {e.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <p className="text-sm text-stone-500 mb-3">
