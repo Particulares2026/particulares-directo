@@ -367,7 +367,7 @@ export default function AnuncioForm({
                   type="button"
                   onClick={() => setEstado(e.valor)}
                   className={
-                    "flex-1 flex items-center justify-center gap-1.5 text-sm py-2 rounded-lg border " +
+                    "flex-1 flex items-center justify-center gap-1 text-center leading-tight px-1 py-2 text-sm rounded-lg border " +
                     (estado === e.valor
                       ? "border-stone-900 bg-stone-50 text-stone-900 font-medium"
                       : "border-stone-200 text-stone-500")
