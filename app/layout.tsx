@@ -3,6 +3,7 @@ import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import BannerPublicidad from "@/components/BannerPublicidad";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -29,6 +30,7 @@ export default function RootLayout({
     <html lang="es" className={`${fraunces.variable} ${inter.variable}`}>
       <body className="font-sans bg-white text-stone-900 min-h-screen flex flex-col">
         <Header />
+        <BannerPublicidad />
         <div className="flex-1">{children}</div>
         <Footer />
       </body>
