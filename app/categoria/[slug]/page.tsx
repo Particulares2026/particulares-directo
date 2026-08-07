@@ -18,6 +18,7 @@ export default async function CategoriaPage({
     .from("anuncios")
     .select("*")
     .eq("categoria", params.slug)
+    .eq("activo", true)
     .order("created_at", { ascending: false })
     .limit(500);
 

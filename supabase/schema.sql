@@ -29,10 +29,16 @@ create table if not exists public.anuncios (
   caracteristicas text[] not null default '{}',
   duracion_alquiler text check (duracion_alquiler in ('temporada', 'larga_estancia')),
   fotos text[] not null default '{}',
-  estado text check (estado in ('nuevo', 'para_entrar', 'necesita_reformas'))
+  estado text check (estado in ('nuevo', 'para_entrar', 'necesita_reformas')),
+  -- Caducidad: un anuncio se desactiva 30 días después de fecha_activacion si no se renueva.
+  activo boolean not null default true,
+  fecha_activacion timestamptz not null default now(),
+  aviso_5_enviado boolean not null default false,
+  aviso_3_enviado boolean not null default false
 );
 
 create index if not exists anuncios_categoria_idx on public.anuncios (categoria);
+create index if not exists anuncios_activo_idx on public.anuncios (activo);
 create index if not exists anuncios_tipo_idx on public.anuncios (tipo);
 create index if not exists anuncios_created_at_idx on public.anuncios (created_at desc);
 create index if not exists anuncios_user_id_idx on public.anuncios (user_id);

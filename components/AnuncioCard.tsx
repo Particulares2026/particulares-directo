@@ -39,6 +39,7 @@ type Anuncio = {
   duracion_alquiler?: string | null;
   fotos?: string[];
   estado?: string | null;
+  activo?: boolean;
 };
 
 export default function AnuncioCard({
@@ -55,6 +56,7 @@ export default function AnuncioCard({
   const router = useRouter();
   const supabase = createClient();
   const [deleting, setDeleting] = useState(false);
+  const [gestionando, setGestionando] = useState(false);
   const [fotoAmpliada, setFotoAmpliada] = useState<string | null>(null);
 
   const eliminar = async () => {
@@ -67,6 +69,30 @@ export default function AnuncioCard({
     }
     setDeleting(false);
     if (!error) router.refresh();
+  };
+
+  const actualizar = async () => {
+    setGestionando(true);
+    await supabase
+      .from("anuncios")
+      .update({
+        activo: true,
+        fecha_activacion: new Date().toISOString(),
+        aviso_5_enviado: false,
+        aviso_3_enviado: false,
+      })
+      .eq("id", anuncio.id);
+    setGestionando(false);
+    router.refresh();
+  };
+
+  const activar = actualizar;
+
+  const desactivar = async () => {
+    setGestionando(true);
+    await supabase.from("anuncios").update({ activo: false }).eq("id", anuncio.id);
+    setGestionando(false);
+    router.refresh();
   };
 
   const esOferta = anuncio.tipo === "ofrezco";
@@ -96,6 +122,11 @@ export default function AnuncioCard({
             {esInmobiliaria && anuncio.tipo_inmueble && (
               <span className="text-xs font-medium px-2 py-0.5 rounded-full border bg-stone-50 text-stone-600 border-stone-200">
                 {TIPOS_INMUEBLE.find((t) => t.valor === anuncio.tipo_inmueble)?.label}
+              </span>
+            )}
+            {anuncio.activo === false && (
+              <span className="text-xs font-medium px-2 py-0.5 rounded-full border bg-red-50 text-red-600 border-red-200">
+                Inactivo
               </span>
             )}
             {esInmobiliaria && anuncio.estado && (
@@ -223,6 +254,37 @@ export default function AnuncioCard({
         Contacto: {anuncio.nombre_contacto}
         {anuncio.telefono_contacto ? ` · ${anuncio.telefono_contacto}` : ""}
       </p>
+
+      {isOwner && (
+        <div className="flex flex-wrap gap-3 mt-2 pt-2 border-t border-stone-100">
+          {anuncio.activo !== false && (
+            <button
+              onClick={actualizar}
+              disabled={gestionando}
+              className="text-xs text-teal-700 hover:underline disabled:opacity-40"
+            >
+              Actualizar
+            </button>
+          )}
+          {anuncio.activo === false ? (
+            <button
+              onClick={activar}
+              disabled={gestionando}
+              className="text-xs text-teal-700 hover:underline disabled:opacity-40"
+            >
+              Activar
+            </button>
+          ) : (
+            <button
+              onClick={desactivar}
+              disabled={gestionando}
+              className="text-xs text-stone-500 hover:underline disabled:opacity-40"
+            >
+              Desactivar
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
