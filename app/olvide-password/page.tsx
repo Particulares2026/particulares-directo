@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { traducirErrorAuth } from "@/lib/errores-auth";
 
 export default function OlvidePasswordPage() {
   const supabase = createClient();
@@ -23,7 +24,7 @@ export default function OlvidePasswordPage() {
 
     setLoading(false);
     if (error) {
-      setError(error.message);
+      setError(traducirErrorAuth(error.message));
       return;
     }
     setMensaje(

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import CampoPassword from "@/components/CampoPassword";
+import { traducirErrorAuth } from "@/lib/errores-auth";
 
 export default function LoginPage() {
   const supabase = createClient();
@@ -23,7 +24,7 @@ export default function LoginPage() {
 
     setLoading(false);
     if (error) {
-      setError(error.message);
+      setError(traducirErrorAuth(error.message));
       return;
     }
     router.push("/mis-anuncios");

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { PREFIJOS_TELEFONO } from "@/lib/telefono";
 import CampoPassword from "@/components/CampoPassword";
+import { traducirErrorAuth } from "@/lib/errores-auth";
 
 export default function RegistroPage() {
   const supabase = createClient();
@@ -41,7 +42,7 @@ export default function RegistroPage() {
 
     setLoading(false);
     if (error) {
-      setError(error.message);
+      setError(traducirErrorAuth(error.message));
       return;
     }
     setMensaje("Cuenta creada. Revisa tu correo para confirmar la cuenta antes de entrar.");

@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import CampoPassword from "@/components/CampoPassword";
+import { traducirErrorAuth } from "@/lib/errores-auth";
 
 export default function RestablecerPasswordPage() {
   const supabase = createClient();
@@ -27,7 +28,7 @@ export default function RestablecerPasswordPage() {
     setLoading(false);
 
     if (error) {
-      setError(error.message);
+      setError(traducirErrorAuth(error.message));
       return;
     }
     router.push("/mis-anuncios");
