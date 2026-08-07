@@ -34,10 +34,13 @@ create table if not exists public.anuncios (
   activo boolean not null default true,
   fecha_activacion timestamptz not null default now(),
   aviso_5_enviado boolean not null default false,
-  aviso_3_enviado boolean not null default false
+  aviso_3_enviado boolean not null default false,
+  -- Anuncio destacado (de pago): vigente mientras destacado_hasta sea futuro.
+  destacado_hasta timestamptz
 );
 
 create index if not exists anuncios_categoria_idx on public.anuncios (categoria);
+create index if not exists anuncios_destacado_hasta_idx on public.anuncios (destacado_hasta);
 create index if not exists anuncios_activo_idx on public.anuncios (activo);
 create index if not exists anuncios_tipo_idx on public.anuncios (tipo);
 create index if not exists anuncios_created_at_idx on public.anuncios (created_at desc);

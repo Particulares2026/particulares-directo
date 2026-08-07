@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import Buscador from "@/components/Buscador";
 import FiltrosInmobiliaria from "@/components/FiltrosInmobiliaria";
 import { esCategoriaValida, nombreCategoria } from "@/lib/categorias";
+import { estaDestacado } from "@/lib/destacar";
 
 export default async function CategoriaPage({
   params,
@@ -21,6 +22,13 @@ export default async function CategoriaPage({
     .eq("activo", true)
     .order("created_at", { ascending: false })
     .limit(500);
+
+  const anunciosOrdenados = [...(anuncios || [])].sort((a, b) => {
+    const destacadoA = estaDestacado(a.destacado_hasta);
+    const destacadoB = estaDestacado(b.destacado_hasta);
+    if (destacadoA !== destacadoB) return destacadoA ? -1 : 1;
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
 
   const {
     data: { user },
@@ -53,12 +61,12 @@ export default async function CategoriaPage({
 
       {params.slug === "inmobiliaria" ? (
         <FiltrosInmobiliaria
-          anuncios={anuncios || []}
+          anuncios={anunciosOrdenados}
           currentUserId={user?.id ?? null}
           favoritosIniciales={favoritosIniciales}
         />
       ) : (
-        <Buscador anuncios={anuncios || []} currentUserId={user?.id ?? null} />
+        <Buscador anuncios={anunciosOrdenados} currentUserId={user?.id ?? null} />
       )}
     </main>
   );

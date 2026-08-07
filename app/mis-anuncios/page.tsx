@@ -4,7 +4,11 @@ import { createClient } from "@/lib/supabase/server";
 import AnuncioCard from "@/components/AnuncioCard";
 import EliminarCuentaButton from "@/components/EliminarCuentaButton";
 
-export default async function MisAnunciosPage() {
+export default async function MisAnunciosPage({
+  searchParams,
+}: {
+  searchParams: { destacado?: string };
+}) {
   const supabase = createClient();
   const {
     data: { user },
@@ -29,6 +33,17 @@ export default async function MisAnunciosPage() {
           Publicar otro
         </Link>
       </div>
+
+      {searchParams.destacado === "ok" && (
+        <p className="text-sm text-teal-700 bg-teal-50 border border-teal-200 rounded-lg px-3 py-2 mb-4">
+          Pago recibido. Tu anuncio se marcará como destacado en unos segundos — recarga la página si aún no lo ves.
+        </p>
+      )}
+      {searchParams.destacado === "cancelado" && (
+        <p className="text-sm text-stone-500 bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 mb-4">
+          Has cancelado el pago, tu anuncio sigue como estaba.
+        </p>
+      )}
 
       {(!anuncios || anuncios.length === 0) && (
         <p className="text-sm text-stone-400 py-10 text-center">

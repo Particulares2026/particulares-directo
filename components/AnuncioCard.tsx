@@ -14,6 +14,7 @@ import {
   FOTOS_BUCKET,
   extraerPathStorage,
 } from "@/lib/inmobiliaria";
+import { estaDestacado, precioDestacarTexto } from "@/lib/destacar";
 
 type Anuncio = {
   id: string;
@@ -40,6 +41,7 @@ type Anuncio = {
   fotos?: string[];
   estado?: string | null;
   activo?: boolean;
+  destacado_hasta?: string | null;
 };
 
 export default function AnuncioCard({
@@ -57,6 +59,7 @@ export default function AnuncioCard({
   const supabase = createClient();
   const [deleting, setDeleting] = useState(false);
   const [gestionando, setGestionando] = useState(false);
+  const [destacando, setDestacando] = useState(false);
   const [fotoAmpliada, setFotoAmpliada] = useState<string | null>(null);
 
   const eliminar = async () => {
@@ -95,15 +98,45 @@ export default function AnuncioCard({
     router.refresh();
   };
 
+  const destacar = async () => {
+    setDestacando(true);
+    try {
+      const res = await fetch("/api/destacar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ anuncioId: anuncio.id }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+        return;
+      }
+      alert(data.error || "No se pudo iniciar el pago.");
+    } finally {
+      setDestacando(false);
+    }
+  };
+
   const esOferta = anuncio.tipo === "ofrezco";
   const [etiquetaBusco, etiquetaOfrezco] = etiquetasTipo(anuncio.categoria);
   const esInmobiliaria = anuncio.categoria === "inmobiliaria";
+  const destacado = estaDestacado(anuncio.destacado_hasta);
 
   return (
-    <div className="border border-stone-200 rounded-xl p-4">
+    <div
+      className={
+        "rounded-xl p-4 border " +
+        (destacado ? "border-amber-300 bg-amber-50/40" : "border-stone-200")
+      }
+    >
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-1.5 flex-wrap">
+            {destacado && (
+              <span className="text-xs font-medium px-2 py-0.5 rounded-full border bg-amber-100 text-amber-800 border-amber-300">
+                ★ Destacado
+              </span>
+            )}
             <span
               className={
                 "text-xs font-medium px-2 py-0.5 rounded-full border " +
@@ -281,6 +314,19 @@ export default function AnuncioCard({
               className="text-xs text-stone-500 hover:underline disabled:opacity-40"
             >
               Desactivar
+            </button>
+          )}
+          {destacado ? (
+            <span className="text-xs text-amber-700">
+              Destacado hasta {new Date(anuncio.destacado_hasta as string).toLocaleDateString("es-ES")}
+            </span>
+          ) : (
+            <button
+              onClick={destacar}
+              disabled={destacando}
+              className="text-xs text-amber-700 hover:underline disabled:opacity-40"
+            >
+              {destacando ? "Redirigiendo…" : `★ Destacar anuncio (${precioDestacarTexto(anuncio.categoria)})`}
             </button>
           )}
         </div>
