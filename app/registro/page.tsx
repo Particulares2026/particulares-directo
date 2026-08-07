@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { PREFIJOS_TELEFONO } from "@/lib/telefono";
+import CampoPassword from "@/components/CampoPassword";
 
 export default function RegistroPage() {
   const supabase = createClient();
@@ -92,12 +93,10 @@ export default function RegistroPage() {
           onChange={(e) => setEmail(e.target.value)}
           required
         />
-        <input
-          className="w-full border border-stone-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent"
-          placeholder="Contraseña (mínimo 6 caracteres)"
-          type="password"
+        <CampoPassword
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={setPassword}
+          placeholder="Contraseña (mínimo 6 caracteres)"
           minLength={6}
           required
         />

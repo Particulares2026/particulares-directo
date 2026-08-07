@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import CampoPassword from "@/components/CampoPassword";
 
 export default function LoginPage() {
   const supabase = createClient();
@@ -42,12 +43,10 @@ export default function LoginPage() {
           onChange={(e) => setEmail(e.target.value)}
           required
         />
-        <input
-          className="w-full border border-stone-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent"
-          placeholder="Contraseña"
-          type="password"
+        <CampoPassword
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={setPassword}
+          placeholder="Contraseña"
           required
         />
         {error && <p className="text-sm text-red-600">{error}</p>}
