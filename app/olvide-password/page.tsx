@@ -26,7 +26,9 @@ export default function OlvidePasswordPage() {
       setError(error.message);
       return;
     }
-    setMensaje("Si ese correo tiene una cuenta, te hemos enviado un enlace para restablecer la contraseña.");
+    setMensaje(
+      "Si ese correo tiene una cuenta, te hemos enviado un enlace para restablecer la contraseña. Revisa también la carpeta de spam o correo no deseado, a veces llega ahí."
+    );
   };
 
   return (
