@@ -26,6 +26,7 @@ import {
 } from "@/lib/trabajo";
 import { PREFIJOS_TELEFONO, parseTelefono } from "@/lib/telefono";
 import { comprimirImagen } from "@/lib/imagen";
+import AsistenteCurriculum from "@/components/AsistenteCurriculum";
 
 const SelectorUbicacion = dynamic(() => import("@/components/mapa/SelectorUbicacion"), {
   ssr: false,
@@ -147,6 +148,7 @@ export default function AnuncioForm({
   const [experienciaTrabajo, setExperienciaTrabajo] = useState(anuncioExistente?.experiencia_trabajo ?? "");
   const [idiomasTrabajo, setIdiomasTrabajo] = useState<string[]>(anuncioExistente?.idiomas_trabajo ?? []);
   const [incorporacion, setIncorporacion] = useState(anuncioExistente?.incorporacion ?? "");
+  const [asistenteAbierto, setAsistenteAbierto] = useState(false);
 
   useEffect(() => {
     if (!(esInmobiliaria || esTrabajo) || !provincia) {
@@ -785,6 +787,26 @@ export default function AnuncioForm({
         onChange={(e) => setPalabrasClave(e.target.value)}
         required={!esInmobiliaria && !esTrabajo}
       />
+      {esTrabajo && tipo === "busco" && !asistenteAbierto && (
+        <button
+          type="button"
+          onClick={() => setAsistenteAbierto(true)}
+          className="text-sm text-teal-700 hover:underline"
+        >
+          ✨ Ayúdame a redactar mi anuncio
+        </button>
+      )}
+
+      {esTrabajo && tipo === "busco" && asistenteAbierto && (
+        <AsistenteCurriculum
+          onGenerar={(texto) => {
+            setDescripcion(texto);
+            setAsistenteAbierto(false);
+          }}
+          onCerrar={() => setAsistenteAbierto(false)}
+        />
+      )}
+
       <textarea
         className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 resize-none"
         rows={3}
@@ -793,6 +815,21 @@ export default function AnuncioForm({
         onChange={(e) => setDescripcion(e.target.value)}
         required={!esInmobiliaria && !esTrabajo}
       />
+
+      {esTrabajo && tipo === "busco" && (
+        <p className="text-xs text-stone-400">
+          ¿Quieres además un currículum en PDF para entregar en mano? Puedes crear uno gratis en{" "}
+          <a
+            href="https://europa.eu/europass/en/create-europass-cv"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-stone-600"
+          >
+            Europass
+          </a>
+          , la herramienta oficial de la Unión Europea.
+        </p>
+      )}
 
       <Seccion>Contacto</Seccion>
 
