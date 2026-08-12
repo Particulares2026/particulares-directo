@@ -143,11 +143,20 @@ export default function AnuncioCard({
   const esTrabajo = anuncio.categoria === "trabajo";
   const destacado = estaDestacado(anuncio.destacado_hasta);
 
+  const claseColor = esTrabajo
+    ? esOferta
+      ? "border-green-300 bg-green-50"
+      : "border-blue-300 bg-blue-50"
+    : destacado
+    ? "border-amber-300 bg-amber-50/40"
+    : "border-stone-200";
+
   return (
     <div
       className={
-        "rounded-xl p-4 border " +
-        (destacado ? "border-amber-300 bg-amber-50/40" : "border-stone-200")
+        (esTrabajo ? "rounded-xl p-4 border-2 " : "rounded-xl p-4 border ") +
+        claseColor +
+        (destacado && esTrabajo ? " ring-2 ring-amber-400 ring-offset-1" : "")
       }
     >
       <div className="flex items-start justify-between gap-3">
