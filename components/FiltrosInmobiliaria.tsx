@@ -68,6 +68,12 @@ export default function FiltrosInmobiliaria({
   const [favoritos, setFavoritos] = useState<Set<string>>(new Set(favoritosIniciales));
   const [visibles, setVisibles] = useState(POR_PAGINA);
   const [vista, setVista] = useState<"lista" | "mapa">("lista");
+  const [masFiltrosAbierto, setMasFiltrosAbierto] = useState(false);
+
+  const filtrosSecundariosActivos = [
+    tipo, amueblado, duracionAlquiler, tamanoMin, tamanoMax,
+    habitaciones, banos, estado, soloFavoritos ? "si" : "",
+  ].filter(Boolean).length + caracteristicas.length;
 
   useEffect(() => {
     if (!provincia) {
@@ -174,11 +180,6 @@ export default function FiltrosInmobiliaria({
               <option key={o.valor} value={o.valor}>{o.label}</option>
             ))}
           </select>
-          <select className={SELECT_CLASS} value={tipo} onChange={(e) => setTipo(e.target.value)}>
-            <option value="">Ofertas o demandas</option>
-            <option value="ofrezco">Ofertas</option>
-            <option value="busco">Demandas</option>
-          </select>
           <select className={SELECT_CLASS} value={tipoInmueble} onChange={(e) => setTipoInmueble(e.target.value)}>
             <option value="">Tipo de inmueble</option>
             {TIPOS_INMUEBLE.map((t) => (
@@ -206,24 +207,6 @@ export default function FiltrosInmobiliaria({
               ))}
             </select>
           )}
-          <select className={SELECT_CLASS} value={amueblado} onChange={(e) => setAmueblado(e.target.value)}>
-            <option value="">Amueblado o sin amueblar</option>
-            <option value="si">Amueblado</option>
-            <option value="no">Sin amueblar</option>
-          </select>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          <select
-            className={SELECT_CLASS}
-            value={duracionAlquiler}
-            onChange={(e) => setDuracionAlquiler(e.target.value)}
-          >
-            <option value="">Temporada o larga estancia</option>
-            {DURACIONES_ALQUILER.map((d) => (
-              <option key={d.valor} value={d.valor}>{d.label}</option>
-            ))}
-          </select>
         </div>
 
         <div className="grid grid-cols-2 gap-2">
@@ -245,103 +228,153 @@ export default function FiltrosInmobiliaria({
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
-          <input
-            className={INPUT_CLASS}
-            placeholder="Tamaño mínimo m²"
-            type="number"
-            min="0"
-            value={tamanoMin}
-            onChange={(e) => setTamanoMin(e.target.value)}
-          />
-          <input
-            className={INPUT_CLASS}
-            placeholder="Tamaño máximo m²"
-            type="number"
-            min="0"
-            value={tamanoMax}
-            onChange={(e) => setTamanoMax(e.target.value)}
-          />
-        </div>
+        <button
+          type="button"
+          onClick={() => setMasFiltrosAbierto((v) => !v)}
+          className={
+            "text-sm px-3 py-1.5 rounded-lg border inline-flex items-center gap-1.5 " +
+            (filtrosSecundariosActivos > 0
+              ? "border-fuchsia-600 text-fuchsia-700 font-medium"
+              : "border-stone-300 text-stone-600")
+          }
+        >
+          Más filtros{filtrosSecundariosActivos > 0 ? ` (${filtrosSecundariosActivos})` : ""}
+          <svg
+            aria-hidden="true"
+            width="12"
+            height="12"
+            viewBox="0 0 12 12"
+            fill="none"
+            className={masFiltrosAbierto ? "rotate-180" : ""}
+          >
+            <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
 
-        <div className="flex flex-wrap gap-2 items-start">
-          <select className={SELECT_CLASS} value={habitaciones} onChange={(e) => setHabitaciones(e.target.value)}>
-            <option value="">Nº Habitaciones</option>
-            {[1, 2, 3, 4, 5].map((n) => (
-              <option key={n} value={n}>{n}+ hab.</option>
-            ))}
-          </select>
-          <select className={SELECT_CLASS} value={banos} onChange={(e) => setBanos(e.target.value)}>
-            <option value="">Nº Baños</option>
-            {[1, 2, 3].map((n) => (
-              <option key={n} value={n}>{n}+ baños</option>
-            ))}
-          </select>
-
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setCaracteristicasAbierto((v) => !v)}
-              className={
-                SELECT_CLASS +
-                " inline-flex items-center justify-between gap-2 " +
-                (caracteristicas.length > 0 ? "border-fuchsia-600 text-fuchsia-700 font-medium" : "")
-              }
-            >
-              <span>Características{caracteristicas.length > 0 ? ` (${caracteristicas.length})` : ""}</span>
-              <svg aria-hidden="true" width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-            {caracteristicasAbierto && (
-              <div className="absolute z-10 mt-1 w-56 border border-stone-200 rounded-lg bg-white shadow-md p-2 space-y-1">
-                {CARACTERISTICAS.map((c) => (
-                  <label key={c.valor} className="flex items-center gap-2 text-sm px-1.5 py-1 rounded hover:bg-stone-50">
-                    <input
-                      type="checkbox"
-                      checked={caracteristicas.includes(c.valor)}
-                      onChange={() => toggleCaracteristica(c.valor)}
-                    />
-                    {c.label}
-                  </label>
+        {masFiltrosAbierto && (
+          <div className="space-y-2.5 pt-1 border-t border-stone-100">
+            <div className="flex flex-wrap gap-2 pt-2">
+              <select className={SELECT_CLASS} value={tipo} onChange={(e) => setTipo(e.target.value)}>
+                <option value="">Ofertas o demandas</option>
+                <option value="ofrezco">Ofertas</option>
+                <option value="busco">Demandas</option>
+              </select>
+              <select className={SELECT_CLASS} value={amueblado} onChange={(e) => setAmueblado(e.target.value)}>
+                <option value="">Amueblado o sin amueblar</option>
+                <option value="si">Amueblado</option>
+                <option value="no">Sin amueblar</option>
+              </select>
+              <select
+                className={SELECT_CLASS}
+                value={duracionAlquiler}
+                onChange={(e) => setDuracionAlquiler(e.target.value)}
+              >
+                <option value="">Temporada o larga estancia</option>
+                {DURACIONES_ALQUILER.map((d) => (
+                  <option key={d.valor} value={d.valor}>{d.label}</option>
                 ))}
-              </div>
-            )}
-          </div>
-        </div>
+              </select>
+            </div>
 
-        <div className="pt-1 flex flex-wrap items-center gap-2">
-          {currentUserId && (
-            <button
-              type="button"
-              onClick={() => setSoloFavoritos((v) => !v)}
-              className={
-                "text-sm px-3 py-2 rounded-lg border font-medium " +
-                (soloFavoritos
-                  ? "border-blue-600 bg-blue-600 text-white"
-                  : "border-blue-600 bg-blue-50 text-blue-700 hover:bg-blue-100")
-              }
-            >
-              ★ Solo mis favoritos
-            </button>
-          )}
-          {ESTADOS_INMUEBLE.map((e) => (
-            <button
-              key={e.valor}
-              type="button"
-              onClick={() => setEstado((prev) => (prev === e.valor ? "" : e.valor))}
-              className={
-                "inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg border " +
-                (estado === e.valor
-                  ? "border-stone-900 bg-stone-50 text-stone-900 font-medium"
-                  : "border-stone-300 text-stone-500")
-              }
-            >
-              <span className={"w-2.5 h-2.5 rounded-full shrink-0 " + e.color} aria-hidden="true" />
-              {e.label}
-            </button>
-          ))}
-        </div>
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                className={INPUT_CLASS}
+                placeholder="Tamaño mínimo m²"
+                type="number"
+                min="0"
+                value={tamanoMin}
+                onChange={(e) => setTamanoMin(e.target.value)}
+              />
+              <input
+                className={INPUT_CLASS}
+                placeholder="Tamaño máximo m²"
+                type="number"
+                min="0"
+                value={tamanoMax}
+                onChange={(e) => setTamanoMax(e.target.value)}
+              />
+            </div>
+
+            <div className="flex flex-wrap gap-2 items-start">
+              <select className={SELECT_CLASS} value={habitaciones} onChange={(e) => setHabitaciones(e.target.value)}>
+                <option value="">Nº Habitaciones</option>
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <option key={n} value={n}>{n}+ hab.</option>
+                ))}
+              </select>
+              <select className={SELECT_CLASS} value={banos} onChange={(e) => setBanos(e.target.value)}>
+                <option value="">Nº Baños</option>
+                {[1, 2, 3].map((n) => (
+                  <option key={n} value={n}>{n}+ baños</option>
+                ))}
+              </select>
+
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setCaracteristicasAbierto((v) => !v)}
+                  className={
+                    SELECT_CLASS +
+                    " inline-flex items-center justify-between gap-2 " +
+                    (caracteristicas.length > 0 ? "border-fuchsia-600 text-fuchsia-700 font-medium" : "")
+                  }
+                >
+                  <span>Características{caracteristicas.length > 0 ? ` (${caracteristicas.length})` : ""}</span>
+                  <svg aria-hidden="true" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+                {caracteristicasAbierto && (
+                  <div className="absolute z-10 mt-1 w-56 border border-stone-200 rounded-lg bg-white shadow-md p-2 space-y-1">
+                    {CARACTERISTICAS.map((c) => (
+                      <label key={c.valor} className="flex items-center gap-2 text-sm px-1.5 py-1 rounded hover:bg-stone-50">
+                        <input
+                          type="checkbox"
+                          checked={caracteristicas.includes(c.valor)}
+                          onChange={() => toggleCaracteristica(c.valor)}
+                        />
+                        {c.label}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="pt-1 flex flex-wrap items-center gap-2">
+              {currentUserId && (
+                <button
+                  type="button"
+                  onClick={() => setSoloFavoritos((v) => !v)}
+                  className={
+                    "text-sm px-3 py-2 rounded-lg border font-medium " +
+                    (soloFavoritos
+                      ? "border-blue-600 bg-blue-600 text-white"
+                      : "border-blue-600 bg-blue-50 text-blue-700 hover:bg-blue-100")
+                  }
+                >
+                  ★ Solo mis favoritos
+                </button>
+              )}
+              {ESTADOS_INMUEBLE.map((e) => (
+                <button
+                  key={e.valor}
+                  type="button"
+                  onClick={() => setEstado((prev) => (prev === e.valor ? "" : e.valor))}
+                  className={
+                    "inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg border " +
+                    (estado === e.valor
+                      ? "border-stone-900 bg-stone-50 text-stone-900 font-medium"
+                      : "border-stone-300 text-stone-500")
+                  }
+                >
+                  <span className={"w-2.5 h-2.5 rounded-full shrink-0 " + e.color} aria-hidden="true" />
+                  {e.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <AlertasBusqueda

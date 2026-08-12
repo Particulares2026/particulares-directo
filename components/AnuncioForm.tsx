@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent, type ChangeEvent } from "react";
+import { useEffect, useState, type FormEvent, type ChangeEvent, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -23,6 +23,12 @@ const SelectorUbicacion = dynamic(() => import("@/components/mapa/SelectorUbicac
   ssr: false,
   loading: () => <div className="h-[260px] rounded-lg border border-stone-200 bg-stone-50 animate-pulse" />,
 });
+
+function Seccion({ children }: { children: ReactNode }) {
+  return (
+    <p className="text-xs font-semibold text-stone-400 uppercase tracking-wide pt-2">{children}</p>
+  );
+}
 
 type AnuncioExistente = {
   id: string;
@@ -102,6 +108,7 @@ export default function AnuncioForm({
   const [estado, setEstado] = useState(anuncioExistente?.estado ?? "");
   const [lat, setLat] = useState<number | null>(anuncioExistente?.lat ?? null);
   const [lng, setLng] = useState<number | null>(anuncioExistente?.lng ?? null);
+  const [mapaAbierto, setMapaAbierto] = useState(Boolean(anuncioExistente?.lat && anuncioExistente?.lng));
   const [fotos, setFotos] = useState<string[]>(anuncioExistente?.fotos ?? []);
   const [subiendoFotos, setSubiendoFotos] = useState(false);
   const [fotosError, setFotosError] = useState<string | null>(null);
@@ -191,10 +198,6 @@ export default function AnuncioForm({
       setError("Introduce un número de teléfono completo (solo dígitos, 6 a 12 números).");
       return;
     }
-    if (esInmobiliaria && !estado) {
-      setError("Elige el estado del inmueble.");
-      return;
-    }
 
     setLoading(true);
 
@@ -218,12 +221,12 @@ export default function AnuncioForm({
       precio: esInmobiliaria && precio ? Number(precio) : null,
       habitaciones: esInmobiliaria && habitaciones ? Number(habitaciones) : null,
       banos: esInmobiliaria && banos ? Number(banos) : null,
-      amueblado: esInmobiliaria ? amueblado === "si" : null,
+      amueblado: esInmobiliaria && amueblado ? amueblado === "si" : null,
       tamano: esInmobiliaria && tamano ? Number(tamano) : null,
       caracteristicas: esInmobiliaria ? caracteristicas : [],
       duracion_alquiler: esInmobiliaria && operacion === "alquiler" && duracionAlquiler ? duracionAlquiler : null,
       fotos,
-      estado: esInmobiliaria ? estado : null,
+      estado: esInmobiliaria && estado ? estado : null,
       lat: esInmobiliaria ? lat : null,
       lng: esInmobiliaria ? lng : null,
     };
@@ -300,6 +303,8 @@ export default function AnuncioForm({
 
       {esInmobiliaria && (
         <>
+          <Seccion>Datos del inmueble</Seccion>
+
           <div className="grid grid-cols-2 gap-2">
             <select
               className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
@@ -364,7 +369,6 @@ export default function AnuncioForm({
               min="0"
               value={habitaciones}
               onChange={(e) => setHabitaciones(e.target.value)}
-              required
             />
             <input
               className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
@@ -373,7 +377,6 @@ export default function AnuncioForm({
               min="0"
               value={banos}
               onChange={(e) => setBanos(e.target.value)}
-              required
             />
           </div>
           <input
@@ -383,15 +386,13 @@ export default function AnuncioForm({
             min="0"
             value={tamano}
             onChange={(e) => setTamano(e.target.value)}
-            required
           />
           <select
             className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
             value={amueblado}
             onChange={(e) => setAmueblado(e.target.value)}
-            required
           >
-            <option value="" disabled>Amueblado o sin amueblar</option>
+            <option value="">Amueblado o sin amueblar (opcional)</option>
             <option value="si">Amueblado</option>
             <option value="no">Sin amueblar</option>
           </select>
@@ -413,13 +414,13 @@ export default function AnuncioForm({
           )}
 
           <div>
-            <p className="text-sm text-stone-500 mb-1.5">Estado del inmueble</p>
+            <p className="text-sm text-stone-500 mb-1.5">Estado del inmueble (opcional)</p>
             <div className="flex gap-2">
               {ESTADOS_INMUEBLE.map((e) => (
                 <button
                   key={e.valor}
                   type="button"
-                  onClick={() => setEstado(e.valor)}
+                  onClick={() => setEstado((prev) => (prev === e.valor ? "" : e.valor))}
                   className={
                     "flex-1 flex items-center justify-center gap-1 text-center leading-tight px-1 py-2 text-sm rounded-lg border " +
                     (estado === e.valor
@@ -435,7 +436,7 @@ export default function AnuncioForm({
           </div>
 
           <div>
-            <p className="text-sm text-stone-500 mb-1.5">Características</p>
+            <p className="text-sm text-stone-500 mb-1.5">Características (opcional)</p>
             <div className="flex flex-wrap gap-1.5">
               {CARACTERISTICAS.map((c) => (
                 <button
@@ -455,17 +456,37 @@ export default function AnuncioForm({
             </div>
           </div>
 
-          <div>
-            <p className="text-sm text-stone-500 mb-1.5">Ubicación en el mapa (opcional)</p>
-            <SelectorUbicacion lat={lat} lng={lng} onChange={(la, ln) => { setLat(la); setLng(ln); }} />
-          </div>
+          <Seccion>Ubicación</Seccion>
 
+          <input
+            className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+            placeholder="Barrio o zona (opcional)"
+            value={ubicacion}
+            onChange={(e) => setUbicacion(e.target.value)}
+          />
+
+          {mapaAbierto ? (
+            <div>
+              <p className="text-sm text-stone-500 mb-1.5">Ubicación en el mapa (opcional)</p>
+              <SelectorUbicacion lat={lat} lng={lng} onChange={(la, ln) => { setLat(la); setLng(ln); }} />
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setMapaAbierto(true)}
+              className="text-sm text-teal-700 hover:underline"
+            >
+              📍 Añadir ubicación en el mapa (opcional)
+            </button>
+          )}
         </>
       )}
 
+      <Seccion>Fotos</Seccion>
+
       <div>
         <p className="text-sm text-stone-500 mb-1.5">
-          Fotos ({fotos.length}/{MAX_FOTOS})
+          {fotos.length}/{MAX_FOTOS}
         </p>
         {fotos.length > 0 && (
           <div className="grid grid-cols-4 gap-2 mb-2">
@@ -519,28 +540,35 @@ export default function AnuncioForm({
         {fotosError && <p className="text-xs text-red-600 mt-1">{fotosError}</p>}
       </div>
 
+      <Seccion>Detalles adicionales{esInmobiliaria ? " (opcional)" : ""}</Seccion>
+
+      {!esInmobiliaria && (
+        <input
+          className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+          placeholder="Ciudad o modalidad (ej. Sevilla, remoto)"
+          value={ubicacion}
+          onChange={(e) => setUbicacion(e.target.value)}
+          required
+        />
+      )}
       <input
         className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
-        placeholder="Ciudad o modalidad (ej. Sevilla, remoto)"
-        value={ubicacion}
-        onChange={(e) => setUbicacion(e.target.value)}
-        required
-      />
-      <input
-        className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
-        placeholder="Palabras clave separadas por comas"
+        placeholder={esInmobiliaria ? "Palabras clave separadas por comas (opcional)" : "Palabras clave separadas por comas"}
         value={palabrasClave}
         onChange={(e) => setPalabrasClave(e.target.value)}
-        required
+        required={!esInmobiliaria}
       />
       <textarea
         className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 resize-none"
         rows={3}
-        placeholder="Descripción"
+        placeholder={esInmobiliaria ? "Descripción (opcional)" : "Descripción"}
         value={descripcion}
         onChange={(e) => setDescripcion(e.target.value)}
-        required
+        required={!esInmobiliaria}
       />
+
+      <Seccion>Contacto</Seccion>
+
       <input
         className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
         placeholder="Nombre de contacto"
