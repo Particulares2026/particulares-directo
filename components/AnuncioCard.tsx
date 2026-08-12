@@ -255,6 +255,15 @@ export default function AnuncioCard({
         </div>
       )}
 
+      {esInmobiliaria && anuncio.operacion === "venta" && anuncio.precio != null && (
+        <Link
+          href={`/calculadora-hipoteca?precio=${anuncio.precio}`}
+          className="inline-block mt-1.5 text-xs text-teal-700 hover:underline"
+        >
+          Calcular cuota de hipoteca
+        </Link>
+      )}
+
       {esInmobiliaria && anuncio.caracteristicas && anuncio.caracteristicas.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mt-2">
           {anuncio.caracteristicas.map((c) => (

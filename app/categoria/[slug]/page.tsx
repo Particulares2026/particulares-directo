@@ -49,14 +49,24 @@ export default async function CategoriaPage({
         ← Todas las categorías
       </Link>
 
-      <div className="flex items-center justify-between mt-2 mb-6">
+      <div className="flex items-center justify-between mt-2 mb-6 gap-2">
         <h1 className="font-serif text-2xl">{nombreCategoria(params.slug)}</h1>
-        <Link
-          href={`/publicar?categoria=${params.slug}`}
-          className="text-sm bg-fuchsia-600 text-white px-3 py-1.5 rounded-lg hover:bg-fuchsia-700 shrink-0"
-        >
-          Publicar anuncio
-        </Link>
+        <div className="flex items-center gap-2 shrink-0">
+          {params.slug === "inmobiliaria" && (
+            <Link
+              href="/calculadora-hipoteca"
+              className="text-sm border border-stone-300 text-stone-600 px-3 py-1.5 rounded-lg hover:bg-stone-50"
+            >
+              Calculadora de hipoteca
+            </Link>
+          )}
+          <Link
+            href={`/publicar?categoria=${params.slug}`}
+            className="text-sm bg-fuchsia-600 text-white px-3 py-1.5 rounded-lg hover:bg-fuchsia-700"
+          >
+            Publicar anuncio
+          </Link>
+        </div>
       </div>
 
       {params.slug === "inmobiliaria" ? (
