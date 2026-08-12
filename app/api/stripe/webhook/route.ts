@@ -31,10 +31,16 @@ export async function POST(request: Request) {
     if (anuncioId) {
       const admin = createAdminSupabase(supabaseUrl, serviceKey);
       const destacadoHasta = new Date(Date.now() + DIAS_DESTACADO * 24 * 60 * 60 * 1000);
-      await admin
+      const { error, data } = await admin
         .from("anuncios")
         .update({ destacado_hasta: destacadoHasta.toISOString() })
-        .eq("id", anuncioId);
+        .eq("id", anuncioId)
+        .select();
+      if (error) {
+        console.error("Error al marcar anuncio como destacado:", anuncioId, error);
+      } else if (!data || data.length === 0) {
+        console.error("No se encontró el anuncio a destacar:", anuncioId);
+      }
     }
   }
 
