@@ -14,21 +14,91 @@ export default function AvisoLegalPage() {
         </section>
 
         <section>
+          <h2 className="font-medium text-stone-900 mb-1">Responsable del tratamiento</h2>
+          <p>
+            Abaco Salud SL, con NIF B91891382 y domicilio en Calle Fontaneros 2, 41015 Sevilla, es
+            la responsable del tratamiento de los datos personales recogidos en esta web. Puedes
+            contactarnos para cualquier asunto relacionado con tus datos en{" "}
+            <a href="mailto:nuriabarbero@icloud.com" className="underline hover:text-stone-900">
+              nuriabarbero@icloud.com
+            </a>
+            .
+          </p>
+        </section>
+
+        <section>
           <h2 className="font-medium text-stone-900 mb-1">Qué datos recogemos</h2>
           <p>
             Al crear una cuenta pedimos tu nombre, correo electrónico y número de teléfono. Al
             publicar un anuncio, los datos de contacto que decidas incluir (nombre y teléfono) se
             muestran junto al anuncio para que otras personas puedan ponerse en contacto contigo.
-            Si subes fotos a un anuncio, se almacenan para mostrarlas en ese anuncio.
+            Si subes fotos a un anuncio, se almacenan para mostrarlas en ese anuncio. Si destacas
+            un anuncio de pago, el cobro lo procesa Stripe directamente (no almacenamos los datos
+            de tu tarjeta).
           </p>
         </section>
 
         <section>
-          <h2 className="font-medium text-stone-900 mb-1">Para qué se usan</h2>
+          <h2 className="font-medium text-stone-900 mb-1">Para qué se usan y con qué base legal</h2>
           <p>
-            Únicamente para el funcionamiento del servicio: crear tu cuenta, publicar y gestionar
-            tus anuncios, y permitir que otros usuarios te contacten sobre un anuncio. No vendemos
-            ni cedemos tus datos a terceros con fines comerciales.
+            Usamos tus datos para: crear y gestionar tu cuenta y tus anuncios, y permitir que otros
+            usuarios te contacten sobre un anuncio (ejecución del contrato de uso del servicio que
+            aceptas al registrarte); enviarte avisos sobre tus propios anuncios y, si las activas,
+            alertas de nuevos anuncios que coincidan con una búsqueda guardada (consentimiento);
+            y prevenir usos fraudulentos del servicio (interés legítimo). No vendemos ni cedemos
+            tus datos a terceros con fines comerciales.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="font-medium text-stone-900 mb-1">Con quién se comparten</h2>
+          <p>
+            Para poder ofrecer el servicio, algunos datos se tratan a través de estos proveedores,
+            como encargados del tratamiento:
+          </p>
+          <ul className="list-disc pl-5 mt-1.5 space-y-1">
+            <li><strong>Supabase</strong> (base de datos, autenticación y almacenamiento de fotos).</li>
+            <li><strong>Vercel</strong> (alojamiento de la web).</li>
+            <li><strong>Resend</strong> (envío de correos de la plataforma: confirmación de cuenta, avisos, alertas).</li>
+            <li><strong>Stripe</strong> (cobro de los anuncios destacados de pago).</li>
+          </ul>
+          <p className="mt-1.5">
+            Algunos de estos proveedores pueden tratar datos fuera del Espacio Económico Europeo;
+            en ese caso, lo hacen bajo garantías reconocidas por la normativa europea (como las
+            cláusulas contractuales tipo de la Comisión Europea).
+          </p>
+        </section>
+
+        <section>
+          <h2 className="font-medium text-stone-900 mb-1">Cuánto tiempo se conservan</h2>
+          <p>
+            Mientras tu cuenta esté activa. Si la eliminas, tus datos personales se borran de
+            inmediato, salvo que la ley nos obligue a conservar algún registro durante más tiempo
+            (por ejemplo, justificantes de pagos realizados a través de Stripe).
+          </p>
+        </section>
+
+        <section>
+          <h2 className="font-medium text-stone-900 mb-1">Tus derechos</h2>
+          <p>
+            Tienes derecho a acceder a tus datos, rectificarlos, suprimirlos, oponerte a su
+            tratamiento, solicitar su limitación y pedir su portabilidad. Puedes ejercerlos
+            directamente desde "Mis anuncios" (editar o eliminar anuncios, o eliminar tu cuenta por
+            completo) o escribiendo a{" "}
+            <a href="mailto:nuriabarbero@icloud.com" className="underline hover:text-stone-900">
+              nuriabarbero@icloud.com
+            </a>
+            . También tienes derecho a presentar una reclamación ante la Agencia Española de
+            Protección de Datos (
+            <a
+              href="https://www.aepd.es"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-stone-900"
+            >
+              www.aepd.es
+            </a>
+            ) si consideras que no hemos tratado tus datos correctamente.
           </p>
         </section>
 
@@ -36,16 +106,9 @@ export default function AvisoLegalPage() {
           <h2 className="font-medium text-stone-900 mb-1">Buzón de sugerencias</h2>
           <p>
             El formulario de contacto/sugerencias es anónimo: no se solicita ni se guarda tu
-            nombre ni tu correo al enviarlo.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="font-medium text-stone-900 mb-1">Tus derechos</h2>
-          <p>
-            Puedes editar o eliminar tus anuncios en cualquier momento desde "Mis anuncios", y
-            eliminar tu cuenta por completo desde esa misma página. Si tienes cualquier duda sobre
-            tus datos, puedes escribirnos a través del buzón de sugerencias.
+            nombre ni tu correo al enviarlo. No lo uses para ejercer tus derechos sobre tus datos,
+            ya que al ser anónimo no podemos identificarte para atenderlo — escríbenos por email
+            para eso.
           </p>
         </section>
 

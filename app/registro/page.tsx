@@ -14,6 +14,7 @@ export default function RegistroPage() {
   const [numeroTelefono, setNumeroTelefono] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [aceptaPrivacidad, setAceptaPrivacidad] = useState(false);
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -26,6 +27,10 @@ export default function RegistroPage() {
     const numeroLimpio = numeroTelefono.trim();
     if (!/^\d{6,12}$/.test(numeroLimpio)) {
       setError("Introduce un número de teléfono completo (solo dígitos, 6 a 12 números).");
+      return;
+    }
+    if (!aceptaPrivacidad) {
+      setError("Tienes que aceptar el aviso legal y la política de privacidad para crear una cuenta.");
       return;
     }
 
@@ -101,6 +106,21 @@ export default function RegistroPage() {
           minLength={6}
           required
         />
+        <label className="flex items-start gap-2 text-sm text-stone-600">
+          <input
+            type="checkbox"
+            className="mt-0.5"
+            checked={aceptaPrivacidad}
+            onChange={(e) => setAceptaPrivacidad(e.target.checked)}
+          />
+          <span>
+            He leído y acepto el{" "}
+            <Link href="/aviso-legal" target="_blank" className="text-teal-700 hover:underline">
+              aviso legal y la política de privacidad
+            </Link>
+            .
+          </span>
+        </label>
         {error && <p className="text-sm text-red-600">{error}</p>}
         {mensaje && <p className="text-sm text-teal-700">{mensaje}</p>}
         <button
