@@ -57,7 +57,7 @@ export default async function Header() {
               Mis anuncios
             </Link>
             <Link href="/favoritos" className="text-stone-600 hover:text-stone-900 hidden sm:inline">
-              ★ Favoritos
+              ❤ Favoritos
             </Link>
             <span className="text-stone-400 hidden md:inline">{user.email}</span>
             <LogoutButton />

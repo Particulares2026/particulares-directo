@@ -35,7 +35,7 @@ export default async function CategoriaPage({
   } = await supabase.auth.getUser();
 
   let favoritosIniciales: string[] = [];
-  if (user && params.slug === "inmobiliaria") {
+  if (user) {
     const { data: favoritos } = await supabase
       .from("favoritos")
       .select("anuncio_id")
@@ -77,7 +77,11 @@ export default async function CategoriaPage({
           favoritosIniciales={favoritosIniciales}
         />
       ) : (
-        <Buscador anuncios={anunciosOrdenados} currentUserId={user?.id ?? null} />
+        <Buscador
+          anuncios={anunciosOrdenados}
+          currentUserId={user?.id ?? null}
+          favoritosIniciales={favoritosIniciales}
+        />
       )}
     </main>
   );

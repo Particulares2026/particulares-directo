@@ -353,7 +353,7 @@ export default function FiltrosInmobiliaria({
                       : "border-blue-600 bg-blue-50 text-blue-700 hover:bg-blue-100")
                   }
                 >
-                  ★ Solo mis favoritos
+                  ❤ Solo mis favoritos
                 </button>
               )}
               {ESTADOS_INMUEBLE.map((e) => (

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import AnuncioCard from "./AnuncioCard";
+import { createClient } from "@/lib/supabase/client";
 
 function tokenize(text: string) {
   return text
@@ -16,12 +17,35 @@ const POR_PAGINA = 20;
 export default function Buscador({
   anuncios,
   currentUserId,
+  favoritosIniciales,
 }: {
   anuncios: any[];
   currentUserId: string | null;
+  favoritosIniciales: string[];
 }) {
+  const supabase = createClient();
   const [query, setQuery] = useState("");
   const [visibles, setVisibles] = useState(POR_PAGINA);
+  const [favoritos, setFavoritos] = useState<Set<string>>(new Set(favoritosIniciales));
+
+  const toggleFavorito = async (anuncioId: string) => {
+    if (!currentUserId) return;
+    const esFavorito = favoritos.has(anuncioId);
+    const next = new Set(favoritos);
+    if (esFavorito) next.delete(anuncioId);
+    else next.add(anuncioId);
+    setFavoritos(next);
+
+    if (esFavorito) {
+      await supabase
+        .from("favoritos")
+        .delete()
+        .eq("user_id", currentUserId)
+        .eq("anuncio_id", anuncioId);
+    } else {
+      await supabase.from("favoritos").insert({ user_id: currentUserId, anuncio_id: anuncioId });
+    }
+  };
 
   const filtrados = useMemo(() => {
     const tokens = tokenize(query);
@@ -60,7 +84,13 @@ export default function Buscador({
 
       <div className="space-y-3">
         {filtrados.slice(0, visibles).map((a) => (
-          <AnuncioCard key={a.id} anuncio={a} isOwner={a.user_id === currentUserId} />
+          <AnuncioCard
+            key={a.id}
+            anuncio={a}
+            isOwner={a.user_id === currentUserId}
+            esFavorito={favoritos.has(a.id)}
+            onToggleFavorito={currentUserId ? () => toggleFavorito(a.id) : undefined}
+          />
         ))}
       </div>
 

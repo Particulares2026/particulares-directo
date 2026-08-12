@@ -187,9 +187,20 @@ export default function AnuncioCard({
             <button
               onClick={onToggleFavorito}
               aria-label={esFavorito ? "Quitar de favoritos" : "Añadir a favoritos"}
-              className={"text-lg leading-none " + (esFavorito ? "text-fuchsia-600" : "text-stone-300 hover:text-stone-400")}
+              className={esFavorito ? "text-red-600" : "text-stone-300 hover:text-stone-400"}
             >
-              {esFavorito ? "★" : "☆"}
+              <svg
+                viewBox="0 0 24 24"
+                width="20"
+                height="20"
+                fill={esFavorito ? "currentColor" : "none"}
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M12 21s-6.72-4.35-9.43-8.06C.28 9.49 1.02 5.5 4.5 4.02 7.2 2.86 10 4 12 6.5c2-2.5 4.8-3.64 7.5-2.48 3.48 1.48 4.22 5.47 1.93 8.92C18.72 16.65 12 21 12 21z" />
+              </svg>
             </button>
           )}
           {isOwner && (
