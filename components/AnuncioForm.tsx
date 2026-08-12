@@ -47,6 +47,8 @@ type AnuncioExistente = {
   descripcion?: string | null;
   nombre_contacto?: string;
   telefono_contacto?: string | null;
+  mostrar_telefono?: boolean;
+  mostrar_email?: boolean;
   operacion?: string | null;
   provincia?: string | null;
   municipio?: string | null;
@@ -103,6 +105,8 @@ export default function AnuncioForm({
   const telefonoInicial = parseTelefono(anuncioExistente?.telefono_contacto ?? defaultTelefono);
   const [prefijoTelefono, setPrefijoTelefono] = useState(telefonoInicial.prefijo);
   const [numeroTelefono, setNumeroTelefono] = useState(telefonoInicial.numero);
+  const [mostrarTelefono, setMostrarTelefono] = useState(anuncioExistente?.mostrar_telefono ?? true);
+  const [mostrarEmail, setMostrarEmail] = useState(anuncioExistente?.mostrar_email ?? false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -229,8 +233,13 @@ export default function AnuncioForm({
     e.preventDefault();
     setError(null);
 
+    if (!mostrarTelefono && !mostrarEmail) {
+      setError("Elige al menos un medio de contacto: teléfono, email, o ambos.");
+      return;
+    }
+
     const numeroLimpio = numeroTelefono.trim();
-    if (!/^\d{6,12}$/.test(numeroLimpio)) {
+    if (mostrarTelefono && !/^\d{6,12}$/.test(numeroLimpio)) {
       setError("Introduce un número de teléfono completo (solo dígitos, 6 a 12 números).");
       return;
     }
@@ -248,8 +257,10 @@ export default function AnuncioForm({
         .map((k) => k.trim())
         .filter(Boolean),
       nombre_contacto: nombreContacto.trim(),
-      telefono_contacto: `${prefijoTelefono} ${numeroLimpio}`,
+      telefono_contacto: mostrarTelefono ? `${prefijoTelefono} ${numeroLimpio}` : null,
       email_contacto: defaultEmail,
+      mostrar_telefono: mostrarTelefono,
+      mostrar_email: mostrarEmail,
       operacion: esInmobiliaria ? operacion : null,
       provincia: esInmobiliaria || esTrabajo ? provincia || null : null,
       municipio: esInmobiliaria || esTrabajo ? municipio || null : null,
@@ -792,30 +803,69 @@ export default function AnuncioForm({
         onChange={(e) => setNombreContacto(e.target.value)}
         required
       />
-      <div className="flex gap-2">
-        <select
-          className="w-28 shrink-0 border border-stone-300 rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
-          value={prefijoTelefono}
-          onChange={(e) => setPrefijoTelefono(e.target.value)}
-          required
-        >
-          {PREFIJOS_TELEFONO.map((p) => (
-            <option key={p.codigo} value={p.codigo}>
-              {p.codigo} {p.pais}
-            </option>
-          ))}
-        </select>
-        <input
-          className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
-          placeholder="Número de teléfono de contacto"
-          type="tel"
-          inputMode="numeric"
-          pattern="\d{6,12}"
-          value={numeroTelefono}
-          onChange={(e) => setNumeroTelefono(e.target.value.replace(/[^0-9]/g, ""))}
-          required
-        />
+
+      <div>
+        <p className="text-sm text-stone-500 mb-1.5">¿Cómo prefieres que te contacten?</p>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setMostrarTelefono((v) => !v)}
+            className={
+              "flex-1 text-sm py-2 rounded-lg border " +
+              (mostrarTelefono
+                ? "border-teal-700 bg-teal-50 text-teal-800 font-medium"
+                : "border-stone-200 text-stone-500")
+            }
+          >
+            📞 Teléfono
+          </button>
+          <button
+            type="button"
+            onClick={() => setMostrarEmail((v) => !v)}
+            className={
+              "flex-1 text-sm py-2 rounded-lg border " +
+              (mostrarEmail
+                ? "border-teal-700 bg-teal-50 text-teal-800 font-medium"
+                : "border-stone-200 text-stone-500")
+            }
+          >
+            ✉️ Email
+          </button>
+        </div>
       </div>
+
+      {mostrarTelefono && (
+        <div className="flex gap-2">
+          <select
+            className="w-28 shrink-0 border border-stone-300 rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+            value={prefijoTelefono}
+            onChange={(e) => setPrefijoTelefono(e.target.value)}
+            required
+          >
+            {PREFIJOS_TELEFONO.map((p) => (
+              <option key={p.codigo} value={p.codigo}>
+                {p.codigo} {p.pais}
+              </option>
+            ))}
+          </select>
+          <input
+            className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+            placeholder="Número de teléfono de contacto"
+            type="tel"
+            inputMode="numeric"
+            pattern="\d{6,12}"
+            value={numeroTelefono}
+            onChange={(e) => setNumeroTelefono(e.target.value.replace(/[^0-9]/g, ""))}
+            required
+          />
+        </div>
+      )}
+
+      {mostrarEmail && (
+        <p className="text-sm text-stone-500 border border-stone-200 rounded-lg px-3 py-2 bg-stone-50">
+          Se mostrará tu email de cuenta: <span className="font-medium text-stone-700">{defaultEmail}</span>
+        </p>
+      )}
       {error && <p className="text-sm text-red-600">{error}</p>}
       <button
         disabled={loading || subiendoFotos}

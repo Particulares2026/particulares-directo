@@ -14,6 +14,9 @@ create table if not exists public.anuncios (
   nombre_contacto text not null,
   telefono_contacto text,
   email_contacto text not null,
+  -- Qué medios de contacto se muestran públicamente en el anuncio (al menos uno).
+  mostrar_telefono boolean not null default true,
+  mostrar_email boolean not null default false,
   created_at timestamptz not null default now(),
   -- Campos específicos de la categoría inmobiliaria (null para el resto de categorías).
   operacion text check (operacion in ('venta', 'alquiler')),

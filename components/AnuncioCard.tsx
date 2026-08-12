@@ -34,6 +34,8 @@ type Anuncio = {
   nombre_contacto: string;
   telefono_contacto: string | null;
   email_contacto: string;
+  mostrar_telefono?: boolean;
+  mostrar_email?: boolean;
   user_id: string;
   operacion?: string | null;
   provincia?: string | null;
@@ -359,7 +361,22 @@ export default function AnuncioCard({
 
       <p className="text-xs text-stone-400 mt-2">
         Contacto: {anuncio.nombre_contacto}
-        {anuncio.telefono_contacto ? ` · ${anuncio.telefono_contacto}` : ""}
+        {anuncio.mostrar_telefono !== false && anuncio.telefono_contacto && (
+          <>
+            {" · "}
+            <a href={`tel:${anuncio.telefono_contacto.replace(/\s+/g, "")}`} className="hover:underline">
+              {anuncio.telefono_contacto}
+            </a>
+          </>
+        )}
+        {anuncio.mostrar_email && anuncio.email_contacto && (
+          <>
+            {" · "}
+            <a href={`mailto:${anuncio.email_contacto}`} className="hover:underline">
+              {anuncio.email_contacto}
+            </a>
+          </>
+        )}
       </p>
 
       {isOwner && (
