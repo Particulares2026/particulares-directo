@@ -1,8 +1,13 @@
+import fs from "fs";
+import path from "path";
 import { NextResponse } from "next/server";
-import municipiosPorProvincia from "@/lib/municipios.json";
+
+const municipiosPorProvincia: Record<string, string[]> = JSON.parse(
+  fs.readFileSync(path.join(process.cwd(), "lib", "municipios.json"), "utf-8")
+);
 
 export async function GET(request: Request) {
   const provincia = new URL(request.url).searchParams.get("provincia") || "";
-  const municipios = (municipiosPorProvincia as Record<string, string[]>)[provincia] || [];
+  const municipios = municipiosPorProvincia[provincia] || [];
   return NextResponse.json({ municipios });
 }
