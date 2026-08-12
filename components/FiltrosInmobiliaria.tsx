@@ -51,6 +51,8 @@ export default function FiltrosInmobiliaria({
   const [tipo, setTipo] = useState("");
   const [soloFavoritos, setSoloFavoritos] = useState(false);
   const [provincia, setProvincia] = useState("");
+  const [municipio, setMunicipio] = useState("");
+  const [municipiosDisponibles, setMunicipiosDisponibles] = useState<string[]>([]);
   const [tipoInmueble, setTipoInmueble] = useState("");
   const [precioMin, setPrecioMin] = useState("");
   const [precioMax, setPrecioMax] = useState("");
@@ -66,6 +68,22 @@ export default function FiltrosInmobiliaria({
   const [favoritos, setFavoritos] = useState<Set<string>>(new Set(favoritosIniciales));
   const [visibles, setVisibles] = useState(POR_PAGINA);
   const [vista, setVista] = useState<"lista" | "mapa">("lista");
+
+  useEffect(() => {
+    if (!provincia) {
+      setMunicipiosDisponibles([]);
+      return;
+    }
+    let cancelado = false;
+    fetch(`/api/municipios?provincia=${encodeURIComponent(provincia)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (!cancelado) setMunicipiosDisponibles(data.municipios || []);
+      });
+    return () => {
+      cancelado = true;
+    };
+  }, [provincia]);
 
   const toggleCaracteristica = (valor: string) => {
     setCaracteristicas((prev) =>
@@ -111,6 +129,7 @@ export default function FiltrosInmobiliaria({
       if (operacion && a.operacion !== operacion) return false;
       if (tipo && a.tipo !== tipo) return false;
       if (provincia && a.provincia !== provincia) return false;
+      if (municipio && a.municipio !== municipio) return false;
       if (tipoInmueble && a.tipo_inmueble !== tipoInmueble) return false;
       if (precioMinN != null && (a.precio == null || a.precio < precioMinN)) return false;
       if (precioMaxN != null && (a.precio == null || a.precio > precioMaxN)) return false;
@@ -129,7 +148,7 @@ export default function FiltrosInmobiliaria({
       return true;
     });
   }, [
-    anuncios, query, operacion, tipo, provincia, tipoInmueble,
+    anuncios, query, operacion, tipo, provincia, municipio, tipoInmueble,
     precioMin, precioMax, tamanoMin, tamanoMax, habitaciones, banos,
     amueblado, duracionAlquiler, caracteristicas, estado, soloFavoritos, favoritos,
   ]);
@@ -166,12 +185,27 @@ export default function FiltrosInmobiliaria({
               <option key={t.valor} value={t.valor}>{t.label}</option>
             ))}
           </select>
-          <select className={SELECT_CLASS} value={provincia} onChange={(e) => setProvincia(e.target.value)}>
+          <select
+            className={SELECT_CLASS}
+            value={provincia}
+            onChange={(e) => {
+              setProvincia(e.target.value);
+              setMunicipio("");
+            }}
+          >
             <option value="">Provincia</option>
             {PROVINCIAS.map((p) => (
               <option key={p} value={p}>{p}</option>
             ))}
           </select>
+          {provincia && municipiosDisponibles.length > 0 && (
+            <select className={SELECT_CLASS} value={municipio} onChange={(e) => setMunicipio(e.target.value)}>
+              <option value="">Municipio</option>
+              {municipiosDisponibles.map((m) => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+          )}
           <select className={SELECT_CLASS} value={amueblado} onChange={(e) => setAmueblado(e.target.value)}>
             <option value="">Amueblado o sin amueblar</option>
             <option value="si">Amueblado</option>

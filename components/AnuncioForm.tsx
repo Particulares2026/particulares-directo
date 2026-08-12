@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent, type ChangeEvent } from "react";
+import { useEffect, useState, type FormEvent, type ChangeEvent } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -35,6 +35,7 @@ type AnuncioExistente = {
   telefono_contacto?: string | null;
   operacion?: string | null;
   provincia?: string | null;
+  municipio?: string | null;
   tipo_inmueble?: string | null;
   precio?: number | null;
   habitaciones?: number | null;
@@ -84,6 +85,8 @@ export default function AnuncioForm({
 
   const [operacion, setOperacion] = useState(anuncioExistente?.operacion ?? "venta");
   const [provincia, setProvincia] = useState(anuncioExistente?.provincia ?? "");
+  const [municipio, setMunicipio] = useState(anuncioExistente?.municipio ?? "");
+  const [municipiosDisponibles, setMunicipiosDisponibles] = useState<string[]>([]);
   const [tipoInmueble, setTipoInmueble] = useState(anuncioExistente?.tipo_inmueble ?? "piso");
   const [precio, setPrecio] = useState(anuncioExistente?.precio != null ? String(anuncioExistente.precio) : "");
   const [habitaciones, setHabitaciones] = useState(
@@ -103,6 +106,22 @@ export default function AnuncioForm({
   const [subiendoFotos, setSubiendoFotos] = useState(false);
   const [fotosError, setFotosError] = useState<string | null>(null);
   const [fotoArrastrada, setFotoArrastrada] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!esInmobiliaria || !provincia) {
+      setMunicipiosDisponibles([]);
+      return;
+    }
+    let cancelado = false;
+    fetch(`/api/municipios?provincia=${encodeURIComponent(provincia)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (!cancelado) setMunicipiosDisponibles(data.municipios || []);
+      });
+    return () => {
+      cancelado = true;
+    };
+  }, [provincia, esInmobiliaria]);
 
   const moverFoto = (destino: number) => {
     if (fotoArrastrada === null || fotoArrastrada === destino) return;
@@ -194,6 +213,7 @@ export default function AnuncioForm({
       email_contacto: defaultEmail,
       operacion: esInmobiliaria ? operacion : null,
       provincia: esInmobiliaria ? provincia || null : null,
+      municipio: esInmobiliaria ? municipio || null : null,
       tipo_inmueble: esInmobiliaria ? tipoInmueble : null,
       precio: esInmobiliaria && precio ? Number(precio) : null,
       habitaciones: esInmobiliaria && habitaciones ? Number(habitaciones) : null,
@@ -296,7 +316,10 @@ export default function AnuncioForm({
             <select
               className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
               value={provincia}
-              onChange={(e) => setProvincia(e.target.value)}
+              onChange={(e) => {
+                setProvincia(e.target.value);
+                setMunicipio("");
+              }}
               required
             >
               <option value="">Provincia</option>
@@ -307,6 +330,23 @@ export default function AnuncioForm({
               ))}
             </select>
           </div>
+          {provincia && (
+            <select
+              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+              value={municipio}
+              onChange={(e) => setMunicipio(e.target.value)}
+              disabled={municipiosDisponibles.length === 0}
+            >
+              <option value="">
+                {municipiosDisponibles.length === 0 ? "Cargando municipios…" : "Municipio (opcional)"}
+              </option>
+              {municipiosDisponibles.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+          )}
           <div className="grid grid-cols-3 gap-2">
             <input
               className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"

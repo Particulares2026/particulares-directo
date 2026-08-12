@@ -18,6 +18,7 @@ create table if not exists public.anuncios (
   -- Campos específicos de la categoría inmobiliaria (null para el resto de categorías).
   operacion text check (operacion in ('venta', 'alquiler')),
   provincia text,
+  municipio text,
   tipo_inmueble text check (tipo_inmueble in (
     'piso', 'habitacion', 'garaje', 'trastero', 'local', 'terreno', 'edificio'
   )),
@@ -49,6 +50,7 @@ create index if not exists anuncios_tipo_idx on public.anuncios (tipo);
 create index if not exists anuncios_created_at_idx on public.anuncios (created_at desc);
 create index if not exists anuncios_user_id_idx on public.anuncios (user_id);
 create index if not exists anuncios_provincia_idx on public.anuncios (provincia);
+create index if not exists anuncios_municipio_idx on public.anuncios (municipio);
 
 -- Activa la seguridad a nivel de fila: sin esto, con la clave "anon" cualquiera
 -- podría leer o modificar toda la tabla directamente.

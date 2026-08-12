@@ -30,6 +30,7 @@ type Anuncio = {
   user_id: string;
   operacion?: string | null;
   provincia?: string | null;
+  municipio?: string | null;
   tipo_inmueble?: string | null;
   precio?: number | null;
   habitaciones?: number | null;
@@ -175,9 +176,9 @@ export default function AnuncioCard({
             )}
           </div>
           <p className="font-medium text-stone-900 mt-1.5">{anuncio.titulo}</p>
-          {(anuncio.provincia || anuncio.ubicacion) && (
+          {(anuncio.provincia || anuncio.municipio || anuncio.ubicacion) && (
             <p className="text-sm text-stone-500">
-              {[anuncio.provincia, anuncio.ubicacion].filter(Boolean).join(" · ")}
+              {[anuncio.provincia, anuncio.municipio, anuncio.ubicacion].filter(Boolean).join(" · ")}
             </p>
           )}
         </div>
