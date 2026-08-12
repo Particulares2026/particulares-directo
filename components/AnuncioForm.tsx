@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent, type ChangeEvent } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { etiquetasTipo } from "@/lib/categorias";
@@ -17,6 +18,11 @@ import {
 } from "@/lib/inmobiliaria";
 import { PREFIJOS_TELEFONO, parseTelefono } from "@/lib/telefono";
 import { comprimirImagen } from "@/lib/imagen";
+
+const SelectorUbicacion = dynamic(() => import("@/components/mapa/SelectorUbicacion"), {
+  ssr: false,
+  loading: () => <div className="h-[260px] rounded-lg border border-stone-200 bg-stone-50 animate-pulse" />,
+});
 
 type AnuncioExistente = {
   id: string;
@@ -39,6 +45,8 @@ type AnuncioExistente = {
   duracion_alquiler?: string | null;
   fotos?: string[];
   estado?: string | null;
+  lat?: number | null;
+  lng?: number | null;
 };
 
 export default function AnuncioForm({
@@ -89,6 +97,8 @@ export default function AnuncioForm({
   const [caracteristicas, setCaracteristicas] = useState<string[]>(anuncioExistente?.caracteristicas ?? []);
   const [duracionAlquiler, setDuracionAlquiler] = useState(anuncioExistente?.duracion_alquiler ?? "");
   const [estado, setEstado] = useState(anuncioExistente?.estado ?? "");
+  const [lat, setLat] = useState<number | null>(anuncioExistente?.lat ?? null);
+  const [lng, setLng] = useState<number | null>(anuncioExistente?.lng ?? null);
   const [fotos, setFotos] = useState<string[]>(anuncioExistente?.fotos ?? []);
   const [subiendoFotos, setSubiendoFotos] = useState(false);
   const [fotosError, setFotosError] = useState<string | null>(null);
@@ -194,6 +204,8 @@ export default function AnuncioForm({
       duracion_alquiler: esInmobiliaria && operacion === "alquiler" && duracionAlquiler ? duracionAlquiler : null,
       fotos,
       estado: esInmobiliaria ? estado : null,
+      lat: esInmobiliaria ? lat : null,
+      lng: esInmobiliaria ? lng : null,
     };
 
     const { error } = anuncioExistente
@@ -401,6 +413,11 @@ export default function AnuncioForm({
                 </button>
               ))}
             </div>
+          </div>
+
+          <div>
+            <p className="text-sm text-stone-500 mb-1.5">Ubicación en el mapa (opcional)</p>
+            <SelectorUbicacion lat={lat} lng={lng} onChange={(la, ln) => { setLat(la); setLng(ln); }} />
           </div>
 
         </>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import AnuncioCard from "./AnuncioCard";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -11,6 +12,11 @@ import {
   DURACIONES_ALQUILER,
   ESTADOS_INMUEBLE,
 } from "@/lib/inmobiliaria";
+
+const MapaAnuncios = dynamic(() => import("./mapa/MapaAnuncios"), {
+  ssr: false,
+  loading: () => <div className="h-[480px] rounded-lg border border-stone-200 bg-stone-50 animate-pulse" />,
+});
 
 function tokenize(text: string) {
   return text
@@ -56,6 +62,7 @@ export default function FiltrosInmobiliaria({
   const [caracteristicasAbierto, setCaracteristicasAbierto] = useState(false);
   const [favoritos, setFavoritos] = useState<Set<string>>(new Set(favoritosIniciales));
   const [visibles, setVisibles] = useState(POR_PAGINA);
+  const [vista, setVista] = useState<"lista" | "mapa">("lista");
 
   const toggleCaracteristica = (valor: string) => {
     setCaracteristicas((prev) =>
@@ -300,9 +307,27 @@ export default function FiltrosInmobiliaria({
         </div>
       </div>
 
-      <p className="text-sm text-stone-500 mb-3">
-        {filtrados.length} {filtrados.length === 1 ? "inmueble encontrado" : "inmuebles encontrados"}
-      </p>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-sm text-stone-500">
+          {filtrados.length} {filtrados.length === 1 ? "inmueble encontrado" : "inmuebles encontrados"}
+        </p>
+        <div className="flex text-sm border border-stone-300 rounded-lg overflow-hidden shrink-0">
+          <button
+            type="button"
+            onClick={() => setVista("lista")}
+            className={"px-3 py-1.5 " + (vista === "lista" ? "bg-stone-900 text-white" : "text-stone-500")}
+          >
+            Lista
+          </button>
+          <button
+            type="button"
+            onClick={() => setVista("mapa")}
+            className={"px-3 py-1.5 " + (vista === "mapa" ? "bg-stone-900 text-white" : "text-stone-500")}
+          >
+            Mapa
+          </button>
+        </div>
+      </div>
 
       {anuncios.length === 0 && (
         <p className="text-sm text-stone-400 text-center py-10">
@@ -316,26 +341,32 @@ export default function FiltrosInmobiliaria({
         </p>
       )}
 
-      <div className="space-y-3">
-        {filtrados.slice(0, visibles).map((a) => (
-          <AnuncioCard
-            key={a.id}
-            anuncio={a}
-            isOwner={a.user_id === currentUserId}
-            esFavorito={favoritos.has(a.id)}
-            onToggleFavorito={currentUserId ? () => toggleFavorito(a.id) : undefined}
-          />
-        ))}
-      </div>
+      {vista === "mapa" && filtrados.length > 0 && <MapaAnuncios anuncios={filtrados} />}
 
-      {filtrados.length > visibles && (
-        <button
-          type="button"
-          onClick={() => setVisibles((v) => v + POR_PAGINA)}
-          className="w-full mt-3 text-sm border border-stone-300 rounded-lg py-2.5 text-stone-600 hover:bg-stone-50"
-        >
-          Cargar más
-        </button>
+      {vista === "lista" && (
+        <>
+          <div className="space-y-3">
+            {filtrados.slice(0, visibles).map((a) => (
+              <AnuncioCard
+                key={a.id}
+                anuncio={a}
+                isOwner={a.user_id === currentUserId}
+                esFavorito={favoritos.has(a.id)}
+                onToggleFavorito={currentUserId ? () => toggleFavorito(a.id) : undefined}
+              />
+            ))}
+          </div>
+
+          {filtrados.length > visibles && (
+            <button
+              type="button"
+              onClick={() => setVisibles((v) => v + POR_PAGINA)}
+              className="w-full mt-3 text-sm border border-stone-300 rounded-lg py-2.5 text-stone-600 hover:bg-stone-50"
+            >
+              Cargar más
+            </button>
+          )}
+        </>
       )}
     </div>
   );

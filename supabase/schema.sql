@@ -30,6 +30,9 @@ create table if not exists public.anuncios (
   duracion_alquiler text check (duracion_alquiler in ('temporada', 'larga_estancia')),
   fotos text[] not null default '{}',
   estado text check (estado in ('nuevo', 'para_entrar', 'necesita_reformas')),
+  -- Ubicación en el mapa (solo inmobiliaria; null si el anuncio no la tiene marcada).
+  lat double precision,
+  lng double precision,
   -- Caducidad: un anuncio se desactiva 30 días después de fecha_activacion si no se renueva.
   activo boolean not null default true,
   fecha_activacion timestamptz not null default now(),
