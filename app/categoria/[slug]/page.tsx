@@ -49,9 +49,9 @@ export default async function CategoriaPage({
         ← Todas las categorías
       </Link>
 
-      <div className="flex items-center justify-between mt-2 mb-6 gap-2">
+      <div className="flex flex-wrap items-center justify-between mt-2 mb-6 gap-2">
         <h1 className="font-serif text-2xl">{nombreCategoria(params.slug)}</h1>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 flex-wrap">
           {params.slug === "inmobiliaria" && (
             <Link
               href="/calculadora-hipoteca"
