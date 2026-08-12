@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { esAdmin } from "@/lib/admin";
 import LogoutButton from "./LogoutButton";
 import BuzonSugerencias from "./BuzonSugerencias";
 
@@ -56,6 +57,11 @@ export default async function Header() {
             <Link href="/favoritos" className="text-stone-600 hover:text-stone-900">
               ❤ Favoritos
             </Link>
+            {esAdmin(user.email) && (
+              <Link href="/moderacion" className="text-stone-600 hover:text-stone-900">
+                🛡️ Moderación
+              </Link>
+            )}
             <span className="text-stone-400 hidden md:inline">{user.email}</span>
             <LogoutButton />
           </>
