@@ -54,12 +54,20 @@ export default async function CategoriaPage({
         <h1 className="font-serif text-2xl">{nombreCategoria(params.slug)}</h1>
         <div className="flex items-center gap-2 flex-wrap">
           {params.slug === "inmobiliaria" && (
-            <Link
-              href="/calculadora-hipoteca"
-              className="text-sm border border-stone-300 text-stone-600 px-3 py-1.5 rounded-lg hover:bg-stone-50"
-            >
-              Calculadora de hipoteca
-            </Link>
+            <>
+              <Link
+                href="/calculadora-hipoteca"
+                className="text-sm border border-stone-300 text-stone-600 px-3 py-1.5 rounded-lg hover:bg-stone-50"
+              >
+                Calculadora de hipoteca
+              </Link>
+              <Link
+                href="/precios-m2"
+                className="text-sm border border-stone-300 text-stone-600 px-3 py-1.5 rounded-lg hover:bg-stone-50"
+              >
+                Precio del m²
+              </Link>
+            </>
           )}
           <Link
             href={`/publicar?categoria=${params.slug}`}
