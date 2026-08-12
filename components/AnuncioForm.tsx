@@ -288,13 +288,16 @@ export default function AnuncioForm({
       incorporacion: esTrabajo ? incorporacion || null : null,
     };
 
-    const { error } = anuncioExistente
-      ? await supabase.from("anuncios").update(payload).eq("id", anuncioExistente.id)
-      : await supabase.from("anuncios").insert({ user_id: userId, ...payload });
+    const res = await fetch("/api/anuncios", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: anuncioExistente?.id, ...payload }),
+    });
+    const data = await res.json().catch(() => null);
 
     setLoading(false);
-    if (error) {
-      setError(error.message);
+    if (!res.ok) {
+      setError(data?.error || "No se pudo guardar el anuncio. Inténtalo de nuevo.");
       return;
     }
     router.push("/mis-anuncios");
