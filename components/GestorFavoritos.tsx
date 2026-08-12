@@ -168,10 +168,10 @@ export default function GestorFavoritos({
               onToggleFavorito={() => quitarFavorito(f.anuncio_id)}
             />
             {listas.length > 0 && (
-              <div className="flex items-center gap-2 mt-1.5 px-1">
-                <span className="text-xs text-stone-400">Lista:</span>
+              <div className="flex items-center gap-2 mt-1.5 px-1 min-w-0">
+                <span className="text-xs text-stone-400 shrink-0">Lista:</span>
                 <select
-                  className="text-xs border border-stone-300 rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-teal-600"
+                  className="text-xs border border-stone-300 rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-teal-600 max-w-full min-w-0"
                   value={f.lista_id ?? ""}
                   onChange={(e) => moverAFavorito(f.anuncio_id, e.target.value || null)}
                 >
