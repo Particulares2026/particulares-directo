@@ -12,7 +12,7 @@ export function precioDestacarCentimos(categoria: string): number {
 
 export function precioDestacarTexto(categoria: string): string {
   const centimos = precioDestacarCentimos(categoria);
-  if (centimos === 0) return "gratis";
+  if (centimos === 0) return "gratis por tiempo limitado";
   const euros = centimos / 100;
   return euros.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
 }
