@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CATEGORIAS } from "@/lib/categorias";
+import { CATEGORIAS_DESTACADAS } from "@/lib/categorias";
 
 export default function HomePage() {
   return (
@@ -10,7 +10,7 @@ export default function HomePage() {
       </p>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {CATEGORIAS.map((c) => (
+        {CATEGORIAS_DESTACADAS.map((c) => (
           <Link
             key={c.slug}
             href={`/categoria/${c.slug}`}

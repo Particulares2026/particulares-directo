@@ -8,16 +8,20 @@ export type CategoriaSlug =
   | "tecnologia"
   | "deporte";
 
-export const CATEGORIAS: { slug: CategoriaSlug; label: string }[] = [
-  { slug: "inmobiliaria", label: "Inmobiliaria" },
-  { slug: "trabajo", label: "Trabajo" },
-  { slug: "coches", label: "Coches" },
-  { slug: "moda", label: "Moda" },
-  { slug: "muebles-hogar", label: "Muebles y hogar" },
-  { slug: "mascotas", label: "Mascotas" },
-  { slug: "tecnologia", label: "Tecnología" },
-  { slug: "deporte", label: "Deporte" },
+// "destacada: false" oculta la categoría de la portada y del selector al publicar,
+// pero sus páginas, anuncios y enlaces directos siguen funcionando con normalidad.
+export const CATEGORIAS: { slug: CategoriaSlug; label: string; destacada: boolean }[] = [
+  { slug: "inmobiliaria", label: "Inmobiliaria", destacada: true },
+  { slug: "trabajo", label: "Trabajo", destacada: true },
+  { slug: "coches", label: "Coches", destacada: false },
+  { slug: "moda", label: "Moda", destacada: false },
+  { slug: "muebles-hogar", label: "Muebles y hogar", destacada: false },
+  { slug: "mascotas", label: "Mascotas", destacada: false },
+  { slug: "tecnologia", label: "Tecnología", destacada: false },
+  { slug: "deporte", label: "Deporte", destacada: false },
 ];
+
+export const CATEGORIAS_DESTACADAS = CATEGORIAS.filter((c) => c.destacada);
 
 export function esCategoriaValida(slug: string): slug is CategoriaSlug {
   return CATEGORIAS.some((c) => c.slug === slug);

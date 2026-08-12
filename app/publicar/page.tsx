@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AnuncioForm from "@/components/AnuncioForm";
-import { CATEGORIAS, esCategoriaValida, nombreCategoria } from "@/lib/categorias";
+import { CATEGORIAS_DESTACADAS, esCategoriaValida, nombreCategoria } from "@/lib/categorias";
 
 export default async function PublicarPage({
   searchParams,
@@ -26,7 +26,7 @@ export default async function PublicarPage({
           Elige primero en qué categoría quieres publicar.
         </p>
         <div className="grid grid-cols-2 gap-3">
-          {CATEGORIAS.map((c) => (
+          {CATEGORIAS_DESTACADAS.map((c) => (
             <Link
               key={c.slug}
               href={`/publicar?categoria=${c.slug}`}
