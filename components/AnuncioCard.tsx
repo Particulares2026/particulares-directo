@@ -106,12 +106,14 @@ export default function AnuncioCard({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ anuncioId: anuncio.id }),
       });
-      const data = await res.json();
-      if (data.url) {
+      const data = await res.json().catch(() => null);
+      if (data?.url) {
         window.location.href = data.url;
         return;
       }
-      alert(data.error || "No se pudo iniciar el pago.");
+      alert(data?.error || "No se pudo iniciar el pago. Inténtalo de nuevo en un momento.");
+    } catch {
+      alert("No se pudo conectar con el servidor. Comprueba tu conexión e inténtalo de nuevo.");
     } finally {
       setDestacando(false);
     }

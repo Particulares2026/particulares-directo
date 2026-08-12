@@ -5,7 +5,7 @@ import { nombreCategoria } from "@/lib/categorias";
 import { precioDestacarCentimos } from "@/lib/destacar";
 
 export async function POST(request: Request) {
-  const stripeKey = process.env.STRIPE_SECRET_KEY;
+  const stripeKey = process.env.STRIPE_SECRET_KEY?.trim();
   if (!stripeKey) {
     return NextResponse.json(
       { error: "El pago de destacados no está configurado todavía." },
