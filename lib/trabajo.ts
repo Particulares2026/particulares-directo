@@ -41,7 +41,6 @@ export const CARACTERISTICAS_TRABAJO: { valor: string; label: string }[] = [
   { valor: "carnet_conducir", label: "Carnet de conducir" },
   { valor: "contrato_legal", label: "Contrato legal" },
   { valor: "referencias_disponibles", label: "Referencias disponibles" },
-  { valor: "incorporacion_inmediata", label: "Incorporación inmediata" },
 ];
 
 export function nombreSector(valor: string | null | undefined): string {
@@ -61,9 +60,10 @@ export function textoSalario(
   max: number | null | undefined,
   periodo: string | null | undefined
 ): string {
-  const sufijo = periodo && periodo !== "convenir" ? ` ${SALARIO_PERIODOS.find((p) => p.valor === periodo)?.label ?? ""}` : "";
   if (periodo === "convenir" || (!min && !max)) return "Salario a convenir";
-  if (min && max && min !== max) return `${min.toLocaleString("es-ES")}-${max.toLocaleString("es-ES")} €${sufijo}`;
+  const unidad =
+    (periodo && SALARIO_PERIODOS.find((p) => p.valor === periodo && p.valor !== "convenir")?.label) || "€";
+  if (min && max && min !== max) return `${min.toLocaleString("es-ES")}-${max.toLocaleString("es-ES")} ${unidad}`;
   const valor = min || max;
-  return `${valor!.toLocaleString("es-ES")} €${sufijo}`;
+  return `${valor!.toLocaleString("es-ES")} ${unidad}`;
 }
