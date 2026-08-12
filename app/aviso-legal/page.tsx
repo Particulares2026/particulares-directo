@@ -113,10 +113,12 @@ export default function AvisoLegalPage() {
         </section>
 
         <section>
-          <h2 className="font-medium text-stone-900 mb-1">Cookies</h2>
+          <h2 className="font-medium text-stone-900 mb-1">Cookies y analítica</h2>
           <p>
             Usamos únicamente cookies técnicas necesarias para mantener tu sesión iniciada. No
-            utilizamos cookies de publicidad ni de seguimiento.
+            utilizamos cookies de publicidad ni de seguimiento. Para saber qué páginas se visitan
+            más y mejorar la web, usamos Vercel Analytics, que mide visitas de forma agregada y
+            anónima sin usar cookies ni identificarte a ti individualmente.
           </p>
         </section>
       </div>

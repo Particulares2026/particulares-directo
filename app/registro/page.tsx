@@ -30,7 +30,7 @@ export default function RegistroPage() {
       return;
     }
     if (!aceptaPrivacidad) {
-      setError("Tienes que aceptar el aviso legal y la política de privacidad para crear una cuenta.");
+      setError("Tienes que aceptar el aviso legal y los términos y condiciones para crear una cuenta.");
       return;
     }
 
@@ -117,6 +117,10 @@ export default function RegistroPage() {
             He leído y acepto el{" "}
             <Link href="/aviso-legal" target="_blank" className="text-teal-700 hover:underline">
               aviso legal y la política de privacidad
+            </Link>{" "}
+            y los{" "}
+            <Link href="/terminos" target="_blank" className="text-teal-700 hover:underline">
+              términos y condiciones de uso
             </Link>
             .
           </span>
