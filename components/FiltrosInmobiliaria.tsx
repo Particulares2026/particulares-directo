@@ -311,18 +311,18 @@ export default function FiltrosInmobiliaria({
         <p className="text-sm text-stone-500">
           {filtrados.length} {filtrados.length === 1 ? "inmueble encontrado" : "inmuebles encontrados"}
         </p>
-        <div className="flex text-sm border border-stone-300 rounded-lg overflow-hidden shrink-0">
+        <div className="flex text-sm font-medium border-2 border-[#ec1178] rounded-lg overflow-hidden shrink-0">
           <button
             type="button"
             onClick={() => setVista("lista")}
-            className={"px-3 py-1.5 " + (vista === "lista" ? "bg-stone-900 text-white" : "text-stone-500")}
+            className={"px-4 py-1.5 " + (vista === "lista" ? "bg-[#ec1178] text-white" : "text-[#ec1178] hover:bg-fuchsia-50")}
           >
             Lista
           </button>
           <button
             type="button"
             onClick={() => setVista("mapa")}
-            className={"px-3 py-1.5 " + (vista === "mapa" ? "bg-stone-900 text-white" : "text-stone-500")}
+            className={"px-4 py-1.5 " + (vista === "mapa" ? "bg-[#ec1178] text-white" : "text-[#ec1178] hover:bg-fuchsia-50")}
           >
             Mapa
           </button>
