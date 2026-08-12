@@ -73,6 +73,7 @@ export default async function CategoriaPage({
         <FiltrosInmobiliaria
           anuncios={anunciosOrdenados}
           currentUserId={user?.id ?? null}
+          userEmail={user?.email ?? null}
           favoritosIniciales={favoritosIniciales}
         />
       ) : (

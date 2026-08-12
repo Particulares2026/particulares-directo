@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import AnuncioCard from "./AnuncioCard";
+import AlertasBusqueda from "./AlertasBusqueda";
 import { createClient } from "@/lib/supabase/client";
 import {
   PROVINCIAS,
@@ -36,10 +37,12 @@ const INPUT_CLASS =
 export default function FiltrosInmobiliaria({
   anuncios,
   currentUserId,
+  userEmail,
   favoritosIniciales,
 }: {
   anuncios: any[];
   currentUserId: string | null;
+  userEmail: string | null;
   favoritosIniciales: string[];
 }) {
   const supabase = createClient();
@@ -306,6 +309,16 @@ export default function FiltrosInmobiliaria({
           ))}
         </div>
       </div>
+
+      <AlertasBusqueda
+        currentUserId={currentUserId}
+        userEmail={userEmail}
+        filtros={{
+          query, operacion, tipo, provincia, tipoInmueble, precioMin, precioMax,
+          tamanoMin, tamanoMax, habitaciones, banos, amueblado, duracionAlquiler,
+          estado, caracteristicas,
+        }}
+      />
 
       <div className="flex items-center justify-between mb-3">
         <p className="text-sm text-stone-500">
