@@ -17,6 +17,7 @@ create table if not exists public.anuncios (
   created_at timestamptz not null default now(),
   -- Campos específicos de la categoría inmobiliaria (null para el resto de categorías).
   operacion text check (operacion in ('venta', 'alquiler')),
+  -- Provincia y municipio se usan en inmobiliaria y también en trabajo.
   provincia text,
   municipio text,
   tipo_inmueble text check (tipo_inmueble in (
@@ -34,6 +35,15 @@ create table if not exists public.anuncios (
   -- Ubicación en el mapa (solo inmobiliaria; null si el anuncio no la tiene marcada).
   lat double precision,
   lng double precision,
+  -- Campos específicos de la categoría trabajo (null para el resto de categorías).
+  sector_trabajo text,
+  modalidad_trabajo text,
+  salario_min numeric,
+  salario_max numeric,
+  salario_periodo text,
+  experiencia_trabajo text,
+  idiomas_trabajo text[] not null default '{}',
+  incorporacion text,
   -- Caducidad: un anuncio se desactiva 30 días después de fecha_activacion si no se renueva.
   activo boolean not null default true,
   fecha_activacion timestamptz not null default now(),
@@ -51,6 +61,7 @@ create index if not exists anuncios_created_at_idx on public.anuncios (created_a
 create index if not exists anuncios_user_id_idx on public.anuncios (user_id);
 create index if not exists anuncios_provincia_idx on public.anuncios (provincia);
 create index if not exists anuncios_municipio_idx on public.anuncios (municipio);
+create index if not exists anuncios_sector_trabajo_idx on public.anuncios (sector_trabajo);
 
 -- Activa la seguridad a nivel de fila: sin esto, con la clave "anon" cualquiera
 -- podría leer o modificar toda la tabla directamente.

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Buscador from "@/components/Buscador";
 import FiltrosInmobiliaria from "@/components/FiltrosInmobiliaria";
+import FiltrosTrabajo from "@/components/FiltrosTrabajo";
 import { esCategoriaValida, nombreCategoria } from "@/lib/categorias";
 import { estaDestacado } from "@/lib/destacar";
 
@@ -74,6 +75,12 @@ export default async function CategoriaPage({
           anuncios={anunciosOrdenados}
           currentUserId={user?.id ?? null}
           userEmail={user?.email ?? null}
+          favoritosIniciales={favoritosIniciales}
+        />
+      ) : params.slug === "trabajo" ? (
+        <FiltrosTrabajo
+          anuncios={anunciosOrdenados}
+          currentUserId={user?.id ?? null}
           favoritosIniciales={favoritosIniciales}
         />
       ) : (

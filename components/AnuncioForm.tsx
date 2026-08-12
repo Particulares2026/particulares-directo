@@ -16,6 +16,14 @@ import {
   MAX_FOTOS,
   extraerPathStorage,
 } from "@/lib/inmobiliaria";
+import {
+  SECTORES_TRABAJO,
+  MODALIDADES_TRABAJO,
+  EXPERIENCIA_TRABAJO,
+  SALARIO_PERIODOS,
+  IDIOMAS_TRABAJO,
+  CARACTERISTICAS_TRABAJO,
+} from "@/lib/trabajo";
 import { PREFIJOS_TELEFONO, parseTelefono } from "@/lib/telefono";
 import { comprimirImagen } from "@/lib/imagen";
 
@@ -54,6 +62,14 @@ type AnuncioExistente = {
   estado?: string | null;
   lat?: number | null;
   lng?: number | null;
+  sector_trabajo?: string | null;
+  modalidad_trabajo?: string | null;
+  salario_min?: number | null;
+  salario_max?: number | null;
+  salario_periodo?: string | null;
+  experiencia_trabajo?: string | null;
+  idiomas_trabajo?: string[];
+  incorporacion?: string | null;
 };
 
 export default function AnuncioForm({
@@ -74,6 +90,7 @@ export default function AnuncioForm({
   const supabase = createClient();
   const router = useRouter();
   const esInmobiliaria = categoria === "inmobiliaria";
+  const esTrabajo = categoria === "trabajo";
   const esEdicion = Boolean(anuncioExistente);
 
   const [tipo, setTipo] = useState<"busco" | "ofrezco">(anuncioExistente?.tipo ?? "busco");
@@ -114,8 +131,21 @@ export default function AnuncioForm({
   const [fotosError, setFotosError] = useState<string | null>(null);
   const [fotoArrastrada, setFotoArrastrada] = useState<number | null>(null);
 
+  const [sectorTrabajo, setSectorTrabajo] = useState(anuncioExistente?.sector_trabajo ?? "");
+  const [modalidadTrabajo, setModalidadTrabajo] = useState(anuncioExistente?.modalidad_trabajo ?? "");
+  const [salarioMin, setSalarioMin] = useState(
+    anuncioExistente?.salario_min != null ? String(anuncioExistente.salario_min) : ""
+  );
+  const [salarioMax, setSalarioMax] = useState(
+    anuncioExistente?.salario_max != null ? String(anuncioExistente.salario_max) : ""
+  );
+  const [salarioPeriodo, setSalarioPeriodo] = useState(anuncioExistente?.salario_periodo ?? "");
+  const [experienciaTrabajo, setExperienciaTrabajo] = useState(anuncioExistente?.experiencia_trabajo ?? "");
+  const [idiomasTrabajo, setIdiomasTrabajo] = useState<string[]>(anuncioExistente?.idiomas_trabajo ?? []);
+  const [incorporacion, setIncorporacion] = useState(anuncioExistente?.incorporacion ?? "");
+
   useEffect(() => {
-    if (!esInmobiliaria || !provincia) {
+    if (!(esInmobiliaria || esTrabajo) || !provincia) {
       setMunicipiosDisponibles([]);
       return;
     }
@@ -128,7 +158,7 @@ export default function AnuncioForm({
     return () => {
       cancelado = true;
     };
-  }, [provincia, esInmobiliaria]);
+  }, [provincia, esInmobiliaria, esTrabajo]);
 
   const moverFoto = (destino: number) => {
     if (fotoArrastrada === null || fotoArrastrada === destino) return;
@@ -143,6 +173,12 @@ export default function AnuncioForm({
 
   const toggleCaracteristica = (valor: string) => {
     setCaracteristicas((prev) =>
+      prev.includes(valor) ? prev.filter((c) => c !== valor) : [...prev, valor]
+    );
+  };
+
+  const toggleIdioma = (valor: string) => {
+    setIdiomasTrabajo((prev) =>
       prev.includes(valor) ? prev.filter((c) => c !== valor) : [...prev, valor]
     );
   };
@@ -215,20 +251,28 @@ export default function AnuncioForm({
       telefono_contacto: `${prefijoTelefono} ${numeroLimpio}`,
       email_contacto: defaultEmail,
       operacion: esInmobiliaria ? operacion : null,
-      provincia: esInmobiliaria ? provincia || null : null,
-      municipio: esInmobiliaria ? municipio || null : null,
+      provincia: esInmobiliaria || esTrabajo ? provincia || null : null,
+      municipio: esInmobiliaria || esTrabajo ? municipio || null : null,
       tipo_inmueble: esInmobiliaria ? tipoInmueble : null,
       precio: esInmobiliaria && precio ? Number(precio) : null,
       habitaciones: esInmobiliaria && habitaciones ? Number(habitaciones) : null,
       banos: esInmobiliaria && banos ? Number(banos) : null,
       amueblado: esInmobiliaria && amueblado ? amueblado === "si" : null,
       tamano: esInmobiliaria && tamano ? Number(tamano) : null,
-      caracteristicas: esInmobiliaria ? caracteristicas : [],
+      caracteristicas: esInmobiliaria ? caracteristicas : esTrabajo ? caracteristicas : [],
       duracion_alquiler: esInmobiliaria && operacion === "alquiler" && duracionAlquiler ? duracionAlquiler : null,
       fotos,
       estado: esInmobiliaria && estado ? estado : null,
       lat: esInmobiliaria ? lat : null,
       lng: esInmobiliaria ? lng : null,
+      sector_trabajo: esTrabajo ? sectorTrabajo || null : null,
+      modalidad_trabajo: esTrabajo ? modalidadTrabajo || null : null,
+      salario_min: esTrabajo && salarioMin ? Number(salarioMin) : null,
+      salario_max: esTrabajo && salarioMax ? Number(salarioMax) : null,
+      salario_periodo: esTrabajo ? salarioPeriodo || null : null,
+      experiencia_trabajo: esTrabajo ? experienciaTrabajo || null : null,
+      idiomas_trabajo: esTrabajo ? idiomasTrabajo : [],
+      incorporacion: esTrabajo ? incorporacion || null : null,
     };
 
     const { error } = anuncioExistente
@@ -482,6 +526,170 @@ export default function AnuncioForm({
         </>
       )}
 
+      {esTrabajo && (
+        <>
+          <Seccion>Datos del empleo (opcional)</Seccion>
+
+          <select
+            className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+            value={sectorTrabajo}
+            onChange={(e) => setSectorTrabajo(e.target.value)}
+          >
+            <option value="">Sector</option>
+            {SECTORES_TRABAJO.map((s) => (
+              <option key={s.valor} value={s.valor}>
+                {s.label}
+              </option>
+            ))}
+          </select>
+
+          <div className="grid grid-cols-2 gap-2">
+            <select
+              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+              value={provincia}
+              onChange={(e) => {
+                setProvincia(e.target.value);
+                setMunicipio("");
+              }}
+            >
+              <option value="">Provincia</option>
+              {PROVINCIAS.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+            {provincia && (
+              <select
+                className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+                value={municipio}
+                onChange={(e) => setMunicipio(e.target.value)}
+                disabled={municipiosDisponibles.length === 0}
+              >
+                <option value="">
+                  {municipiosDisponibles.length === 0 ? "Cargando…" : "Municipio"}
+                </option>
+                {municipiosDisponibles.map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          <select
+            className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+            value={modalidadTrabajo}
+            onChange={(e) => setModalidadTrabajo(e.target.value)}
+          >
+            <option value="">Modalidad</option>
+            {MODALIDADES_TRABAJO.map((m) => (
+              <option key={m.valor} value={m.valor}>
+                {m.label}
+              </option>
+            ))}
+          </select>
+
+          <div className="grid grid-cols-3 gap-2">
+            <input
+              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+              placeholder="Salario mín. (€)"
+              type="number"
+              min="0"
+              value={salarioMin}
+              onChange={(e) => setSalarioMin(e.target.value)}
+            />
+            <input
+              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+              placeholder="Salario máx. (€)"
+              type="number"
+              min="0"
+              value={salarioMax}
+              onChange={(e) => setSalarioMax(e.target.value)}
+            />
+            <select
+              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+              value={salarioPeriodo}
+              onChange={(e) => setSalarioPeriodo(e.target.value)}
+            >
+              <option value="">Periodo</option>
+              {SALARIO_PERIODOS.map((p) => (
+                <option key={p.valor} value={p.valor}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <select
+              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+              value={experienciaTrabajo}
+              onChange={(e) => setExperienciaTrabajo(e.target.value)}
+            >
+              <option value="">Experiencia</option>
+              {EXPERIENCIA_TRABAJO.map((ex) => (
+                <option key={ex.valor} value={ex.valor}>
+                  {ex.label}
+                </option>
+              ))}
+            </select>
+            <select
+              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+              value={incorporacion}
+              onChange={(e) => setIncorporacion(e.target.value)}
+            >
+              <option value="">Incorporación</option>
+              <option value="inmediata">Inmediata</option>
+              <option value="convenir">A convenir</option>
+            </select>
+          </div>
+
+          <div>
+            <p className="text-sm text-stone-500 mb-1.5">Idiomas</p>
+            <div className="flex flex-wrap gap-1.5">
+              {IDIOMAS_TRABAJO.map((idioma) => (
+                <button
+                  key={idioma}
+                  type="button"
+                  onClick={() => toggleIdioma(idioma)}
+                  className={
+                    "text-xs px-2.5 py-1.5 rounded-full border " +
+                    (idiomasTrabajo.includes(idioma)
+                      ? "border-fuchsia-600 bg-fuchsia-50 text-fuchsia-700 font-medium"
+                      : "border-stone-200 text-stone-500")
+                  }
+                >
+                  {idioma}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-sm text-stone-500 mb-1.5">Características</p>
+            <div className="flex flex-wrap gap-1.5">
+              {CARACTERISTICAS_TRABAJO.map((c) => (
+                <button
+                  key={c.valor}
+                  type="button"
+                  onClick={() => toggleCaracteristica(c.valor)}
+                  className={
+                    "text-xs px-2.5 py-1.5 rounded-full border " +
+                    (caracteristicas.includes(c.valor)
+                      ? "border-fuchsia-600 bg-fuchsia-50 text-fuchsia-700 font-medium"
+                      : "border-stone-200 text-stone-500")
+                  }
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
       <Seccion>Fotos</Seccion>
 
       <div>
@@ -540,9 +748,9 @@ export default function AnuncioForm({
         {fotosError && <p className="text-xs text-red-600 mt-1">{fotosError}</p>}
       </div>
 
-      <Seccion>Detalles adicionales{esInmobiliaria ? " (opcional)" : ""}</Seccion>
+      <Seccion>Detalles adicionales{esInmobiliaria || esTrabajo ? " (opcional)" : ""}</Seccion>
 
-      {!esInmobiliaria && (
+      {!esInmobiliaria && !esTrabajo && (
         <input
           className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
           placeholder="Ciudad o modalidad (ej. Sevilla, remoto)"
@@ -551,20 +759,28 @@ export default function AnuncioForm({
           required
         />
       )}
+      {esTrabajo && (
+        <input
+          className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+          placeholder="Barrio o zona (opcional)"
+          value={ubicacion}
+          onChange={(e) => setUbicacion(e.target.value)}
+        />
+      )}
       <input
         className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
-        placeholder={esInmobiliaria ? "Palabras clave separadas por comas (opcional)" : "Palabras clave separadas por comas"}
+        placeholder={esInmobiliaria || esTrabajo ? "Palabras clave separadas por comas (opcional)" : "Palabras clave separadas por comas"}
         value={palabrasClave}
         onChange={(e) => setPalabrasClave(e.target.value)}
-        required={!esInmobiliaria}
+        required={!esInmobiliaria && !esTrabajo}
       />
       <textarea
         className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 resize-none"
         rows={3}
-        placeholder={esInmobiliaria ? "Descripción (opcional)" : "Descripción"}
+        placeholder={esInmobiliaria || esTrabajo ? "Descripción (opcional)" : "Descripción"}
         value={descripcion}
         onChange={(e) => setDescripcion(e.target.value)}
-        required={!esInmobiliaria}
+        required={!esInmobiliaria && !esTrabajo}
       />
 
       <Seccion>Contacto</Seccion>

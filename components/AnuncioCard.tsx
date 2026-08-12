@@ -15,6 +15,13 @@ import {
   extraerPathStorage,
 } from "@/lib/inmobiliaria";
 import { estaDestacado, precioDestacarTexto } from "@/lib/destacar";
+import {
+  CARACTERISTICAS_TRABAJO,
+  nombreSector,
+  nombreModalidad,
+  nombreExperiencia,
+  textoSalario,
+} from "@/lib/trabajo";
 
 type Anuncio = {
   id: string;
@@ -43,6 +50,14 @@ type Anuncio = {
   estado?: string | null;
   activo?: boolean;
   destacado_hasta?: string | null;
+  sector_trabajo?: string | null;
+  modalidad_trabajo?: string | null;
+  salario_min?: number | null;
+  salario_max?: number | null;
+  salario_periodo?: string | null;
+  experiencia_trabajo?: string | null;
+  idiomas_trabajo?: string[];
+  incorporacion?: string | null;
 };
 
 export default function AnuncioCard({
@@ -123,6 +138,7 @@ export default function AnuncioCard({
   const esOferta = anuncio.tipo === "ofrezco";
   const [etiquetaBusco, etiquetaOfrezco] = etiquetasTipo(anuncio.categoria);
   const esInmobiliaria = anuncio.categoria === "inmobiliaria";
+  const esTrabajo = anuncio.categoria === "trabajo";
   const destacado = estaDestacado(anuncio.destacado_hasta);
 
   return (
@@ -158,6 +174,16 @@ export default function AnuncioCard({
             {esInmobiliaria && anuncio.tipo_inmueble && (
               <span className="text-xs font-medium px-2 py-0.5 rounded-full border bg-stone-50 text-stone-600 border-stone-200">
                 {TIPOS_INMUEBLE.find((t) => t.valor === anuncio.tipo_inmueble)?.label}
+              </span>
+            )}
+            {esTrabajo && anuncio.sector_trabajo && (
+              <span className="text-xs font-medium px-2 py-0.5 rounded-full border bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200">
+                {nombreSector(anuncio.sector_trabajo)}
+              </span>
+            )}
+            {esTrabajo && anuncio.modalidad_trabajo && (
+              <span className="text-xs font-medium px-2 py-0.5 rounded-full border bg-stone-50 text-stone-600 border-stone-200">
+                {nombreModalidad(anuncio.modalidad_trabajo)}
               </span>
             )}
             {anuncio.activo === false && (
@@ -267,6 +293,29 @@ export default function AnuncioCard({
         </div>
       )}
 
+      {esTrabajo && (
+        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-sm text-stone-600">
+          {(anuncio.salario_min != null || anuncio.salario_max != null || anuncio.salario_periodo) && (
+            <span>{textoSalario(anuncio.salario_min, anuncio.salario_max, anuncio.salario_periodo)}</span>
+          )}
+          {anuncio.experiencia_trabajo && <span>{nombreExperiencia(anuncio.experiencia_trabajo)}</span>}
+          {anuncio.incorporacion === "inmediata" && <span>Incorporación inmediata</span>}
+        </div>
+      )}
+
+      {esTrabajo && anuncio.idiomas_trabajo && anuncio.idiomas_trabajo.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          {anuncio.idiomas_trabajo.map((idioma) => (
+            <span
+              key={idioma}
+              className="text-xs px-2 py-0.5 rounded-full border border-teal-200 bg-teal-50 text-teal-700"
+            >
+              {idioma}
+            </span>
+          ))}
+        </div>
+      )}
+
       {esInmobiliaria && anuncio.operacion === "venta" && anuncio.precio != null && (
         <Link
           href={`/calculadora-hipoteca?precio=${anuncio.precio}`}
@@ -276,14 +325,16 @@ export default function AnuncioCard({
         </Link>
       )}
 
-      {esInmobiliaria && anuncio.caracteristicas && anuncio.caracteristicas.length > 0 && (
+      {(esInmobiliaria || esTrabajo) && anuncio.caracteristicas && anuncio.caracteristicas.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mt-2">
           {anuncio.caracteristicas.map((c) => (
             <span
               key={c}
               className="text-xs px-2 py-0.5 rounded-full border border-fuchsia-200 bg-fuchsia-50 text-fuchsia-700"
             >
-              {CARACTERISTICAS.find((x) => x.valor === c)?.label ?? c}
+              {CARACTERISTICAS.find((x) => x.valor === c)?.label ??
+                CARACTERISTICAS_TRABAJO.find((x) => x.valor === c)?.label ??
+                c}
             </span>
           ))}
         </div>
