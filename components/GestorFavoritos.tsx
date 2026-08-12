@@ -150,7 +150,7 @@ export default function GestorFavoritos({
 
       {favoritos.length === 0 && (
         <p className="text-sm text-stone-400 text-center py-10">
-          Todavía no has guardado ningún anuncio como favorito. Pincha la estrella ☆ en un anuncio para añadirlo aquí.
+          Todavía no has guardado ningún anuncio como favorito. Pincha el corazón ♡ en un anuncio para añadirlo aquí.
         </p>
       )}
 
