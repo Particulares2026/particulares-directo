@@ -823,7 +823,7 @@ export default function AnuncioForm({
         <p className="text-xs text-stone-400">
           ¿Quieres además un currículum en PDF para entregar en mano? Puedes crear uno gratis en{" "}
           <a
-            href="https://europa.eu/europass/en/create-europass-cv"
+            href="https://europass.europa.eu/es/create-europass-cv"
             target="_blank"
             rel="noopener noreferrer"
             className="underline hover:text-stone-600"
