@@ -4,8 +4,8 @@ export const SECTORES_TRABAJO: { valor: string; label: string }[] = [
   { valor: "cuidado_ninos", label: "Cuidado de niños / canguro" },
   { valor: "hosteleria_camarero", label: "Hostelería y camarero/a" },
   { valor: "cocina", label: "Cocina" },
-  { valor: "oficios", label: "Oficios (carpintería, pintura, fontanería, electricidad...)" },
-  { valor: "turismo_temporal", label: "Turismo / trabajo temporal para extranjeros" },
+  { valor: "oficios", label: "Oficios (carpintería, pintura...)" },
+  { valor: "turismo_temporal", label: "Turismo / extranjeros" },
   { valor: "otros", label: "Otros" },
 ];
 

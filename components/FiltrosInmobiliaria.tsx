@@ -30,7 +30,7 @@ function tokenize(text: string) {
 const POR_PAGINA = 20;
 
 const SELECT_CLASS =
-  "border border-stone-300 rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white";
+  "border border-stone-300 rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white max-w-full";
 const INPUT_CLASS =
   "border border-stone-300 rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 w-full";
 
