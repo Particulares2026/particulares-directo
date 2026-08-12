@@ -1,4 +1,4 @@
-export const DIAS_DESTACADO = 30;
+export const DIAS_DESTACADO = 7;
 
 // A cero mientras la web está creciendo y aún no tiene tráfico suficiente.
 // Para volver a cobrar, pon aquí el precio en céntimos de cada categoría.
