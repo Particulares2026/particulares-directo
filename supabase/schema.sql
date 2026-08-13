@@ -94,6 +94,15 @@ create policy "Los usuarios eliminan solo sus propios anuncios"
   to authenticated
   using (auth.uid() = user_id);
 
+-- Crear y editar el contenido de un anuncio solo se puede desde el servidor (que aplica
+-- moderación de contenido), nunca directamente desde el navegador. Se deja permitido
+-- actualizar estas columnas concretas para que sigan funcionando los botones
+-- "Actualizar" y "Desactivar", que no tocan el contenido del anuncio.
+revoke insert on public.anuncios from authenticated;
+revoke update on public.anuncios from authenticated;
+grant update (activo, fecha_activacion, aviso_5_enviado, aviso_3_enviado)
+  on public.anuncios to authenticated;
+
 -- Listas propias para agrupar favoritos (ej. "Para visitar", "Zona norte"...).
 create table if not exists public.listas_favoritos (
   id uuid primary key default gen_random_uuid(),
@@ -221,3 +230,15 @@ create policy "Los usuarios eliminan solo sus propias fotos"
   on storage.objects for delete
   to authenticated
   using (bucket_id = 'inmuebles' and (storage.foldername(name))[1] = auth.uid()::text);
+
+-- Registro de envíos del buzón de sugerencias, para limitar el spam automatizado.
+create table if not exists public.envios_contacto (
+  id uuid primary key default gen_random_uuid(),
+  ip text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists envios_contacto_ip_idx on public.envios_contacto (ip, created_at);
+
+alter table public.envios_contacto enable row level security;
+-- Sin políticas: solo es accesible con la clave de servicio, desde el servidor.

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createAdminSupabase } from "@supabase/supabase-js";
 import { contieneContenidoProhibido } from "@/lib/moderacion";
 
 const REMITENTE = "Particulares Directo <noreply@particularesdirecto.com>";
@@ -56,17 +57,24 @@ export async function POST(request: Request) {
     );
   }
 
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceKey) {
+    return NextResponse.json({ error: "Faltan variables de entorno." }, { status: 503 });
+  }
+  const admin = createAdminSupabase(url, serviceKey);
+
   if (id) {
     const { data: existente } = await supabase.from("anuncios").select("user_id").eq("id", id).single();
     if (!existente || existente.user_id !== user.id) {
       return NextResponse.json({ error: "No puedes editar este anuncio." }, { status: 403 });
     }
-    const { error } = await supabase.from("anuncios").update(payload).eq("id", id);
+    const { error } = await admin.from("anuncios").update(payload).eq("id", id);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ ok: true, id });
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await admin
     .from("anuncios")
     .insert({ user_id: user.id, ...payload })
     .select("id")

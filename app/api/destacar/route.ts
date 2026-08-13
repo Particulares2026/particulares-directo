@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createAdminSupabase } from "@supabase/supabase-js";
 import { nombreCategoria } from "@/lib/categorias";
 import { precioDestacarCentimos, DIAS_DESTACADO } from "@/lib/destacar";
 
@@ -35,8 +36,14 @@ export async function POST(request: Request) {
   // Mientras el destacado sea gratis, se aplica directamente: Stripe no permite
   // crear una sesión de pago de 0 €.
   if (precio === 0) {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !serviceKey) {
+      return NextResponse.json({ error: "Faltan variables de entorno." }, { status: 503 });
+    }
+    const admin = createAdminSupabase(url, serviceKey);
     const destacadoHasta = new Date(Date.now() + DIAS_DESTACADO * 24 * 60 * 60 * 1000);
-    const { error } = await supabase
+    const { error } = await admin
       .from("anuncios")
       .update({ destacado_hasta: destacadoHasta.toISOString() })
       .eq("id", anuncio.id);
