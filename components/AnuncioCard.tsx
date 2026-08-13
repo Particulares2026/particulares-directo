@@ -79,6 +79,25 @@ export default function AnuncioCard({
   const [gestionando, setGestionando] = useState(false);
   const [destacando, setDestacando] = useState(false);
   const [fotoAmpliada, setFotoAmpliada] = useState<string | null>(null);
+  const [contactoRevelado, setContactoRevelado] = useState<{ telefono: string | null; email: string | null } | null>(null);
+  const [revelando, setRevelando] = useState(false);
+
+  const revelarContacto = async () => {
+    setRevelando(true);
+    try {
+      const res = await fetch(`/api/anuncios/${anuncio.id}/contacto`);
+      const data = await res.json().catch(() => null);
+      if (res.ok && data) {
+        setContactoRevelado({ telefono: data.telefono_contacto ?? null, email: data.email_contacto ?? null });
+      } else {
+        alert(data?.error || "No se pudo cargar el contacto. Inténtalo de nuevo.");
+      }
+    } catch {
+      alert("No se pudo cargar el contacto. Inténtalo de nuevo.");
+    } finally {
+      setRevelando(false);
+    }
+  };
 
   const eliminar = async () => {
     if (!confirm("¿Eliminar este anuncio? No se puede deshacer.")) return;
@@ -370,22 +389,49 @@ export default function AnuncioCard({
 
       <p className="text-xs text-stone-400 mt-2">
         Contacto: {anuncio.nombre_contacto}
-        {anuncio.mostrar_telefono !== false && anuncio.telefono_contacto && (
+        {(contactoRevelado?.telefono ?? (anuncio.mostrar_telefono !== false ? anuncio.telefono_contacto : null)) && (
           <>
             {" · "}
-            <a href={`tel:${anuncio.telefono_contacto.replace(/\s+/g, "")}`} className="hover:underline">
-              {anuncio.telefono_contacto}
-            </a>
+            {(() => {
+              const telefono = contactoRevelado?.telefono ?? anuncio.telefono_contacto!;
+              return (
+                <a href={`tel:${telefono.replace(/\s+/g, "")}`} className="hover:underline">
+                  {telefono}
+                </a>
+              );
+            })()}
           </>
         )}
-        {anuncio.mostrar_email && anuncio.email_contacto && (
+        {(contactoRevelado?.email ?? (anuncio.mostrar_email ? anuncio.email_contacto : null)) && (
           <>
             {" · "}
-            <a href={`mailto:${anuncio.email_contacto}`} className="hover:underline">
-              {anuncio.email_contacto}
-            </a>
+            {(() => {
+              const email = contactoRevelado?.email ?? anuncio.email_contacto!;
+              return (
+                <a href={`mailto:${email}`} className="hover:underline">
+                  {email}
+                </a>
+              );
+            })()}
           </>
         )}
+        {!isOwner &&
+          !contactoRevelado &&
+          !anuncio.telefono_contacto &&
+          !anuncio.email_contacto &&
+          (anuncio.mostrar_telefono !== false || anuncio.mostrar_email) && (
+            <>
+              {" · "}
+              <button
+                type="button"
+                onClick={revelarContacto}
+                disabled={revelando}
+                className="text-teal-700 hover:underline disabled:opacity-40"
+              >
+                {revelando ? "Cargando…" : "Mostrar contacto"}
+              </button>
+            </>
+          )}
       </p>
 
       {isOwner && (

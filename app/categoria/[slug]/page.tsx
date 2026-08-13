@@ -16,6 +16,10 @@ export default async function CategoriaPage({
 
   const supabase = createClient();
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const { data: anuncios } = await supabase
     .from("anuncios")
     .select("*")
@@ -24,16 +28,18 @@ export default async function CategoriaPage({
     .order("created_at", { ascending: false })
     .limit(500);
 
-  const anunciosOrdenados = [...(anuncios || [])].sort((a, b) => {
-    const destacadoA = estaDestacado(a.destacado_hasta);
-    const destacadoB = estaDestacado(b.destacado_hasta);
-    if (destacadoA !== destacadoB) return destacadoA ? -1 : 1;
-    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-  });
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const anunciosOrdenados = [...(anuncios || [])]
+    .sort((a, b) => {
+      const destacadoA = estaDestacado(a.destacado_hasta);
+      const destacadoB = estaDestacado(b.destacado_hasta);
+      if (destacadoA !== destacadoB) return destacadoA ? -1 : 1;
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    })
+    .map((a) =>
+      a.user_id === user?.id
+        ? a
+        : { ...a, telefono_contacto: null, email_contacto: null }
+    );
 
   let favoritosIniciales: string[] = [];
   if (user) {
