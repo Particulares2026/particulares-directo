@@ -199,6 +199,13 @@ export default function AnuncioForm({
       return;
     }
 
+    const TIPOS_PERMITIDOS = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (files.some((f) => !TIPOS_PERMITIDOS.includes(f.type))) {
+      setFotosError("Solo se admiten imágenes JPG, PNG, WEBP o GIF.");
+      e.target.value = "";
+      return;
+    }
+
     setFotosError(null);
     setSubiendoFotos(true);
     const nuevas: string[] = [];
@@ -754,7 +761,7 @@ export default function AnuncioForm({
           <input
             className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm file:mr-3 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:bg-stone-100 file:text-stone-700"
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/png,image/webp,image/gif"
             multiple
             disabled={subiendoFotos}
             onChange={handleFotosChange}

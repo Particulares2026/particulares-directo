@@ -201,9 +201,12 @@ create policy "Los usuarios eliminan sus propias alertas"
   using (auth.uid() = user_id);
 
 -- Bucket público para las fotos de los anuncios de inmobiliaria.
-insert into storage.buckets (id, name, public)
-  values ('inmuebles', 'inmuebles', true)
-  on conflict (id) do nothing;
+-- Solo imágenes reales (sin SVG, que puede llevar código incrustado) y máximo 5 MB por archivo.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+  values ('inmuebles', 'inmuebles', true, 5242880, array['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
+  on conflict (id) do update set
+    file_size_limit = excluded.file_size_limit,
+    allowed_mime_types = excluded.allowed_mime_types;
 
 create policy "Las fotos de inmuebles son visibles para todos"
   on storage.objects for select
