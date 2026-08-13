@@ -5,6 +5,7 @@ import { createClient as createAdminSupabase } from "@supabase/supabase-js";
 import { contieneContenidoProhibido } from "@/lib/moderacion";
 
 const REMITENTE = "Particulares Directo <noreply@particularesdirecto.com>";
+const LIMITE_ANUNCIOS_POR_HORA = 5;
 
 function textoRechazo(titulo: string) {
   return {
@@ -33,6 +34,28 @@ export async function POST(request: Request) {
   const body = await request.json();
   const { id, ...payload } = body;
 
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceKey) {
+    return NextResponse.json({ error: "Faltan variables de entorno." }, { status: 503 });
+  }
+  const admin = createAdminSupabase(url, serviceKey);
+
+  if (!id) {
+    const haceUnaHora = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { count } = await admin
+      .from("anuncios")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .gte("created_at", haceUnaHora);
+    if ((count || 0) >= LIMITE_ANUNCIOS_POR_HORA) {
+      return NextResponse.json(
+        { error: "Has publicado demasiados anuncios seguidos. Espera un rato antes de publicar otro." },
+        { status: 429 }
+      );
+    }
+  }
+
   const { prohibido } = contieneContenidoProhibido(
     payload.titulo,
     payload.descripcion,
@@ -56,13 +79,6 @@ export async function POST(request: Request) {
       { status: 422 }
     );
   }
-
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !serviceKey) {
-    return NextResponse.json({ error: "Faltan variables de entorno." }, { status: 503 });
-  }
-  const admin = createAdminSupabase(url, serviceKey);
 
   if (id) {
     const { data: existente } = await supabase.from("anuncios").select("user_id").eq("id", id).single();
