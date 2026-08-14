@@ -77,7 +77,7 @@ export default async function CategoriaPage({
           )}
           <Link
             href={`/publicar?categoria=${params.slug}`}
-            className="text-sm bg-fuchsia-600 text-white px-3 py-1.5 rounded-lg hover:bg-fuchsia-700"
+            className="text-sm bg-gradient-to-r from-fuchsia-600 to-pink-600 text-white px-3 py-1.5 rounded-full hover:from-fuchsia-700 hover:to-pink-700 shadow-sm"
           >
             Publicar anuncio
           </Link>

@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { etiquetasTipo } from "@/lib/categorias";
+import { etiquetasTipo, colorCategoria } from "@/lib/categorias";
 import {
   TIPOS_INMUEBLE,
   OPERACIONES,
@@ -161,6 +161,7 @@ export default function AnuncioCard({
   const esInmobiliaria = anuncio.categoria === "inmobiliaria";
   const esTrabajo = anuncio.categoria === "trabajo";
   const destacado = estaDestacado(anuncio.destacado_hasta);
+  const colorCat = colorCategoria(anuncio.categoria);
 
   const claseColor = esTrabajo
     ? esOferta
@@ -168,13 +169,14 @@ export default function AnuncioCard({
       : "border-blue-300 bg-blue-50"
     : destacado
     ? "border-amber-300 bg-amber-50/40"
-    : "border-stone-200";
+    : `${colorCat.border} ${colorCat.bg}`;
 
   return (
     <div
       className={
-        (esTrabajo ? "rounded-xl p-4 border-2 " : "rounded-xl p-4 border ") +
+        (esTrabajo ? "rounded-2xl p-4 border-2 " : "rounded-2xl p-4 border ") +
         claseColor +
+        " shadow-sm hover:shadow-md transition-shadow duration-200" +
         (destacado && esTrabajo ? " ring-2 ring-amber-400 ring-offset-1" : "")
       }
     >

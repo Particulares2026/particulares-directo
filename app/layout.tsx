@@ -29,7 +29,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className={`${fraunces.variable} ${inter.variable}`}>
-      <body className="font-sans bg-white text-stone-900 min-h-screen flex flex-col">
+      <body className="font-sans bg-gradient-to-b from-fuchsia-50/40 via-white to-white text-stone-900 min-h-screen flex flex-col">
         <Header />
         <BannerPublicidad />
         <div className="flex-1">{children}</div>

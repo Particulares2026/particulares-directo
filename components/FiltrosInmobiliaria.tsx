@@ -172,7 +172,7 @@ export default function FiltrosInmobiliaria({
         onChange={(e) => setQuery(e.target.value)}
       />
 
-      <div className="border border-stone-200 rounded-xl p-3 mb-5 space-y-2.5">
+      <div className="border border-fuchsia-100 bg-gradient-to-br from-fuchsia-50/60 to-teal-50/40 rounded-xl p-3 mb-5 space-y-2.5">
         <div className="flex flex-wrap gap-2">
           <select className={SELECT_CLASS} value={operacion} onChange={(e) => setOperacion(e.target.value)}>
             <option value="">Venta o alquiler</option>

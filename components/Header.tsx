@@ -11,7 +11,7 @@ export default async function Header() {
   } = await supabase.auth.getUser();
 
   return (
-    <header className="border-b border-stone-100 px-4 md:px-8 py-3 flex flex-wrap items-center justify-between gap-y-2 sticky top-0 bg-white/90 backdrop-blur z-10">
+    <header className="border-b-2 border-fuchsia-100 px-4 md:px-8 py-3 flex flex-wrap items-center justify-between gap-y-2 sticky top-0 bg-white/90 backdrop-blur z-10">
       <Link href="/" className="flex items-center gap-2 sm:gap-3">
         <svg
           viewBox="0 0 100 100"
@@ -48,17 +48,20 @@ export default async function Header() {
         <BuzonSugerencias />
         {user ? (
           <>
-            <Link href="/publicar" className="text-stone-600 hover:text-stone-900">
+            <Link
+              href="/publicar"
+              className="bg-gradient-to-r from-fuchsia-600 to-pink-600 text-white px-3 py-1.5 rounded-full hover:from-fuchsia-700 hover:to-pink-700 shadow-sm"
+            >
               Publicar anuncio
             </Link>
-            <Link href="/mis-anuncios" className="text-stone-600 hover:text-stone-900">
+            <Link href="/mis-anuncios" className="text-stone-600 hover:text-fuchsia-700 hover:bg-fuchsia-50 rounded-lg px-2 py-1">
               Mis anuncios
             </Link>
-            <Link href="/favoritos" className="text-stone-600 hover:text-stone-900">
+            <Link href="/favoritos" className="text-stone-600 hover:text-fuchsia-700 hover:bg-fuchsia-50 rounded-lg px-2 py-1">
               ❤ Favoritos
             </Link>
             {esAdmin(user.email) && (
-              <Link href="/moderacion" className="text-stone-600 hover:text-stone-900">
+              <Link href="/moderacion" className="text-stone-600 hover:text-fuchsia-700 hover:bg-fuchsia-50 rounded-lg px-2 py-1">
                 🛡️ Moderación
               </Link>
             )}
@@ -67,12 +70,12 @@ export default async function Header() {
           </>
         ) : (
           <>
-            <Link href="/login" className="text-stone-600 hover:text-stone-900">
+            <Link href="/login" className="text-stone-600 hover:text-fuchsia-700 hover:bg-fuchsia-50 rounded-lg px-2 py-1">
               Entrar
             </Link>
             <Link
               href="/registro"
-              className="bg-stone-900 text-white px-3 py-1.5 rounded-lg hover:bg-stone-800"
+              className="bg-gradient-to-r from-fuchsia-600 to-pink-600 text-white px-3 py-1.5 rounded-full hover:from-fuchsia-700 hover:to-pink-700 shadow-sm"
             >
               Crear cuenta
             </Link>
