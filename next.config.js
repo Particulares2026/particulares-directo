@@ -10,7 +10,7 @@ const CSP = [
   `img-src 'self' data: ${SUPABASE_ORIGIN} https://unpkg.com https://*.tile.openstreetmap.org`,
   "font-src 'self'",
   "style-src 'self' 'unsafe-inline'",
-  "script-src 'self' https://challenges.cloudflare.com",
+  "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
   `connect-src 'self' ${SUPABASE_ORIGIN} https://nominatim.openstreetmap.org`,
 ].join("; ");
 
