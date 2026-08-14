@@ -45,7 +45,7 @@ export default function PanelModeracion({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
       {anuncios.map((a) => (
         <div key={a.id} className="border border-stone-200 rounded-xl p-3">
           <div className="flex items-start justify-between gap-3">

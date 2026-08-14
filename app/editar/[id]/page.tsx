@@ -25,7 +25,7 @@ export default async function EditarPage({
   if (anuncio.user_id !== user.id) redirect("/mis-anuncios");
 
   return (
-    <main className="max-w-4xl mx-auto px-4 md:px-8 py-10">
+    <main className="max-w-6xl mx-auto px-4 md:px-8 py-10">
       <h1 className="font-serif text-xl mb-1">Editar anuncio</h1>
       <p className="text-sm text-stone-500 mb-6">
         Estás editando tu anuncio de {nombreCategoria(anuncio.categoria)}.

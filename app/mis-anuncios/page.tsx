@@ -23,7 +23,7 @@ export default async function MisAnunciosPage({
     .order("created_at", { ascending: false });
 
   return (
-    <main className="max-w-2xl mx-auto px-4 md:px-8 py-8">
+    <main className="max-w-7xl mx-auto px-4 md:px-8 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-serif text-xl">Tus anuncios</h1>
         <Link
@@ -51,7 +51,7 @@ export default async function MisAnunciosPage({
         </p>
       )}
 
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
         {anuncios?.map((a) => (
           <AnuncioCard key={a.id} anuncio={a} isOwner={true} />
         ))}

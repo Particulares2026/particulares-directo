@@ -27,6 +27,7 @@ import {
 import { PREFIJOS_TELEFONO, parseTelefono } from "@/lib/telefono";
 import { comprimirImagen } from "@/lib/imagen";
 import AsistenteCurriculum from "@/components/AsistenteCurriculum";
+import AnuncioCard from "@/components/AnuncioCard";
 
 const SelectorUbicacion = dynamic(() => import("@/components/mapa/SelectorUbicacion"), {
   ssr: false,
@@ -311,7 +312,49 @@ export default function AnuncioForm({
     router.refresh();
   };
 
+  const previewAnuncio = {
+    id: anuncioExistente?.id ?? "preview",
+    categoria,
+    tipo,
+    titulo: titulo.trim() || "Título del anuncio",
+    descripcion: descripcion.trim() || null,
+    ubicacion: ubicacion.trim() || null,
+    palabras_clave: palabrasClave
+      .split(",")
+      .map((k) => k.trim())
+      .filter(Boolean),
+    nombre_contacto: nombreContacto.trim() || "Tú",
+    telefono_contacto: numeroTelefono.trim() ? `${prefijoTelefono} ${numeroTelefono.trim()}` : null,
+    email_contacto: defaultEmail,
+    mostrar_telefono: mostrarTelefono,
+    mostrar_email: mostrarEmail,
+    user_id: userId,
+    operacion: esInmobiliaria ? operacion : null,
+    provincia: esInmobiliaria || esTrabajo ? provincia || null : null,
+    municipio: esInmobiliaria || esTrabajo ? municipio || null : null,
+    tipo_inmueble: esInmobiliaria ? tipoInmueble : null,
+    precio: esInmobiliaria && precio ? Number(precio) : null,
+    habitaciones: esInmobiliaria && habitaciones ? Number(habitaciones) : null,
+    banos: esInmobiliaria && banos ? Number(banos) : null,
+    amueblado: esInmobiliaria && amueblado ? amueblado === "si" : null,
+    tamano: esInmobiliaria && tamano ? Number(tamano) : null,
+    caracteristicas: esInmobiliaria ? caracteristicas : esTrabajo ? caracteristicas : [],
+    duracion_alquiler: esInmobiliaria && operacion === "alquiler" && duracionAlquiler ? duracionAlquiler : null,
+    fotos,
+    estado: esInmobiliaria && estado ? estado : null,
+    destacado_hasta: null,
+    sector_trabajo: esTrabajo ? sectorTrabajo || null : null,
+    modalidad_trabajo: esTrabajo ? modalidadTrabajo || null : null,
+    salario_min: esTrabajo && salarioMin ? Number(salarioMin) : null,
+    salario_max: esTrabajo && salarioMax ? Number(salarioMax) : null,
+    salario_periodo: esTrabajo ? salarioPeriodo || null : null,
+    experiencia_trabajo: esTrabajo ? experienciaTrabajo || null : null,
+    idiomas_trabajo: esTrabajo ? idiomasTrabajo : [],
+    incorporacion: esTrabajo ? incorporacion || null : null,
+  };
+
   return (
+    <div className="lg:grid lg:grid-cols-[1fr_360px] lg:gap-6 lg:items-start">
     <form onSubmit={submit} className="space-y-3">
       <div className="flex gap-2">
         <button
@@ -927,5 +970,11 @@ export default function AnuncioForm({
           : "Publicar anuncio"}
       </button>
     </form>
+
+    <aside className="hidden lg:block sticky top-20">
+      <p className="text-xs font-semibold text-stone-400 uppercase tracking-wide mb-2">Vista previa</p>
+      <AnuncioCard anuncio={previewAnuncio} isOwner={false} />
+    </aside>
+    </div>
   );
 }

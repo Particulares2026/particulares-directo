@@ -3,13 +3,13 @@ import { CATEGORIAS_DESTACADAS } from "@/lib/categorias";
 
 export default function HomePage() {
   return (
-    <main className="max-w-2xl mx-auto px-4 md:px-8 py-8">
+    <main className="max-w-7xl mx-auto px-4 md:px-8 py-8">
       <h1 className="font-serif text-2xl mb-1">Publica tu anuncio entre PARTICULARES DIRECTO</h1>
       <p className="text-stone-500 text-sm mb-6">
         Sin agencias ni intermediarios en un click
       </p>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {CATEGORIAS_DESTACADAS.map((c) => (
           <Link
             key={c.slug}

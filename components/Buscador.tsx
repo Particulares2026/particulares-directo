@@ -82,7 +82,7 @@ export default function Buscador({
         </p>
       )}
 
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
         {filtrados.slice(0, visibles).map((a) => (
           <AnuncioCard
             key={a.id}
