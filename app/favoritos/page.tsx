@@ -23,7 +23,7 @@ export default async function FavoritosPage() {
   ]);
 
   return (
-    <main className="max-w-7xl mx-auto px-4 md:px-8 py-8">
+    <main className="max-w-[1600px] mx-auto px-4 md:px-8 xl:px-12 py-8">
       <h1 className="font-serif text-xl mb-1">❤️ Tus favoritos</h1>
       <p className="text-sm text-stone-500 mb-6">
         Agrúpalos en listas propias para organizarlos mejor.

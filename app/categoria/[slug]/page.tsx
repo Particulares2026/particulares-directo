@@ -51,7 +51,7 @@ export default async function CategoriaPage({
   }
 
   return (
-    <main className="max-w-7xl mx-auto px-4 md:px-8 py-8">
+    <main className="max-w-[1600px] mx-auto px-4 md:px-8 xl:px-12 py-8">
       <Link href="/" className="text-sm text-stone-500 hover:text-stone-700">
         ← Todas las categorías
       </Link>

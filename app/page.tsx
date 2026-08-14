@@ -3,7 +3,7 @@ import { CATEGORIAS_DESTACADAS, colorCategoria } from "@/lib/categorias";
 
 export default function HomePage() {
   return (
-    <main className="max-w-7xl mx-auto px-4 md:px-8 py-10">
+    <main className="max-w-[1600px] mx-auto px-4 md:px-8 xl:px-12 py-10">
       <h1 className="font-serif text-3xl sm:text-4xl mb-2">
         Publica tu anuncio entre{" "}
         <span className="bg-gradient-to-r from-fuchsia-600 to-pink-500 bg-clip-text text-transparent">

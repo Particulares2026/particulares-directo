@@ -45,6 +45,8 @@ create table if not exists public.anuncios (
   lng double precision,
   -- Campos específicos de la categoría trabajo (null para el resto de categorías).
   sector_trabajo text,
+  -- Profesión concreta dentro del sector "oficios" (ej. fontanería, electricidad).
+  oficio text,
   modalidad_trabajo text,
   salario_min numeric,
   salario_max numeric,

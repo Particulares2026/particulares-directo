@@ -9,6 +9,22 @@ export const SECTORES_TRABAJO: { valor: string; label: string }[] = [
   { valor: "otros", label: "Otros" },
 ];
 
+// Desglose de profesiones concretas dentro del sector "Oficios".
+export const OFICIOS: { valor: string; label: string }[] = [
+  { valor: "carpinteria", label: "Carpintería" },
+  { valor: "pintura", label: "Pintura" },
+  { valor: "fontaneria", label: "Fontanería" },
+  { valor: "electricidad", label: "Electricidad" },
+  { valor: "albanileria", label: "Albañilería" },
+  { valor: "cerrajeria", label: "Cerrajería" },
+  { valor: "jardineria", label: "Jardinería" },
+  { valor: "mecanica", label: "Mecánica" },
+  { valor: "soldadura", label: "Soldadura" },
+  { valor: "climatizacion", label: "Climatización / aire acondicionado" },
+  { valor: "reformas", label: "Reformas generales" },
+  { valor: "otro_oficio", label: "Otro oficio" },
+];
+
 export const MODALIDADES_TRABAJO: { valor: string; label: string }[] = [
   { valor: "interna", label: "Interna" },
   { valor: "externa", label: "Externa" },
@@ -45,6 +61,10 @@ export const CARACTERISTICAS_TRABAJO: { valor: string; label: string }[] = [
 
 export function nombreSector(valor: string | null | undefined): string {
   return SECTORES_TRABAJO.find((s) => s.valor === valor)?.label ?? "";
+}
+
+export function nombreOficio(valor: string | null | undefined): string {
+  return OFICIOS.find((o) => o.valor === valor)?.label ?? "";
 }
 
 export function nombreModalidad(valor: string | null | undefined): string {
