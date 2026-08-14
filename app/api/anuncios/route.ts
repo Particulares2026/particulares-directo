@@ -81,12 +81,25 @@ export async function POST(request: Request) {
   }
 
   if (id) {
-    const { data: existente } = await supabase.from("anuncios").select("user_id").eq("id", id).single();
+    const { data: existente } = await supabase
+      .from("anuncios")
+      .select("user_id, precio")
+      .eq("id", id)
+      .single();
     if (!existente || existente.user_id !== user.id) {
       return NextResponse.json({ error: "No puedes editar este anuncio." }, { status: 403 });
     }
-    const { error } = await admin.from("anuncios").update(payload).eq("id", id);
+
+    const precioCambiado =
+      payload.precio != null && existente.precio != null && payload.precio !== existente.precio;
+    const updatePayload = precioCambiado ? { ...payload, precio_anterior: existente.precio } : payload;
+
+    const { error } = await admin.from("anuncios").update(updatePayload).eq("id", id);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    if (precioCambiado) {
+      await admin.from("historial_precios").insert({ anuncio_id: id, precio: payload.precio });
+    }
     return NextResponse.json({ ok: true, id });
   }
 
@@ -96,5 +109,9 @@ export async function POST(request: Request) {
     .select("id")
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  if (payload.precio != null) {
+    await admin.from("historial_precios").insert({ anuncio_id: data.id, precio: payload.precio });
+  }
   return NextResponse.json({ ok: true, id: data.id });
 }

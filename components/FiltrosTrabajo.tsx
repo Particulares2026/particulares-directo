@@ -27,6 +27,14 @@ const SELECT_CLASS =
 const INPUT_CLASS =
   "border border-stone-300 rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 w-full";
 
+const ORDEN_OPCIONES = [
+  { valor: "relevancia", label: "Relevancia" },
+  { valor: "recientes", label: "Más recientes" },
+  { valor: "antiguos", label: "Más antiguos" },
+  { valor: "salario_asc", label: "Salario: menor a mayor" },
+  { valor: "salario_desc", label: "Salario: mayor a menor" },
+];
+
 export default function FiltrosTrabajo({
   anuncios,
   currentUserId,
@@ -53,6 +61,7 @@ export default function FiltrosTrabajo({
   const [favoritos, setFavoritos] = useState<Set<string>>(new Set(favoritosIniciales));
   const [visibles, setVisibles] = useState(POR_PAGINA);
   const [masFiltrosAbierto, setMasFiltrosAbierto] = useState(false);
+  const [orden, setOrden] = useState("relevancia");
 
   const filtrosSecundariosActivos = [
     tipo, modalidad, salarioMin, salarioMax, experiencia,
@@ -140,9 +149,35 @@ export default function FiltrosTrabajo({
     salarioMin, salarioMax, experiencia, idiomas, caracteristicas,
   ]);
 
+  const ordenados = useMemo(() => {
+    if (orden === "relevancia") return filtrados;
+    const salario = (a: any) => a.salario_max ?? a.salario_min ?? null;
+    const conNulosAlFinal = (valor: (a: any) => number | null, desc: boolean) => (a: any, b: any) => {
+      const va = valor(a);
+      const vb = valor(b);
+      if (va == null && vb == null) return 0;
+      if (va == null) return 1;
+      if (vb == null) return -1;
+      return desc ? vb - va : va - vb;
+    };
+    const copia = [...filtrados];
+    switch (orden) {
+      case "recientes":
+        return copia.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      case "antiguos":
+        return copia.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+      case "salario_asc":
+        return copia.sort(conNulosAlFinal(salario, false));
+      case "salario_desc":
+        return copia.sort(conNulosAlFinal(salario, true));
+      default:
+        return filtrados;
+    }
+  }, [filtrados, orden]);
+
   useEffect(() => {
     setVisibles(POR_PAGINA);
-  }, [filtrados]);
+  }, [filtrados, orden]);
 
   return (
     <div>
@@ -303,9 +338,23 @@ export default function FiltrosTrabajo({
         )}
       </div>
 
-      <p className="text-sm text-stone-500 mb-3">
-        {filtrados.length} {filtrados.length === 1 ? "anuncio encontrado" : "anuncios encontrados"}
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <p className="text-sm text-stone-500">
+          {filtrados.length} {filtrados.length === 1 ? "anuncio encontrado" : "anuncios encontrados"}
+        </p>
+        <select
+          className={SELECT_CLASS}
+          value={orden}
+          onChange={(e) => setOrden(e.target.value)}
+          aria-label="Ordenar por"
+        >
+          {ORDEN_OPCIONES.map((o) => (
+            <option key={o.valor} value={o.valor}>
+              Ordenar: {o.label}
+            </option>
+          ))}
+        </select>
+      </div>
 
       {anuncios.length === 0 && (
         <p className="text-sm text-stone-400 text-center py-10">
@@ -320,7 +369,7 @@ export default function FiltrosTrabajo({
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-        {filtrados.slice(0, visibles).map((a) => (
+        {ordenados.slice(0, visibles).map((a) => (
           <AnuncioCard
             key={a.id}
             anuncio={a}

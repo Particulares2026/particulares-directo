@@ -42,6 +42,7 @@ type Anuncio = {
   municipio?: string | null;
   tipo_inmueble?: string | null;
   precio?: number | null;
+  precio_anterior?: number | null;
   habitaciones?: number | null;
   banos?: number | null;
   amueblado?: boolean | null;
@@ -50,6 +51,7 @@ type Anuncio = {
   duracion_alquiler?: string | null;
   fotos?: string[];
   estado?: string | null;
+  enlaces_externos?: string[];
   activo?: boolean;
   destacado_hasta?: string | null;
   sector_trabajo?: string | null;
@@ -81,6 +83,22 @@ export default function AnuncioCard({
   const [fotoAmpliada, setFotoAmpliada] = useState<string | null>(null);
   const [contactoRevelado, setContactoRevelado] = useState<{ telefono: string | null; email: string | null } | null>(null);
   const [revelando, setRevelando] = useState(false);
+  const [historialAbierto, setHistorialAbierto] = useState(false);
+  const [historialPrecios, setHistorialPrecios] = useState<{ precio: number; created_at: string }[] | null>(null);
+  const [cargandoHistorial, setCargandoHistorial] = useState(false);
+
+  const verHistorial = async () => {
+    setHistorialAbierto((v) => !v);
+    if (historialPrecios || cargandoHistorial) return;
+    setCargandoHistorial(true);
+    const { data } = await supabase
+      .from("historial_precios")
+      .select("precio, created_at")
+      .eq("anuncio_id", anuncio.id)
+      .order("created_at", { ascending: false });
+    setHistorialPrecios(data || []);
+    setCargandoHistorial(false);
+  };
 
   const revelarContacto = async () => {
     setRevelando(true);
@@ -313,15 +331,94 @@ export default function AnuncioCard({
       )}
 
       {esInmobiliaria && (
-        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-sm text-stone-600">
-          {anuncio.precio != null && <span>{anuncio.precio.toLocaleString("es-ES")} €</span>}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-sm text-stone-600">
+          {anuncio.precio != null && (
+            <span className="inline-flex items-center gap-1.5">
+              {anuncio.precio_anterior != null && anuncio.precio_anterior !== anuncio.precio && (
+                <span className="text-stone-400 line-through">
+                  {anuncio.precio_anterior.toLocaleString("es-ES")} €
+                </span>
+              )}
+              <span className={anuncio.precio_anterior != null && anuncio.precio_anterior > anuncio.precio ? "text-green-700 font-medium" : ""}>
+                {anuncio.precio.toLocaleString("es-ES")} €
+              </span>
+              {anuncio.precio_anterior != null && anuncio.precio_anterior !== anuncio.precio && (
+                <span
+                  className={
+                    "text-xs font-medium px-1.5 py-0.5 rounded-full border " +
+                    (anuncio.precio_anterior > anuncio.precio
+                      ? "bg-green-50 text-green-700 border-green-200"
+                      : "bg-red-50 text-red-700 border-red-200")
+                  }
+                >
+                  {anuncio.precio_anterior > anuncio.precio ? "▼ Bajó de precio" : "▲ Subió de precio"}
+                </span>
+              )}
+            </span>
+          )}
           {anuncio.tamano != null && <span>{anuncio.tamano} m²</span>}
+          {anuncio.precio != null && anuncio.tamano ? (
+            <span className="text-stone-400">{Math.round(anuncio.precio / anuncio.tamano).toLocaleString("es-ES")} €/m²</span>
+          ) : null}
           {anuncio.habitaciones != null && <span>{anuncio.habitaciones} hab.</span>}
           {anuncio.banos != null && <span>{anuncio.banos} baños</span>}
           {anuncio.amueblado != null && <span>{anuncio.amueblado ? "Amueblado" : "Sin amueblar"}</span>}
           {anuncio.duracion_alquiler && (
             <span>{DURACIONES_ALQUILER.find((d) => d.valor === anuncio.duracion_alquiler)?.label}</span>
           )}
+          {anuncio.precio != null && anuncio.id !== "preview" && (
+            <button
+              type="button"
+              onClick={verHistorial}
+              className="text-xs text-teal-700 hover:underline"
+            >
+              {historialAbierto ? "Ocultar histórico de precio" : "Ver histórico de precio"}
+            </button>
+          )}
+        </div>
+      )}
+
+      {esInmobiliaria && historialAbierto && (
+        <div className="mt-2 border border-stone-200 rounded-lg p-2.5 text-sm">
+          {cargandoHistorial && <p className="text-stone-400">Cargando…</p>}
+          {!cargandoHistorial && historialPrecios && historialPrecios.length === 0 && (
+            <p className="text-stone-400">Sin cambios de precio registrados.</p>
+          )}
+          {!cargandoHistorial && historialPrecios && historialPrecios.length > 0 && (
+            <ul className="space-y-1">
+              {historialPrecios.map((h, i) => (
+                <li key={i} className="flex justify-between text-stone-600">
+                  <span>{new Date(h.created_at).toLocaleDateString("es-ES")}</span>
+                  <span className="font-medium">{h.precio.toLocaleString("es-ES")} €</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {esInmobiliaria && anuncio.enlaces_externos && anuncio.enlaces_externos.length > 0 && (
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-2 text-xs">
+          <span className="text-stone-400">También en:</span>
+          {anuncio.enlaces_externos
+            .filter((u) => /^https?:\/\//i.test(u))
+            .map((u, i) => (
+              <a
+                key={i}
+                href={u}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                className="text-teal-700 hover:underline"
+              >
+                {(() => {
+                  try {
+                    return new URL(u).hostname.replace(/^www\./, "");
+                  } catch {
+                    return u;
+                  }
+                })()}
+              </a>
+            ))}
         </div>
       )}
 

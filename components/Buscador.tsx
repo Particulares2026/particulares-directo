@@ -14,6 +14,15 @@ function tokenize(text: string) {
 
 const POR_PAGINA = 20;
 
+const SELECT_CLASS =
+  "border border-stone-300 rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white";
+
+const ORDEN_OPCIONES = [
+  { valor: "relevancia", label: "Relevancia" },
+  { valor: "recientes", label: "Más recientes" },
+  { valor: "antiguos", label: "Más antiguos" },
+];
+
 export default function Buscador({
   anuncios,
   currentUserId,
@@ -25,6 +34,7 @@ export default function Buscador({
 }) {
   const supabase = createClient();
   const [query, setQuery] = useState("");
+  const [orden, setOrden] = useState("relevancia");
   const [visibles, setVisibles] = useState(POR_PAGINA);
   const [favoritos, setFavoritos] = useState<Set<string>>(new Set(favoritosIniciales));
 
@@ -58,10 +68,19 @@ export default function Buscador({
     });
   }, [anuncios, query]);
 
+  const ordenados = useMemo(() => {
+    if (orden === "relevancia") return filtrados;
+    const copia = [...filtrados];
+    if (orden === "recientes") {
+      return copia.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }
+    return copia.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+  }, [filtrados, orden]);
+
   return (
     <div>
       <input
-        className="w-full border border-stone-300 rounded-lg px-3 py-2.5 text-sm mb-5 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent"
+        className="w-full border border-stone-300 rounded-lg px-3 py-2.5 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent"
         placeholder="Busca por puesto, habilidad o ciudad (ej. React, Sevilla)"
         value={query}
         onChange={(e) => {
@@ -69,6 +88,23 @@ export default function Buscador({
           setVisibles(POR_PAGINA);
         }}
       />
+
+      {anuncios.length > 0 && (
+        <div className="flex justify-end mb-3">
+          <select
+            className={SELECT_CLASS}
+            value={orden}
+            onChange={(e) => setOrden(e.target.value)}
+            aria-label="Ordenar por"
+          >
+            {ORDEN_OPCIONES.map((o) => (
+              <option key={o.valor} value={o.valor}>
+                Ordenar: {o.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {anuncios.length === 0 && (
         <p className="text-sm text-stone-400 text-center py-10">
@@ -83,7 +119,7 @@ export default function Buscador({
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-        {filtrados.slice(0, visibles).map((a) => (
+        {ordenados.slice(0, visibles).map((a) => (
           <AnuncioCard
             key={a.id}
             anuncio={a}

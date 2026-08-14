@@ -27,6 +27,9 @@ create table if not exists public.anuncios (
     'piso', 'habitacion', 'garaje', 'trastero', 'local', 'terreno', 'edificio'
   )),
   precio numeric,
+  -- Precio inmediatamente anterior al actual, para poder mostrar "antes X, ahora Y"
+  -- cuando el propietario baja o sube el precio (como hace idealista).
+  precio_anterior numeric,
   habitaciones int,
   banos int,
   amueblado boolean,
@@ -35,6 +38,8 @@ create table if not exists public.anuncios (
   duracion_alquiler text check (duracion_alquiler in ('temporada', 'larga_estancia')),
   fotos text[] not null default '{}',
   estado text check (estado in ('nuevo', 'para_entrar', 'necesita_reformas')),
+  -- Enlaces opcionales a otras plataformas donde también está publicado el inmueble.
+  enlaces_externos text[] not null default '{}',
   -- Ubicación en el mapa (solo inmobiliaria; null si el anuncio no la tiene marcada).
   lat double precision,
   lng double precision,
@@ -256,3 +261,20 @@ create index if not exists envios_contacto_ip_idx on public.envios_contacto (ip,
 
 alter table public.envios_contacto enable row level security;
 -- Sin políticas: solo es accesible con la clave de servicio, desde el servidor.
+
+-- Histórico de precios de anuncios de inmobiliaria: guarda cada precio que ha tenido
+-- un anuncio a lo largo del tiempo, para poder mostrar su evolución.
+create table if not exists public.historial_precios (
+  id uuid primary key default gen_random_uuid(),
+  anuncio_id uuid not null references public.anuncios(id) on delete cascade,
+  precio numeric not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists historial_precios_anuncio_id_idx on public.historial_precios (anuncio_id, created_at);
+
+alter table public.historial_precios enable row level security;
+
+create policy "El historial de precios es visible para todos"
+  on public.historial_precios for select
+  using (true);

@@ -34,6 +34,17 @@ const SELECT_CLASS =
 const INPUT_CLASS =
   "border border-stone-300 rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 w-full";
 
+const ORDEN_OPCIONES = [
+  { valor: "relevancia", label: "Relevancia" },
+  { valor: "bajada_precio", label: "Han bajado de precio" },
+  { valor: "recientes", label: "Más recientes" },
+  { valor: "antiguos", label: "Más antiguos" },
+  { valor: "precio_asc", label: "Precio: menor a mayor" },
+  { valor: "precio_desc", label: "Precio: mayor a menor" },
+  { valor: "preciom2_asc", label: "€/m²: menor a mayor" },
+  { valor: "preciom2_desc", label: "€/m²: mayor a menor" },
+];
+
 export default function FiltrosInmobiliaria({
   anuncios,
   currentUserId,
@@ -69,6 +80,7 @@ export default function FiltrosInmobiliaria({
   const [visibles, setVisibles] = useState(POR_PAGINA);
   const [vista, setVista] = useState<"lista" | "mapa">("lista");
   const [masFiltrosAbierto, setMasFiltrosAbierto] = useState(false);
+  const [orden, setOrden] = useState("relevancia");
 
   const filtrosSecundariosActivos = [
     tipo, amueblado, duracionAlquiler, tamanoMin, tamanoMax,
@@ -159,9 +171,45 @@ export default function FiltrosInmobiliaria({
     amueblado, duracionAlquiler, caracteristicas, estado, soloFavoritos, favoritos,
   ]);
 
+  const ordenados = useMemo(() => {
+    if (orden === "relevancia") return filtrados;
+
+    const precioM2 = (a: any) => (a.precio != null && a.tamano ? a.precio / a.tamano : null);
+    const bajada = (a: any) => (a.precio_anterior != null && a.precio != null ? a.precio_anterior - a.precio : null);
+
+    const conNulosAlFinal = (valor: (a: any) => number | null, desc: boolean) => (a: any, b: any) => {
+      const va = valor(a);
+      const vb = valor(b);
+      if (va == null && vb == null) return 0;
+      if (va == null) return 1;
+      if (vb == null) return -1;
+      return desc ? vb - va : va - vb;
+    };
+
+    const copia = [...filtrados];
+    switch (orden) {
+      case "recientes":
+        return copia.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      case "antiguos":
+        return copia.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+      case "precio_asc":
+        return copia.sort(conNulosAlFinal((a) => a.precio, false));
+      case "precio_desc":
+        return copia.sort(conNulosAlFinal((a) => a.precio, true));
+      case "preciom2_asc":
+        return copia.sort(conNulosAlFinal(precioM2, false));
+      case "preciom2_desc":
+        return copia.sort(conNulosAlFinal(precioM2, true));
+      case "bajada_precio":
+        return copia.sort(conNulosAlFinal(bajada, true));
+      default:
+        return filtrados;
+    }
+  }, [filtrados, orden]);
+
   useEffect(() => {
     setVisibles(POR_PAGINA);
-  }, [filtrados]);
+  }, [filtrados, orden]);
 
   return (
     <div>
@@ -387,25 +435,39 @@ export default function FiltrosInmobiliaria({
         }}
       />
 
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
         <p className="text-sm text-stone-500">
           {filtrados.length} {filtrados.length === 1 ? "inmueble encontrado" : "inmuebles encontrados"}
         </p>
-        <div className="flex text-sm font-medium border-2 border-[#ec1178] rounded-lg overflow-hidden shrink-0">
-          <button
-            type="button"
-            onClick={() => setVista("lista")}
-            className={"px-4 py-1.5 " + (vista === "lista" ? "bg-[#ec1178] text-white" : "text-[#ec1178] hover:bg-fuchsia-50")}
+        <div className="flex items-center gap-2">
+          <select
+            className={SELECT_CLASS}
+            value={orden}
+            onChange={(e) => setOrden(e.target.value)}
+            aria-label="Ordenar por"
           >
-            Lista
-          </button>
-          <button
-            type="button"
-            onClick={() => setVista("mapa")}
-            className={"px-4 py-1.5 " + (vista === "mapa" ? "bg-[#ec1178] text-white" : "text-[#ec1178] hover:bg-fuchsia-50")}
-          >
-            Mapa
-          </button>
+            {ORDEN_OPCIONES.map((o) => (
+              <option key={o.valor} value={o.valor}>
+                Ordenar: {o.label}
+              </option>
+            ))}
+          </select>
+          <div className="flex text-sm font-medium border-2 border-[#ec1178] rounded-lg overflow-hidden shrink-0">
+            <button
+              type="button"
+              onClick={() => setVista("lista")}
+              className={"px-4 py-1.5 " + (vista === "lista" ? "bg-[#ec1178] text-white" : "text-[#ec1178] hover:bg-fuchsia-50")}
+            >
+              Lista
+            </button>
+            <button
+              type="button"
+              onClick={() => setVista("mapa")}
+              className={"px-4 py-1.5 " + (vista === "mapa" ? "bg-[#ec1178] text-white" : "text-[#ec1178] hover:bg-fuchsia-50")}
+            >
+              Mapa
+            </button>
+          </div>
         </div>
       </div>
 
@@ -426,7 +488,7 @@ export default function FiltrosInmobiliaria({
       {vista === "lista" && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-            {filtrados.slice(0, visibles).map((a) => (
+            {ordenados.slice(0, visibles).map((a) => (
               <AnuncioCard
                 key={a.id}
                 anuncio={a}
