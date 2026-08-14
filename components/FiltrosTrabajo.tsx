@@ -6,7 +6,6 @@ import { createClient } from "@/lib/supabase/client";
 import { PROVINCIAS } from "@/lib/inmobiliaria";
 import {
   SECTORES_TRABAJO,
-  OFICIOS,
   MODALIDADES_TRABAJO,
   EXPERIENCIA_TRABAJO,
   IDIOMAS_TRABAJO,
@@ -48,7 +47,6 @@ export default function FiltrosTrabajo({
   const supabase = createClient();
   const [query, setQuery] = useState("");
   const [sector, setSector] = useState("");
-  const [oficio, setOficio] = useState("");
   const [provincia, setProvincia] = useState("");
   const [municipio, setMunicipio] = useState("");
   const [municipiosDisponibles, setMunicipiosDisponibles] = useState<string[]>([]);
@@ -123,7 +121,6 @@ export default function FiltrosTrabajo({
         if (!tokens.some((t) => haystack.includes(t))) return false;
       }
       if (sector && a.sector_trabajo !== sector) return false;
-      if (sector === "oficios" && oficio && a.oficio !== oficio) return false;
       if (provincia && a.provincia !== provincia) return false;
       if (municipio && a.municipio !== municipio) return false;
       if (modalidad && a.modalidad_trabajo !== modalidad) return false;
@@ -148,7 +145,7 @@ export default function FiltrosTrabajo({
       return true;
     });
   }, [
-    anuncios, query, sector, oficio, provincia, municipio, modalidad, tipo,
+    anuncios, query, sector, provincia, municipio, modalidad, tipo,
     salarioMin, salarioMax, experiencia, idiomas, caracteristicas,
   ]);
 
@@ -196,10 +193,7 @@ export default function FiltrosTrabajo({
           <select
             className={SELECT_CLASS}
             value={sector}
-            onChange={(e) => {
-              setSector(e.target.value);
-              if (e.target.value !== "oficios") setOficio("");
-            }}
+            onChange={(e) => setSector(e.target.value)}
           >
             <option value="">Sector</option>
             {SECTORES_TRABAJO.map((s) => (
@@ -228,32 +222,12 @@ export default function FiltrosTrabajo({
             </select>
           )}
           <select className={SELECT_CLASS} value={modalidad} onChange={(e) => setModalidad(e.target.value)}>
-            <option value="">Modalidad</option>
+            <option value="">Contrato</option>
             {MODALIDADES_TRABAJO.map((m) => (
               <option key={m.valor} value={m.valor}>{m.label}</option>
             ))}
           </select>
         </div>
-
-        {sector === "oficios" && (
-          <div className="flex flex-wrap gap-1.5">
-            {OFICIOS.map((o) => (
-              <button
-                key={o.valor}
-                type="button"
-                onClick={() => setOficio((prev) => (prev === o.valor ? "" : o.valor))}
-                className={
-                  "text-xs px-2.5 py-1.5 rounded-full border " +
-                  (oficio === o.valor
-                    ? "border-amber-600 bg-amber-50 text-amber-700 font-medium"
-                    : "border-stone-200 text-stone-500 bg-white")
-                }
-              >
-                {o.label}
-              </button>
-            ))}
-          </div>
-        )}
 
         <button
           type="button"

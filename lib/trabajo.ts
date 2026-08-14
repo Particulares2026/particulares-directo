@@ -1,28 +1,31 @@
+// Lista única y en orden alfabético (con "Otros" siempre al final).
 export const SECTORES_TRABAJO: { valor: string; label: string }[] = [
-  { valor: "domestico_limpieza", label: "Servicio doméstico y limpieza" },
-  { valor: "cuidado_mayores", label: "Cuidado de personas mayores o dependientes" },
-  { valor: "cuidado_ninos", label: "Cuidado de niños / canguro" },
-  { valor: "hosteleria_camarero", label: "Hostelería y camarero/a" },
+  { valor: "administracion_oficina", label: "Administración / oficina" },
+  { valor: "albanileria", label: "Albañilería" },
+  { valor: "atencion_cliente", label: "Atención al cliente" },
+  { valor: "hosteleria_camarero", label: "Camarero/a y hostelería" },
+  { valor: "carpinteria", label: "Carpintería" },
+  { valor: "cerrajeria", label: "Cerrajería" },
+  { valor: "climatizacion", label: "Climatización y aire acondicionado" },
   { valor: "cocina", label: "Cocina" },
-  { valor: "oficios", label: "Oficios (carpintería, pintura...)" },
+  { valor: "comercial_ventas", label: "Comercial y ventas" },
+  { valor: "conduccion_transporte", label: "Conducción y transporte" },
+  { valor: "cuidado_ninos", label: "Cuidado de niños / canguro" },
+  { valor: "cuidado_mayores", label: "Cuidado de personas mayores o dependientes" },
+  { valor: "electricidad", label: "Electricidad" },
+  { valor: "fontaneria", label: "Fontanería" },
+  { valor: "jardineria", label: "Jardinería" },
+  { valor: "domestico_limpieza", label: "Limpieza y servicio doméstico" },
+  { valor: "logistica_almacen", label: "Logística y almacén" },
+  { valor: "mecanica", label: "Mecánica" },
+  { valor: "peluqueria_estetica", label: "Peluquería y estética" },
+  { valor: "pintura", label: "Pintura" },
+  { valor: "reformas", label: "Reformas generales" },
+  { valor: "repartidor", label: "Repartidor/a" },
+  { valor: "seguridad", label: "Seguridad" },
+  { valor: "soldadura", label: "Soldadura" },
   { valor: "turismo_temporal", label: "Turismo / extranjeros" },
   { valor: "otros", label: "Otros" },
-];
-
-// Desglose de profesiones concretas dentro del sector "Oficios".
-export const OFICIOS: { valor: string; label: string }[] = [
-  { valor: "carpinteria", label: "Carpintería" },
-  { valor: "pintura", label: "Pintura" },
-  { valor: "fontaneria", label: "Fontanería" },
-  { valor: "electricidad", label: "Electricidad" },
-  { valor: "albanileria", label: "Albañilería" },
-  { valor: "cerrajeria", label: "Cerrajería" },
-  { valor: "jardineria", label: "Jardinería" },
-  { valor: "mecanica", label: "Mecánica" },
-  { valor: "soldadura", label: "Soldadura" },
-  { valor: "climatizacion", label: "Climatización / aire acondicionado" },
-  { valor: "reformas", label: "Reformas generales" },
-  { valor: "otro_oficio", label: "Otro oficio" },
 ];
 
 export const MODALIDADES_TRABAJO: { valor: string; label: string }[] = [
@@ -61,10 +64,6 @@ export const CARACTERISTICAS_TRABAJO: { valor: string; label: string }[] = [
 
 export function nombreSector(valor: string | null | undefined): string {
   return SECTORES_TRABAJO.find((s) => s.valor === valor)?.label ?? "";
-}
-
-export function nombreOficio(valor: string | null | undefined): string {
-  return OFICIOS.find((o) => o.valor === valor)?.label ?? "";
 }
 
 export function nombreModalidad(valor: string | null | undefined): string {

@@ -18,7 +18,6 @@ import { estaDestacado, precioDestacarTexto } from "@/lib/destacar";
 import {
   CARACTERISTICAS_TRABAJO,
   nombreSector,
-  nombreOficio,
   nombreModalidad,
   nombreExperiencia,
   textoSalario,
@@ -57,7 +56,6 @@ type Anuncio = {
   activo?: boolean;
   destacado_hasta?: string | null;
   sector_trabajo?: string | null;
-  oficio?: string | null;
   modalidad_trabajo?: string | null;
   salario_min?: number | null;
   salario_max?: number | null;
@@ -243,11 +241,6 @@ export default function AnuncioCard({
             {esTrabajo && anuncio.sector_trabajo && (
               <span className="text-xs font-medium px-2 py-0.5 rounded-full border bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200">
                 {nombreSector(anuncio.sector_trabajo)}
-              </span>
-            )}
-            {esTrabajo && anuncio.oficio && (
-              <span className="text-xs font-medium px-2 py-0.5 rounded-full border bg-amber-50 text-amber-700 border-amber-200">
-                {nombreOficio(anuncio.oficio)}
               </span>
             )}
             {esTrabajo && anuncio.modalidad_trabajo && (

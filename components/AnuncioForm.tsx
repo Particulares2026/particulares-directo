@@ -18,7 +18,6 @@ import {
 } from "@/lib/inmobiliaria";
 import {
   SECTORES_TRABAJO,
-  OFICIOS,
   MODALIDADES_TRABAJO,
   EXPERIENCIA_TRABAJO,
   SALARIO_PERIODOS,
@@ -69,7 +68,6 @@ type AnuncioExistente = {
   lat?: number | null;
   lng?: number | null;
   sector_trabajo?: string | null;
-  oficio?: string | null;
   modalidad_trabajo?: string | null;
   salario_min?: number | null;
   salario_max?: number | null;
@@ -142,7 +140,6 @@ export default function AnuncioForm({
   const [fotoArrastrada, setFotoArrastrada] = useState<number | null>(null);
 
   const [sectorTrabajo, setSectorTrabajo] = useState(anuncioExistente?.sector_trabajo ?? "");
-  const [oficio, setOficio] = useState(anuncioExistente?.oficio ?? "");
   const [modalidadTrabajo, setModalidadTrabajo] = useState(anuncioExistente?.modalidad_trabajo ?? "");
   const [salarioMin, setSalarioMin] = useState(
     anuncioExistente?.salario_min != null ? String(anuncioExistente.salario_min) : ""
@@ -298,7 +295,6 @@ export default function AnuncioForm({
       lat: esInmobiliaria ? lat : null,
       lng: esInmobiliaria ? lng : null,
       sector_trabajo: esTrabajo ? sectorTrabajo || null : null,
-      oficio: esTrabajo && sectorTrabajo === "oficios" ? oficio || null : null,
       modalidad_trabajo: esTrabajo ? modalidadTrabajo || null : null,
       salario_min: esTrabajo && salarioMin ? Number(salarioMin) : null,
       salario_max: esTrabajo && salarioMax ? Number(salarioMax) : null,
@@ -618,10 +614,7 @@ export default function AnuncioForm({
           <select
             className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
             value={sectorTrabajo}
-            onChange={(e) => {
-              setSectorTrabajo(e.target.value);
-              if (e.target.value !== "oficios") setOficio("");
-            }}
+            onChange={(e) => setSectorTrabajo(e.target.value)}
           >
             <option value="">Sector</option>
             {SECTORES_TRABAJO.map((s) => (
@@ -630,29 +623,6 @@ export default function AnuncioForm({
               </option>
             ))}
           </select>
-
-          {sectorTrabajo === "oficios" && (
-            <div>
-              <p className="text-sm text-stone-500 mb-1.5">¿Qué oficio?</p>
-              <div className="flex flex-wrap gap-1.5">
-                {OFICIOS.map((o) => (
-                  <button
-                    key={o.valor}
-                    type="button"
-                    onClick={() => setOficio((prev) => (prev === o.valor ? "" : o.valor))}
-                    className={
-                      "text-xs px-2.5 py-1.5 rounded-full border " +
-                      (oficio === o.valor
-                        ? "border-fuchsia-600 bg-fuchsia-50 text-fuchsia-700 font-medium"
-                        : "border-stone-200 text-stone-500")
-                    }
-                  >
-                    {o.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
 
           <div className="grid grid-cols-2 gap-2">
             <select
@@ -694,7 +664,7 @@ export default function AnuncioForm({
             value={modalidadTrabajo}
             onChange={(e) => setModalidadTrabajo(e.target.value)}
           >
-            <option value="">Modalidad</option>
+            <option value="">Contrato</option>
             {MODALIDADES_TRABAJO.map((m) => (
               <option key={m.valor} value={m.valor}>
                 {m.label}
