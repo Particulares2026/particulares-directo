@@ -41,7 +41,7 @@ export default async function PublicarPage({
   }
 
   return (
-    <main className="max-w-2xl mx-auto px-4 md:px-8 py-10">
+    <main className="max-w-4xl mx-auto px-4 md:px-8 py-10">
       <h1 className="font-serif text-xl mb-1">Publicar en {nombreCategoria(categoria)}</h1>
       <p className="text-sm text-stone-500 mb-6">
         Se publicará con tu nombre y tu teléfono para que puedan contactarte.
