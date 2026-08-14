@@ -20,7 +20,7 @@ export default async function PublicarPage({
 
   if (!categoria || !esCategoriaValida(categoria)) {
     return (
-      <main className="max-w-sm mx-auto px-4 py-10">
+      <main className="max-w-2xl mx-auto px-4 md:px-8 py-10">
         <h1 className="font-serif text-xl mb-1">Publicar un anuncio</h1>
         <p className="text-sm text-stone-500 mb-6">
           Elige primero en qué categoría quieres publicar.
@@ -41,7 +41,7 @@ export default async function PublicarPage({
   }
 
   return (
-    <main className="max-w-sm mx-auto px-4 py-10">
+    <main className="max-w-2xl mx-auto px-4 md:px-8 py-10">
       <h1 className="font-serif text-xl mb-1">Publicar en {nombreCategoria(categoria)}</h1>
       <p className="text-sm text-stone-500 mb-6">
         Se publicará con tu nombre y tu teléfono para que puedan contactarte.
