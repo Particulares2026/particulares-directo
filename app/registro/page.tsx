@@ -55,7 +55,9 @@ export default function RegistroPage() {
 
   return (
     <main className="max-w-sm mx-auto px-4 py-16">
-      <h1 className="font-serif text-xl mb-1">Crear cuenta</h1>
+      <div className="bg-white rounded-2xl shadow-md border border-fuchsia-100 p-6">
+      <span className="text-3xl">✨</span>
+      <h1 className="font-serif text-xl mt-2 mb-1">Crear cuenta</h1>
       <p className="text-sm text-stone-500 mb-6">
         Con tu correo y una contraseña podrás publicar y gestionar tus propios anuncios.
       </p>
@@ -129,7 +131,7 @@ export default function RegistroPage() {
         {mensaje && <p className="text-sm text-teal-700">{mensaje}</p>}
         <button
           disabled={loading}
-          className="w-full bg-stone-900 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-stone-800 disabled:opacity-40"
+          className="w-full bg-gradient-to-r from-fuchsia-600 to-pink-600 text-white rounded-lg py-2.5 text-sm font-medium hover:from-fuchsia-700 hover:to-pink-700 disabled:opacity-40 shadow-sm"
         >
           {loading ? "Creando cuenta…" : "Crear cuenta"}
         </button>
@@ -140,6 +142,7 @@ export default function RegistroPage() {
           Entra aquí
         </Link>
       </p>
+      </div>
     </main>
   );
 }

@@ -19,7 +19,7 @@ export default async function ModeracionPage() {
 
   return (
     <main className="max-w-7xl mx-auto px-4 md:px-8 py-8">
-      <h1 className="font-serif text-2xl mb-1">Moderación</h1>
+      <h1 className="font-serif text-2xl mb-1">🛡️ Moderación</h1>
       <p className="text-sm text-stone-500 mb-6">
         Los 100 anuncios más recientes de todas las categorías, para revisarlos rápido.
       </p>

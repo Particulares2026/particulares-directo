@@ -25,7 +25,7 @@ export default async function MisAnunciosPage({
   return (
     <main className="max-w-7xl mx-auto px-4 md:px-8 py-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="font-serif text-xl">Tus anuncios</h1>
+        <h1 className="font-serif text-xl">📋 Tus anuncios</h1>
         <Link
           href="/publicar"
           className="text-sm bg-gradient-to-r from-fuchsia-600 to-pink-600 text-white px-3 py-1.5 rounded-full hover:from-fuchsia-700 hover:to-pink-700 shadow-sm"

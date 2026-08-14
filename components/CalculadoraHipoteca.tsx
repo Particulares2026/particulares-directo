@@ -89,7 +89,7 @@ export default function CalculadoraHipoteca({ precioInicial }: { precioInicial?:
       </div>
 
       {resultado && (
-        <div className="border border-stone-200 rounded-xl p-4 space-y-3">
+        <div className="border border-sky-200 bg-gradient-to-br from-sky-50 to-fuchsia-50/50 rounded-xl p-4 space-y-3">
           <div>
             <p className="text-xs text-stone-500">Cuota mensual estimada</p>
             <p className="font-serif text-3xl text-fuchsia-700">{formatoEuros(resultado.cuota)}</p>

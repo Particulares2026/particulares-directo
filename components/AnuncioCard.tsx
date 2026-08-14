@@ -22,6 +22,7 @@ import {
   nombreExperiencia,
   textoSalario,
 } from "@/lib/trabajo";
+import GraficoPrecios from "./GraficoPrecios";
 
 type Anuncio = {
   id: string;
@@ -370,7 +371,7 @@ export default function AnuncioCard({
             <button
               type="button"
               onClick={verHistorial}
-              className="text-xs text-teal-700 hover:underline"
+              className="text-xs text-red-600 font-medium hover:underline inline-flex items-center gap-1"
             >
               {historialAbierto ? "Ocultar histórico de precio" : "Ver histórico de precio"}
             </button>
@@ -385,14 +386,7 @@ export default function AnuncioCard({
             <p className="text-stone-400">Sin cambios de precio registrados.</p>
           )}
           {!cargandoHistorial && historialPrecios && historialPrecios.length > 0 && (
-            <ul className="space-y-1">
-              {historialPrecios.map((h, i) => (
-                <li key={i} className="flex justify-between text-stone-600">
-                  <span>{new Date(h.created_at).toLocaleDateString("es-ES")}</span>
-                  <span className="font-medium">{h.precio.toLocaleString("es-ES")} €</span>
-                </li>
-              ))}
-            </ul>
+            <GraficoPrecios historial={historialPrecios} />
           )}
         </div>
       )}

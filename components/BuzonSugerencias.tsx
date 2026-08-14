@@ -157,7 +157,7 @@ export default function BuzonSugerencias() {
                   type="button"
                   onClick={enviar}
                   disabled={!mensaje.trim() || enviando}
-                  className="w-full bg-stone-900 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-stone-800 disabled:opacity-40"
+                  className="w-full bg-gradient-to-r from-fuchsia-600 to-pink-600 text-white rounded-lg py-2.5 text-sm font-medium hover:from-fuchsia-700 hover:to-pink-700 disabled:opacity-40 shadow-sm"
                 >
                   {enviando ? "Enviando…" : "Enviar comentario"}
                 </button>
@@ -174,7 +174,7 @@ export default function BuzonSugerencias() {
                 <button
                   type="button"
                   onClick={cerrar}
-                  className="w-full bg-stone-900 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-stone-800"
+                  className="w-full bg-gradient-to-r from-fuchsia-600 to-pink-600 text-white rounded-lg py-2.5 text-sm font-medium hover:from-fuchsia-700 hover:to-pink-700 shadow-sm"
                 >
                   Cerrar
                 </button>

@@ -18,7 +18,7 @@ export default function CalculadoraHipotecaPage({
       <Link href="/categoria/inmobiliaria" className="text-sm text-stone-500 hover:text-stone-700">
         ← Inmobiliaria
       </Link>
-      <h1 className="font-serif text-2xl mt-2 mb-1">Calculadora de hipoteca</h1>
+      <h1 className="font-serif text-2xl mt-2 mb-1">🏦 Calculadora de hipoteca</h1>
       <p className="text-sm text-stone-500 mb-6">
         Estima la cuota mensual y el coste total de tu financiación.
       </p>

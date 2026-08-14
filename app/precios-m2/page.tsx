@@ -56,7 +56,7 @@ export default async function PreciosM2Page() {
       <Link href="/categoria/inmobiliaria" className="text-sm text-stone-500 hover:text-stone-700">
         ← Inmobiliaria
       </Link>
-      <h1 className="font-serif text-2xl mt-2 mb-1">Precio del m² por zona</h1>
+      <h1 className="font-serif text-2xl mt-2 mb-1">📊 Precio del m² por zona</h1>
       <p className="text-sm text-stone-500 mb-6">
         Precio medio del metro cuadrado, calculado a partir de los anuncios publicados en Particulares
         Directo (no son datos oficiales del mercado).
@@ -72,7 +72,7 @@ export default async function PreciosM2Page() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr className="border-b border-stone-200 text-left text-stone-500">
+              <tr className="border-b-2 border-fuchsia-100 bg-gradient-to-r from-fuchsia-50/60 to-sky-50/40 text-left text-stone-600">
                 <th className="py-2 pr-3 font-medium">Provincia</th>
                 <th className="py-2 pr-3 font-medium">€/m² venta</th>
                 <th className="py-2 pr-3 font-medium">€/m² alquiler</th>
