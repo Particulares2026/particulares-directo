@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { PREFIJOS_TELEFONO } from "@/lib/telefono";
 import CampoPassword from "@/components/CampoPassword";
+import Turnstile from "@/components/Turnstile";
 import { traducirErrorAuth } from "@/lib/errores-auth";
 
 export default function RegistroPage() {
@@ -15,6 +16,8 @@ export default function RegistroPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [aceptaPrivacidad, setAceptaPrivacidad] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaResetKey, setCaptchaResetKey] = useState(0);
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -33,6 +36,10 @@ export default function RegistroPage() {
       setError("Tienes que aceptar el aviso legal y los términos y condiciones para crear una cuenta.");
       return;
     }
+    if (!captchaToken) {
+      setError("Completa la verificación de seguridad antes de continuar.");
+      return;
+    }
 
     setLoading(true);
 
@@ -42,10 +49,13 @@ export default function RegistroPage() {
       options: {
         data: { nombre, telefono: `${prefijoTelefono} ${numeroLimpio}` },
         emailRedirectTo: `${window.location.origin}/auth/callback`,
+        captchaToken,
       },
     });
 
     setLoading(false);
+    setCaptchaToken(null);
+    setCaptchaResetKey((k) => k + 1);
     if (error) {
       setError(traducirErrorAuth(error.message));
       return;
@@ -127,6 +137,7 @@ export default function RegistroPage() {
             .
           </span>
         </label>
+        <Turnstile onVerify={setCaptchaToken} resetKey={captchaResetKey} />
         {error && <p className="text-sm text-red-600">{error}</p>}
         {mensaje && <p className="text-sm text-teal-700">{mensaje}</p>}
         <button

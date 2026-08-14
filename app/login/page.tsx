@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import CampoPassword from "@/components/CampoPassword";
+import Turnstile from "@/components/Turnstile";
 import { traducirErrorAuth } from "@/lib/errores-auth";
 
 export default function LoginPage() {
@@ -12,17 +13,31 @@ export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaResetKey, setCaptchaResetKey] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (!captchaToken) {
+      setError("Completa la verificación de seguridad antes de continuar.");
+      return;
+    }
+
+    setLoading(true);
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+      options: { captchaToken },
+    });
 
     setLoading(false);
+    setCaptchaToken(null);
+    setCaptchaResetKey((k) => k + 1);
     if (error) {
       setError(traducirErrorAuth(error.message));
       return;
@@ -52,6 +67,7 @@ export default function LoginPage() {
             placeholder="Contraseña"
             required
           />
+          <Turnstile onVerify={setCaptchaToken} resetKey={captchaResetKey} />
           {error && <p className="text-sm text-red-600">{error}</p>}
           <button
             disabled={loading}
