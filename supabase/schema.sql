@@ -278,3 +278,9 @@ alter table public.historial_precios enable row level security;
 create policy "El historial de precios es visible para todos"
   on public.historial_precios for select
   using (true);
+
+-- Bucket privado para las copias de seguridad automáticas diarias de la base de datos.
+-- Sin políticas: solo es accesible con la clave de servicio, desde el servidor.
+insert into storage.buckets (id, name, public)
+  values ('backups', 'backups', false)
+  on conflict (id) do nothing;
