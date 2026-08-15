@@ -12,6 +12,7 @@ export const PROVINCIAS = [
 
 export const TIPOS_INMUEBLE: { valor: string; label: string }[] = [
   { valor: "piso", label: "Piso" },
+  { valor: "casa", label: "Casa" },
   { valor: "habitacion", label: "Habitación" },
   { valor: "garaje", label: "Garaje" },
   { valor: "trastero", label: "Trastero" },

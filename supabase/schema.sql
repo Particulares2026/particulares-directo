@@ -24,7 +24,7 @@ create table if not exists public.anuncios (
   provincia text,
   municipio text,
   tipo_inmueble text check (tipo_inmueble in (
-    'piso', 'habitacion', 'garaje', 'trastero', 'local', 'terreno', 'edificio'
+    'piso', 'casa', 'habitacion', 'garaje', 'trastero', 'local', 'terreno', 'edificio'
   )),
   precio numeric,
   -- Precio inmediatamente anterior al actual, para poder mostrar "antes X, ahora Y"
