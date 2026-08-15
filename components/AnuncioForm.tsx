@@ -64,7 +64,6 @@ type AnuncioExistente = {
   duracion_alquiler?: string | null;
   fotos?: string[];
   estado?: string | null;
-  enlaces_externos?: string[];
   lat?: number | null;
   lng?: number | null;
   sector_trabajo?: string | null;
@@ -130,7 +129,6 @@ export default function AnuncioForm({
   const [caracteristicas, setCaracteristicas] = useState<string[]>(anuncioExistente?.caracteristicas ?? []);
   const [duracionAlquiler, setDuracionAlquiler] = useState(anuncioExistente?.duracion_alquiler ?? "");
   const [estado, setEstado] = useState(anuncioExistente?.estado ?? "");
-  const [enlacesExternos, setEnlacesExternos] = useState((anuncioExistente?.enlaces_externos ?? []).join(", "));
   const [lat, setLat] = useState<number | null>(anuncioExistente?.lat ?? null);
   const [lng, setLng] = useState<number | null>(anuncioExistente?.lng ?? null);
   const [mapaAbierto, setMapaAbierto] = useState(Boolean(anuncioExistente?.lat && anuncioExistente?.lng));
@@ -286,12 +284,6 @@ export default function AnuncioForm({
       duracion_alquiler: esInmobiliaria && operacion === "alquiler" && duracionAlquiler ? duracionAlquiler : null,
       fotos,
       estado: esInmobiliaria && estado ? estado : null,
-      enlaces_externos: esInmobiliaria
-        ? enlacesExternos
-            .split(",")
-            .map((u) => u.trim())
-            .filter((u) => /^https?:\/\//i.test(u))
-        : [],
       lat: esInmobiliaria ? lat : null,
       lng: esInmobiliaria ? lng : null,
       sector_trabajo: esTrabajo ? sectorTrabajo || null : null,
@@ -351,12 +343,6 @@ export default function AnuncioForm({
     duracion_alquiler: esInmobiliaria && operacion === "alquiler" && duracionAlquiler ? duracionAlquiler : null,
     fotos,
     estado: esInmobiliaria && estado ? estado : null,
-    enlaces_externos: esInmobiliaria
-      ? enlacesExternos
-          .split(",")
-          .map((u) => u.trim())
-          .filter((u) => /^https?:\/\//i.test(u))
-      : [],
     destacado_hasta: null,
     sector_trabajo: esTrabajo ? sectorTrabajo || null : null,
     modalidad_trabajo: esTrabajo ? modalidadTrabajo || null : null,
@@ -883,20 +869,6 @@ export default function AnuncioForm({
         onChange={(e) => setDescripcion(e.target.value)}
         required={!esInmobiliaria && !esTrabajo}
       />
-
-      {esInmobiliaria && (
-        <div>
-          <input
-            className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
-            placeholder="Enlaces a otras webs donde también está publicado (opcional, separados por comas)"
-            value={enlacesExternos}
-            onChange={(e) => setEnlacesExternos(e.target.value)}
-          />
-          <p className="text-xs text-stone-400 mt-1">
-            Ej. idealista, fotocasa… pega la URL completa (empezando por https://).
-          </p>
-        </div>
-      )}
 
       {esTrabajo && tipo === "busco" && (
         <p className="text-xs text-stone-400">

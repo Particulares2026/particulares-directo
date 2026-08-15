@@ -38,8 +38,6 @@ create table if not exists public.anuncios (
   duracion_alquiler text check (duracion_alquiler in ('temporada', 'larga_estancia')),
   fotos text[] not null default '{}',
   estado text check (estado in ('nuevo', 'para_entrar', 'necesita_reformas')),
-  -- Enlaces opcionales a otras plataformas donde también está publicado el inmueble.
-  enlaces_externos text[] not null default '{}',
   -- Ubicación en el mapa (solo inmobiliaria; null si el anuncio no la tiene marcada).
   lat double precision,
   lng double precision,

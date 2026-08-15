@@ -52,7 +52,6 @@ type Anuncio = {
   duracion_alquiler?: string | null;
   fotos?: string[];
   estado?: string | null;
-  enlaces_externos?: string[];
   activo?: boolean;
   destacado_hasta?: string | null;
   sector_trabajo?: string | null;
@@ -408,31 +407,6 @@ export default function AnuncioCard({
           {!cargandoHistorial && historialPrecios && historialPrecios.length > 0 && (
             <GraficoPrecios historial={historialPrecios} />
           )}
-        </div>
-      )}
-
-      {esInmobiliaria && anuncio.enlaces_externos && anuncio.enlaces_externos.length > 0 && (
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-2 text-xs">
-          <span className="text-stone-400">También en:</span>
-          {anuncio.enlaces_externos
-            .filter((u) => /^https?:\/\//i.test(u))
-            .map((u, i) => (
-              <a
-                key={i}
-                href={u}
-                target="_blank"
-                rel="noopener noreferrer nofollow"
-                className="text-teal-700 hover:underline"
-              >
-                {(() => {
-                  try {
-                    return new URL(u).hostname.replace(/^www\./, "");
-                  } catch {
-                    return u;
-                  }
-                })()}
-              </a>
-            ))}
         </div>
       )}
 

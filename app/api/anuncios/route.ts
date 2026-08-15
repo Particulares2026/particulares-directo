@@ -35,7 +35,6 @@ const CAMPOS_PERMITIDOS = [
   "duracion_alquiler",
   "fotos",
   "estado",
-  "enlaces_externos",
   "lat",
   "lng",
   "sector_trabajo",
