@@ -7,6 +7,55 @@ import { contieneContenidoProhibido } from "@/lib/moderacion";
 const REMITENTE = "Particulares Directo <noreply@particularesdirecto.com>";
 const LIMITE_ANUNCIOS_POR_HORA = 5;
 
+// Únicos campos que el formulario puede enviar. Todo lo demás se descarta antes de
+// escribir en la base de datos, para que nadie pueda colar por su cuenta campos como
+// destacado_hasta, precio_anterior o user_id en el cuerpo de la petición.
+const CAMPOS_PERMITIDOS = [
+  "categoria",
+  "tipo",
+  "titulo",
+  "ubicacion",
+  "descripcion",
+  "palabras_clave",
+  "nombre_contacto",
+  "telefono_contacto",
+  "email_contacto",
+  "mostrar_telefono",
+  "mostrar_email",
+  "operacion",
+  "provincia",
+  "municipio",
+  "tipo_inmueble",
+  "precio",
+  "habitaciones",
+  "banos",
+  "amueblado",
+  "tamano",
+  "caracteristicas",
+  "duracion_alquiler",
+  "fotos",
+  "estado",
+  "enlaces_externos",
+  "lat",
+  "lng",
+  "sector_trabajo",
+  "modalidad_trabajo",
+  "salario_min",
+  "salario_max",
+  "salario_periodo",
+  "experiencia_trabajo",
+  "idiomas_trabajo",
+  "incorporacion",
+] as const;
+
+function filtrarCamposPermitidos(payload: Record<string, unknown>) {
+  const limpio: Record<string, unknown> = {};
+  for (const campo of CAMPOS_PERMITIDOS) {
+    if (campo in payload) limpio[campo] = payload[campo];
+  }
+  return limpio;
+}
+
 function textoRechazo(titulo: string) {
   return {
     subject: "Tu anuncio no se ha podido publicar",
@@ -80,6 +129,8 @@ export async function POST(request: Request) {
     );
   }
 
+  const camposLimpios = filtrarCamposPermitidos(payload);
+
   if (id) {
     const { data: existente } = await supabase
       .from("anuncios")
@@ -90,28 +141,31 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No puedes editar este anuncio." }, { status: 403 });
     }
 
+    const nuevoPrecio = camposLimpios.precio as number | null | undefined;
     const precioCambiado =
-      payload.precio != null && existente.precio != null && payload.precio !== existente.precio;
-    const updatePayload = precioCambiado ? { ...payload, precio_anterior: existente.precio } : payload;
+      nuevoPrecio != null && existente.precio != null && nuevoPrecio !== existente.precio;
+    const updatePayload = precioCambiado
+      ? { ...camposLimpios, precio_anterior: existente.precio }
+      : camposLimpios;
 
     const { error } = await admin.from("anuncios").update(updatePayload).eq("id", id);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
     if (precioCambiado) {
-      await admin.from("historial_precios").insert({ anuncio_id: id, precio: payload.precio });
+      await admin.from("historial_precios").insert({ anuncio_id: id, precio: nuevoPrecio });
     }
     return NextResponse.json({ ok: true, id });
   }
 
   const { data, error } = await admin
     .from("anuncios")
-    .insert({ user_id: user.id, ...payload })
+    .insert({ ...camposLimpios, user_id: user.id })
     .select("id")
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  if (payload.precio != null) {
-    await admin.from("historial_precios").insert({ anuncio_id: data.id, precio: payload.precio });
+  if (camposLimpios.precio != null) {
+    await admin.from("historial_precios").insert({ anuncio_id: data.id, precio: camposLimpios.precio });
   }
   return NextResponse.json({ ok: true, id: data.id });
 }
