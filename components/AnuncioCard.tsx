@@ -572,7 +572,11 @@ export default function AnuncioCard({
           )}
           {destacado ? (
             <span className="text-xs text-amber-700">
-              Destacado hasta {new Date(anuncio.destacado_hasta as string).toLocaleDateString("es-ES")}
+              Destacado hasta{" "}
+              {new Date(anuncio.destacado_hasta as string).toLocaleString("es-ES", {
+                dateStyle: "short",
+                timeStyle: "short",
+              })}
             </span>
           ) : (
             <button
