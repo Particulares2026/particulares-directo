@@ -98,18 +98,18 @@ create policy "Los usuarios eliminan solo sus propios anuncios"
   to authenticated
   using (auth.uid() = user_id);
 
--- Crear y editar el contenido de un anuncio solo se puede desde el servidor (que aplica
--- moderación de contenido), nunca directamente desde el navegador. Se deja permitido
--- actualizar estas columnas concretas para que sigan funcionando los botones
--- "Actualizar" y "Desactivar", que no tocan el contenido del anuncio.
-revoke insert on public.anuncios from authenticated;
-revoke update on public.anuncios from authenticated;
+-- El visitante anónimo solo puede leer campos públicos. Crear y editar contenido
+-- pasa por el servidor; el usuario conserva DELETE sobre sus filas y UPDATE solo
+-- para los botones "Actualizar" y "Desactivar", todo ello limitado por RLS.
+revoke all privileges on table public.anuncios from anon;
+revoke select, insert, update, references, trigger, truncate
+  on table public.anuncios from authenticated;
+grant delete on table public.anuncios to authenticated;
 grant update (activo, fecha_activacion, aviso_5_enviado, aviso_3_enviado)
   on public.anuncios to authenticated;
 
 -- Teléfono y email nunca se leen con la clave pública. El servidor los entrega solo
 -- al propietario o a través del endpoint limitado de "Mostrar contacto".
-revoke select on public.anuncios from anon, authenticated;
 grant select (
   id, user_id, categoria, tipo, titulo, descripcion, ubicacion, palabras_clave,
   nombre_contacto, mostrar_telefono, mostrar_email, created_at, operacion,

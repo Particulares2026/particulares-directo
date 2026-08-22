@@ -8,9 +8,16 @@ create policy "Los anuncios activos son visibles y cada usuario ve los suyos"
   on public.anuncios for select
   using (activo = true or auth.uid() = user_id);
 
--- SELECT a nivel de tabla permitiría pedir telefono_contacto y email_contacto.
--- Se sustituye por permisos columna a columna, excluyendo ambos datos.
-revoke select on public.anuncios from anon, authenticated;
+-- El visitante anónimo solo necesita leer los campos públicos. El usuario
+-- autenticado conserva además DELETE sobre sus filas y UPDATE únicamente para
+-- renovar o desactivar, siempre bajo las políticas RLS de propietario.
+revoke all privileges on table public.anuncios from anon;
+revoke select, insert, update, references, trigger, truncate
+  on table public.anuncios from authenticated;
+
+grant delete on table public.anuncios to authenticated;
+grant update (activo, fecha_activacion, aviso_5_enviado, aviso_3_enviado)
+  on public.anuncios to authenticated;
 
 grant select (
   id,
@@ -53,4 +60,3 @@ grant select (
   fecha_activacion,
   destacado_hasta
 ) on public.anuncios to anon, authenticated;
-
