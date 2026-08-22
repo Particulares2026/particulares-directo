@@ -215,11 +215,11 @@ export async function POST(request: Request) {
   }
 
   const { prohibido } = contieneContenidoProhibido(
-    payload.titulo,
-    payload.descripcion,
-    payload.ubicacion,
+    payload.titulo as string,
+    typeof payload.descripcion === "string" ? payload.descripcion : null,
+    typeof payload.ubicacion === "string" ? payload.ubicacion : null,
     Array.isArray(payload.palabras_clave) ? payload.palabras_clave.join(" ") : null,
-    payload.nombre_contacto
+    payload.nombre_contacto as string
   );
 
   if (prohibido) {
@@ -331,3 +331,4 @@ export async function DELETE(request: Request) {
 
   return NextResponse.json({ ok: true });
 }
+
