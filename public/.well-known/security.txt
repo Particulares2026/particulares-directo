@@ -1,0 +1,4 @@
+Contact: mailto:nuriabarbero@icloud.com
+Preferred-Languages: es, en
+Canonical: https://particularesdirecto.com/.well-known/security.txt
+Expires: 2027-08-22T23:59:59Z

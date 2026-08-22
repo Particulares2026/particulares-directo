@@ -31,7 +31,7 @@ export function comprimirImagen(file: File): Promise<File> {
       canvas.toBlob(
         (blob) => {
           URL.revokeObjectURL(url);
-          if (!blob || blob.size >= file.size) {
+          if (!blob) {
             resolve(file);
             return;
           }

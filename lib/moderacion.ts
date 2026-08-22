@@ -40,3 +40,30 @@ export function contieneContenidoProhibido(
   }
   return { prohibido: false };
 }
+
+const PATRON_EMAIL = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i;
+const PATRON_ENLACE = /(?:https?:\/\/|www\.)\S+/i;
+const PATRON_POSIBLE_TELEFONO = /(?:\+?\d[\s().-]*){8,15}/g;
+
+/**
+ * Evita que los datos de contacto se escriban en campos que se muestran sin
+ * protección. El teléfono y el correo deben ir únicamente en la sección de
+ * contacto, que se entrega a través del endpoint limitado de "Mostrar contacto".
+ */
+export function contieneContactoPublico(
+  ...textos: (string | null | undefined)[]
+): { encontrado: boolean; tipo?: "email" | "telefono" | "enlace" } {
+  const contenido = textos.filter((texto): texto is string => typeof texto === "string").join(" ");
+
+  if (PATRON_EMAIL.test(contenido)) return { encontrado: true, tipo: "email" };
+  if (PATRON_ENLACE.test(contenido)) return { encontrado: true, tipo: "enlace" };
+
+  for (const coincidencia of contenido.matchAll(PATRON_POSIBLE_TELEFONO)) {
+    const digitos = coincidencia[0].replace(/\D/g, "");
+    if (digitos.length >= 8 && digitos.length <= 15) {
+      return { encontrado: true, tipo: "telefono" };
+    }
+  }
+
+  return { encontrado: false };
+}

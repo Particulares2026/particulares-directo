@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { traducirErrorAuth } from "@/lib/errores-auth";
+import Turnstile from "@/components/Turnstile";
 
 export default function OlvidePasswordPage() {
   const supabase = createClient();
@@ -11,6 +12,8 @@ export default function OlvidePasswordPage() {
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaResetKey, setCaptchaResetKey] = useState(0);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -18,11 +21,20 @@ export default function OlvidePasswordPage() {
     setError(null);
     setMensaje(null);
 
+    if (!captchaToken) {
+      setLoading(false);
+      setError("Completa la verificación de seguridad antes de continuar.");
+      return;
+    }
+
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth/callback?next=/restablecer-password`,
+      captchaToken,
     });
 
     setLoading(false);
+    setCaptchaToken(null);
+    setCaptchaResetKey((k) => k + 1);
     if (error) {
       setError(traducirErrorAuth(error.message));
       return;
@@ -49,6 +61,7 @@ export default function OlvidePasswordPage() {
           onChange={(e) => setEmail(e.target.value)}
           required
         />
+        <Turnstile onVerify={setCaptchaToken} resetKey={captchaResetKey} />
         {error && <p className="text-sm text-red-600">{error}</p>}
         {mensaje && <p className="text-sm text-teal-700">{mensaje}</p>}
         <button

@@ -114,8 +114,8 @@ export default function RegistroPage() {
         <CampoPassword
           value={password}
           onChange={setPassword}
-          placeholder="Contraseña (mínimo 6 caracteres)"
-          minLength={6}
+          placeholder="Contraseña (mínimo 10 caracteres)"
+          minLength={10}
           required
         />
         <label className="flex items-start gap-2 text-sm text-stone-600">

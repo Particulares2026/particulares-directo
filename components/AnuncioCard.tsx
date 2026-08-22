@@ -11,8 +11,6 @@ import {
   CARACTERISTICAS,
   DURACIONES_ALQUILER,
   ESTADOS_INMUEBLE,
-  FOTOS_BUCKET,
-  extraerPathStorage,
 } from "@/lib/inmobiliaria";
 import { estaDestacado, precioDestacarTexto } from "@/lib/destacar";
 import {
@@ -120,13 +118,18 @@ export default function AnuncioCard({
   const eliminar = async () => {
     if (!confirm("¿Eliminar este anuncio? No se puede deshacer.")) return;
     setDeleting(true);
-    const { error } = await supabase.from("anuncios").delete().eq("id", anuncio.id);
-    if (!error && anuncio.fotos && anuncio.fotos.length > 0) {
-      const paths = anuncio.fotos.map(extraerPathStorage).filter((p): p is string => Boolean(p));
-      if (paths.length > 0) await supabase.storage.from(FOTOS_BUCKET).remove(paths);
-    }
+    const res = await fetch("/api/anuncios", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: anuncio.id }),
+    });
     setDeleting(false);
-    if (!error) router.refresh();
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      alert(data?.error || "No se pudo eliminar el anuncio.");
+      return;
+    }
+    router.refresh();
   };
 
   const actualizar = async () => {

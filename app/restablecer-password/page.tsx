@@ -45,15 +45,15 @@ export default function RestablecerPasswordPage() {
         <CampoPassword
           value={password}
           onChange={setPassword}
-          placeholder="Contraseña nueva (mínimo 6 caracteres)"
-          minLength={6}
+          placeholder="Contraseña nueva (mínimo 10 caracteres)"
+          minLength={10}
           required
         />
         <CampoPassword
           value={confirmar}
           onChange={setConfirmar}
           placeholder="Repite la contraseña"
-          minLength={6}
+          minLength={10}
           required
         />
         {error && <p className="text-sm text-red-600">{error}</p>}

@@ -296,3 +296,99 @@ create policy "El historial de precios es visible para todos"
 insert into storage.buckets (id, name, public)
   values ('backups', 'backups', false)
   on conflict (id) do nothing;
+
+-- Registro técnico para limitar las subidas de fotos desde el servidor.
+create table if not exists public.subidas_fotos (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists subidas_fotos_user_fecha_idx
+  on public.subidas_fotos (user_id, created_at);
+
+alter table public.subidas_fotos enable row level security;
+revoke all privileges on table public.subidas_fotos from anon, authenticated;
+
+-- Crear anuncios y gestionar archivos se hace exclusivamente desde el servidor.
+drop policy if exists "Los usuarios crean sus propios anuncios" on public.anuncios;
+revoke insert, update, delete on storage.objects from authenticated;
+
+-- Privilegios mínimos para las tablas manejadas desde el navegador.
+revoke all privileges on table public.alertas_busqueda from anon, authenticated;
+grant select, insert, delete on table public.alertas_busqueda to authenticated;
+
+revoke all privileges on table public.listas_favoritos from anon, authenticated;
+grant select, insert, delete on table public.listas_favoritos to authenticated;
+grant update (nombre) on table public.listas_favoritos to authenticated;
+
+revoke all privileges on table public.favoritos from anon, authenticated;
+grant select, insert, delete on table public.favoritos to authenticated;
+grant update (lista_id) on table public.favoritos to authenticated;
+
+revoke all privileges on table public.historial_precios from anon, authenticated;
+grant select on table public.historial_precios to anon, authenticated;
+
+revoke all privileges on table public.revelaciones_contacto from anon, authenticated;
+revoke all privileges on table public.envios_contacto from anon, authenticated;
+
+drop policy if exists "Los usuarios crean sus propias alertas" on public.alertas_busqueda;
+create policy "Los usuarios crean sus propias alertas"
+  on public.alertas_busqueda for insert
+  to authenticated
+  with check (
+    (select auth.uid()) = user_id
+    and lower(email) = lower(coalesce((select auth.jwt() ->> 'email'), ''))
+  );
+
+drop policy if exists "Los usuarios añaden solo sus propios favoritos" on public.favoritos;
+create policy "Los usuarios añaden solo sus propios favoritos"
+  on public.favoritos for insert
+  to authenticated
+  with check (
+    (select auth.uid()) = user_id
+    and (
+      lista_id is null
+      or exists (
+        select 1 from public.listas_favoritos lista
+        where lista.id = lista_id and lista.user_id = (select auth.uid())
+      )
+    )
+  );
+
+drop policy if exists "Los usuarios actualizan sus propios favoritos" on public.favoritos;
+create policy "Los usuarios actualizan sus propios favoritos"
+  on public.favoritos for update
+  to authenticated
+  using ((select auth.uid()) = user_id)
+  with check (
+    (select auth.uid()) = user_id
+    and (
+      lista_id is null
+      or exists (
+        select 1 from public.listas_favoritos lista
+        where lista.id = lista_id and lista.user_id = (select auth.uid())
+      )
+    )
+  );
+
+alter table public.anuncios
+  add constraint anuncios_sin_email_en_texto_publico
+  check (
+    (coalesce(titulo, '') || ' ' || coalesce(descripcion, '') || ' ' || coalesce(ubicacion, ''))
+    !~* '[a-z0-9._%+-]+@[a-z0-9.-]+[.][a-z]{2,}'
+  ) not valid;
+
+alter table public.anuncios
+  add constraint anuncios_sin_enlaces_en_texto_publico
+  check (
+    (coalesce(titulo, '') || ' ' || coalesce(descripcion, '') || ' ' || coalesce(ubicacion, ''))
+    !~* '(https?://|www[.])'
+  ) not valid;
+
+alter table public.anuncios
+  add constraint anuncios_sin_telefonos_en_texto_publico
+  check (
+    (coalesce(titulo, '') || ' ' || coalesce(descripcion, '') || ' ' || coalesce(ubicacion, ''))
+    !~ '(^|[^0-9])([+][0-9]{1,3}[ -]?)?([0-9][ ().-]?){8,15}([^0-9]|$)'
+  ) not valid;

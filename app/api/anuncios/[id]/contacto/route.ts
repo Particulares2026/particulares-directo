@@ -1,30 +1,54 @@
 import { NextResponse } from "next/server";
-import { createClient as createAdminSupabase } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 
-const LIMITE_REVELACIONES = 30;
+const LIMITE_REVELACIONES = 20;
+const LIMITE_POR_ANUNCIO = 10;
 const VENTANA_MS = 60 * 60 * 1000; // 1 hora
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function jsonPrivado(body: Record<string, unknown>, status = 200) {
+  return NextResponse.json(body, {
+    status,
+    headers: { "Cache-Control": "private, no-store, max-age=0" },
+  });
+}
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !serviceKey) {
-    return NextResponse.json({ error: "Faltan variables de entorno." }, { status: 503 });
+  if (!UUID.test(params.id)) {
+    return jsonPrivado({ error: "Anuncio no válido." }, 400);
   }
-  const admin = createAdminSupabase(url, serviceKey);
+
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return jsonPrivado({ error: "El servicio no está disponible." }, 503);
+  }
 
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "desconocida";
   const desde = new Date(Date.now() - VENTANA_MS).toISOString();
 
-  const { count } = await admin
-    .from("revelaciones_contacto")
-    .select("id", { count: "exact", head: true })
-    .eq("ip", ip)
-    .gte("created_at", desde);
+  const [total, mismoAnuncio] = await Promise.all([
+    admin
+      .from("revelaciones_contacto")
+      .select("id", { count: "exact", head: true })
+      .eq("ip", ip)
+      .gte("created_at", desde),
+    admin
+      .from("revelaciones_contacto")
+      .select("id", { count: "exact", head: true })
+      .eq("ip", ip)
+      .eq("anuncio_id", params.id)
+      .gte("created_at", desde),
+  ]);
 
-  if ((count || 0) >= LIMITE_REVELACIONES) {
-    return NextResponse.json(
+  if (total.error || mismoAnuncio.error) {
+    return jsonPrivado({ error: "No se pudo comprobar el límite de seguridad." }, 503);
+  }
+  if ((total.count || 0) >= LIMITE_REVELACIONES || (mismoAnuncio.count || 0) >= LIMITE_POR_ANUNCIO) {
+    return jsonPrivado(
       { error: "Demasiadas peticiones seguidas. Inténtalo de nuevo más tarde." },
-      { status: 429 }
+      429
     );
   }
 
@@ -36,12 +60,17 @@ export async function GET(request: Request, { params }: { params: { id: string }
     .single();
 
   if (!anuncio) {
-    return NextResponse.json({ error: "Anuncio no encontrado." }, { status: 404 });
+    return jsonPrivado({ error: "Anuncio no encontrado." }, 404);
   }
 
-  await admin.from("revelaciones_contacto").insert({ ip, anuncio_id: params.id });
+  const { error: errorRegistro } = await admin
+    .from("revelaciones_contacto")
+    .insert({ ip, anuncio_id: params.id });
+  if (errorRegistro) {
+    return jsonPrivado({ error: "No se pudo registrar la petición de forma segura." }, 503);
+  }
 
-  return NextResponse.json({
+  return jsonPrivado({
     telefono_contacto: anuncio.mostrar_telefono !== false ? anuncio.telefono_contacto : null,
     email_contacto: anuncio.mostrar_email ? anuncio.email_contacto : null,
   });

@@ -3,7 +3,6 @@
 import { useEffect, useState, type FormEvent, type ChangeEvent, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import { etiquetasTipo } from "@/lib/categorias";
 import {
   PROVINCIAS,
@@ -12,9 +11,7 @@ import {
   CARACTERISTICAS,
   DURACIONES_ALQUILER,
   ESTADOS_INMUEBLE,
-  FOTOS_BUCKET,
   MAX_FOTOS,
-  extraerPathStorage,
 } from "@/lib/inmobiliaria";
 import {
   SECTORES_TRABAJO,
@@ -91,7 +88,6 @@ export default function AnuncioForm({
   defaultEmail: string;
   anuncioExistente?: AnuncioExistente;
 }) {
-  const supabase = createClient();
   const router = useRouter();
   const esInmobiliaria = categoria === "inmobiliaria";
   const esTrabajo = categoria === "trabajo";
@@ -214,15 +210,15 @@ export default function AnuncioForm({
     try {
       for (const file of files) {
         const comprimido = await comprimirImagen(file);
-        const extension = (comprimido.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
-        const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
-        const { error: uploadError } = await supabase.storage.from(FOTOS_BUCKET).upload(path, comprimido);
-        if (uploadError) {
-          ultimoError = uploadError.message;
+        const formData = new FormData();
+        formData.append("foto", comprimido);
+        const res = await fetch("/api/anuncios/fotos", { method: "POST", body: formData });
+        const data = await res.json().catch(() => null);
+        if (!res.ok || !data?.url) {
+          ultimoError = data?.error || "No se pudo subir la foto.";
           continue;
         }
-        const { data } = supabase.storage.from(FOTOS_BUCKET).getPublicUrl(path);
-        nuevas.push(data.publicUrl);
+        nuevas.push(data.url);
       }
     } catch (err: any) {
       ultimoError = err?.message || "Error inesperado al subir la foto.";
@@ -235,8 +231,16 @@ export default function AnuncioForm({
 
   const eliminarFoto = async (url: string) => {
     setFotos((prev) => prev.filter((f) => f !== url));
-    const path = extraerPathStorage(url);
-    if (path) await supabase.storage.from(FOTOS_BUCKET).remove([path]);
+    const res = await fetch("/api/anuncios/fotos", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      setFotos((prev) => (prev.includes(url) ? prev : [...prev, url]));
+      setFotosError(data?.error || "No se pudo eliminar la foto.");
+    }
   };
 
   const submit = async (e: FormEvent) => {
