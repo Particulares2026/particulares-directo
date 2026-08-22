@@ -58,12 +58,14 @@ export function contieneContactoPublico(
   if (PATRON_EMAIL.test(contenido)) return { encontrado: true, tipo: "email" };
   if (PATRON_ENLACE.test(contenido)) return { encontrado: true, tipo: "enlace" };
 
-  for (const coincidencia of contenido.matchAll(PATRON_POSIBLE_TELEFONO)) {
-    const digitos = coincidencia[0].replace(/\D/g, "");
-    if (digitos.length >= 8 && digitos.length <= 15) {
-      return { encontrado: true, tipo: "telefono" };
-    }
+  const posiblesTelefonos = contenido.match(PATRON_POSIBLE_TELEFONO) || [];
+  if (posiblesTelefonos.some((coincidencia) => {
+    const digitos = coincidencia.replace(/\D/g, "");
+    return digitos.length >= 8 && digitos.length <= 15;
+  })) {
+    return { encontrado: true, tipo: "telefono" };
   }
 
   return { encontrado: false };
 }
+
