@@ -77,6 +77,7 @@ export default function FiltrosInmobiliaria({
   const [caracteristicas, setCaracteristicas] = useState<string[]>([]);
   const [caracteristicasAbierto, setCaracteristicasAbierto] = useState(false);
   const [favoritos, setFavoritos] = useState<Set<string>>(new Set(favoritosIniciales));
+  const [favoritosError, setFavoritosError] = useState<string | null>(null);
   const [visibles, setVisibles] = useState(POR_PAGINA);
   const [vista, setVista] = useState<"lista" | "mapa">("lista");
   const [masFiltrosAbierto, setMasFiltrosAbierto] = useState(false);
@@ -112,20 +113,25 @@ export default function FiltrosInmobiliaria({
   const toggleFavorito = async (anuncioId: string) => {
     if (!currentUserId) return;
     const esFavorito = favoritos.has(anuncioId);
-    const next = new Set(favoritos);
-    if (esFavorito) next.delete(anuncioId);
-    else next.add(anuncioId);
-    setFavoritos(next);
-
-    if (esFavorito) {
-      await supabase
+    setFavoritosError(null);
+    const { error } = esFavorito
+      ? await supabase
         .from("favoritos")
         .delete()
         .eq("user_id", currentUserId)
-        .eq("anuncio_id", anuncioId);
-    } else {
-      await supabase.from("favoritos").insert({ user_id: currentUserId, anuncio_id: anuncioId });
+        .eq("anuncio_id", anuncioId)
+      : await supabase.from("favoritos").insert({ user_id: currentUserId, anuncio_id: anuncioId });
+    if (error) {
+      console.error(error);
+      setFavoritosError("No se pudo actualizar favoritos. Inténtalo de nuevo.");
+      return;
     }
+    setFavoritos((prev) => {
+      const next = new Set(prev);
+      if (esFavorito) next.delete(anuncioId);
+      else next.add(anuncioId);
+      return next;
+    });
   };
 
   const filtrados = useMemo(() => {
@@ -435,6 +441,8 @@ export default function FiltrosInmobiliaria({
         }}
       />
 
+      {favoritosError && <p role="alert" className="text-sm text-red-600 mb-3">{favoritosError}</p>}
+
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
         <p className="text-sm text-stone-500">
           {filtrados.length} {filtrados.length === 1 ? "inmueble encontrado" : "inmuebles encontrados"}
@@ -513,3 +521,4 @@ export default function FiltrosInmobiliaria({
     </div>
   );
 }
+

@@ -59,6 +59,7 @@ export default function FiltrosTrabajo({
   const [caracteristicas, setCaracteristicas] = useState<string[]>([]);
   const [caracteristicasAbierto, setCaracteristicasAbierto] = useState(false);
   const [favoritos, setFavoritos] = useState<Set<string>>(new Set(favoritosIniciales));
+  const [favoritosError, setFavoritosError] = useState<string | null>(null);
   const [visibles, setVisibles] = useState(POR_PAGINA);
   const [masFiltrosAbierto, setMasFiltrosAbierto] = useState(false);
   const [orden, setOrden] = useState("relevancia");
@@ -96,16 +97,21 @@ export default function FiltrosTrabajo({
   const toggleFavorito = async (anuncioId: string) => {
     if (!currentUserId) return;
     const esFavorito = favoritos.has(anuncioId);
-    const next = new Set(favoritos);
-    if (esFavorito) next.delete(anuncioId);
-    else next.add(anuncioId);
-    setFavoritos(next);
-
-    if (esFavorito) {
-      await supabase.from("favoritos").delete().eq("user_id", currentUserId).eq("anuncio_id", anuncioId);
-    } else {
-      await supabase.from("favoritos").insert({ user_id: currentUserId, anuncio_id: anuncioId });
+    setFavoritosError(null);
+    const { error } = esFavorito
+      ? await supabase.from("favoritos").delete().eq("user_id", currentUserId).eq("anuncio_id", anuncioId)
+      : await supabase.from("favoritos").insert({ user_id: currentUserId, anuncio_id: anuncioId });
+    if (error) {
+      console.error(error);
+      setFavoritosError("No se pudo actualizar favoritos. Inténtalo de nuevo.");
+      return;
     }
+    setFavoritos((prev) => {
+      const next = new Set(prev);
+      if (esFavorito) next.delete(anuncioId);
+      else next.add(anuncioId);
+      return next;
+    });
   };
 
   const filtrados = useMemo(() => {
@@ -360,6 +366,8 @@ export default function FiltrosTrabajo({
         </select>
       </div>
 
+      {favoritosError && <p role="alert" className="text-sm text-red-600 mb-3">{favoritosError}</p>}
+
       {anuncios.length === 0 && (
         <p className="text-sm text-stone-400 text-center py-10">
           Todavía no hay anuncios publicados. Sé la primera persona en publicar uno.
@@ -396,3 +404,4 @@ export default function FiltrosTrabajo({
     </div>
   );
 }
+

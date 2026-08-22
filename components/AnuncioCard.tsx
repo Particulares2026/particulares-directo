@@ -22,6 +22,10 @@ import {
 } from "@/lib/trabajo";
 import GraficoPrecios from "./GraficoPrecios";
 
+const ETIQUETAS_CARACTERISTICAS_LEGACY: Record<string, string> = {
+  incorporacion_inmediata: "Incorporación inmediata",
+};
+
 type Anuncio = {
   id: string;
   categoria: string;
@@ -77,6 +81,7 @@ export default function AnuncioCard({
   const supabase = createClient();
   const [deleting, setDeleting] = useState(false);
   const [gestionando, setGestionando] = useState(false);
+  const [gestionError, setGestionError] = useState<string | null>(null);
   const [destacando, setDestacando] = useState(false);
   const [fotoAmpliada, setFotoAmpliada] = useState<string | null>(null);
   const [contactoRevelado, setContactoRevelado] = useState<{ telefono: string | null; email: string | null } | null>(null);
@@ -134,7 +139,8 @@ export default function AnuncioCard({
 
   const actualizar = async () => {
     setGestionando(true);
-    await supabase
+    setGestionError(null);
+    const { error } = await supabase
       .from("anuncios")
       .update({
         activo: true,
@@ -144,6 +150,11 @@ export default function AnuncioCard({
       })
       .eq("id", anuncio.id);
     setGestionando(false);
+    if (error) {
+      console.error(error);
+      setGestionError("No se pudo actualizar el anuncio. Inténtalo de nuevo.");
+      return;
+    }
     router.refresh();
   };
 
@@ -151,8 +162,14 @@ export default function AnuncioCard({
 
   const desactivar = async () => {
     setGestionando(true);
-    await supabase.from("anuncios").update({ activo: false }).eq("id", anuncio.id);
+    setGestionError(null);
+    const { error } = await supabase.from("anuncios").update({ activo: false }).eq("id", anuncio.id);
     setGestionando(false);
+    if (error) {
+      console.error(error);
+      setGestionError("No se pudo desactivar el anuncio. Inténtalo de nuevo.");
+      return;
+    }
     router.refresh();
   };
 
@@ -454,6 +471,7 @@ export default function AnuncioCard({
             >
               {CARACTERISTICAS.find((x) => x.valor === c)?.label ??
                 CARACTERISTICAS_TRABAJO.find((x) => x.valor === c)?.label ??
+                ETIQUETAS_CARACTERISTICAS_LEGACY[c] ??
                 c}
             </span>
           ))}
@@ -565,8 +583,14 @@ export default function AnuncioCard({
               {destacando ? "Redirigiendo…" : `★ Destacar anuncio (${precioDestacarTexto(anuncio.categoria)})`}
             </button>
           )}
+          {gestionError && (
+            <p role="alert" className="basis-full text-xs text-red-600">
+              {gestionError}
+            </p>
+          )}
         </div>
       )}
     </div>
   );
 }
+

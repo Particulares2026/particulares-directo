@@ -905,6 +905,7 @@ export default function AnuncioForm({
           <button
             type="button"
             onClick={() => setMostrarTelefono((v) => !v)}
+            aria-pressed={mostrarTelefono}
             className={
               "flex-1 text-sm py-2 rounded-lg border " +
               (mostrarTelefono
@@ -917,6 +918,7 @@ export default function AnuncioForm({
           <button
             type="button"
             onClick={() => setMostrarEmail((v) => !v)}
+            aria-pressed={mostrarEmail}
             className={
               "flex-1 text-sm py-2 rounded-lg border " +
               (mostrarEmail
@@ -983,3 +985,4 @@ export default function AnuncioForm({
     </div>
   );
 }
+

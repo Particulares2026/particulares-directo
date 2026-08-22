@@ -113,8 +113,14 @@ export default function AlertasBusqueda({
   };
 
   const eliminarAlerta = async (id: string) => {
+    setMensaje(null);
+    const { error } = await supabase.from("alertas_busqueda").delete().eq("id", id);
+    if (error) {
+      console.error(error);
+      setMensaje("No se pudo eliminar la alerta. Inténtalo de nuevo.");
+      return;
+    }
     setAlertas((prev) => (prev ? prev.filter((a) => a.id !== id) : prev));
-    await supabase.from("alertas_busqueda").delete().eq("id", id);
   };
 
   return (
@@ -168,3 +174,4 @@ export default function AlertasBusqueda({
     </div>
   );
 }
+

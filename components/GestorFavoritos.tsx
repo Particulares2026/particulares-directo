@@ -27,6 +27,7 @@ export default function GestorFavoritos({
   const [pestana, setPestana] = useState<string>(TODOS);
   const [nuevaLista, setNuevaLista] = useState("");
   const [creando, setCreando] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const visibles = useMemo(() => {
     if (pestana === TODOS) return favoritos;
@@ -38,41 +39,67 @@ export default function GestorFavoritos({
     const nombre = nuevaLista.trim();
     if (!nombre) return;
     setCreando(true);
-    const { data, error } = await supabase
+    setError(null);
+    const { data, error: crearError } = await supabase
       .from("listas_favoritos")
       .insert({ user_id: currentUserId, nombre })
       .select("id, nombre")
       .single();
     setCreando(false);
-    if (!error && data) {
-      setListas((prev) => [...prev, data]);
-      setNuevaLista("");
-      setPestana(data.id);
+    if (crearError || !data) {
+      console.error(crearError);
+      setError("No se pudo crear la lista. Inténtalo de nuevo.");
+      return;
     }
+    setListas((prev) => [...prev, data]);
+    setNuevaLista("");
+    setPestana(data.id);
   };
 
   const eliminarLista = async (id: string) => {
     if (!confirm("¿Eliminar esta lista? Los favoritos que contiene no se borran, quedarán sin clasificar.")) return;
+    setError(null);
+    const { error: eliminarError } = await supabase.from("listas_favoritos").delete().eq("id", id);
+    if (eliminarError) {
+      console.error(eliminarError);
+      setError("No se pudo eliminar la lista. Inténtalo de nuevo.");
+      return;
+    }
     setListas((prev) => prev.filter((l) => l.id !== id));
     setFavoritos((prev) => prev.map((f) => (f.lista_id === id ? { ...f, lista_id: null } : f)));
     if (pestana === id) setPestana(TODOS);
-    await supabase.from("listas_favoritos").delete().eq("id", id);
   };
 
   const moverAFavorito = async (anuncioId: string, listaId: string | null) => {
-    setFavoritos((prev) =>
-      prev.map((f) => (f.anuncio_id === anuncioId ? { ...f, lista_id: listaId } : f))
-    );
-    await supabase
+    setError(null);
+    const { error: moverError } = await supabase
       .from("favoritos")
       .update({ lista_id: listaId })
       .eq("user_id", currentUserId)
       .eq("anuncio_id", anuncioId);
+    if (moverError) {
+      console.error(moverError);
+      setError("No se pudo cambiar el favorito de lista. Inténtalo de nuevo.");
+      return;
+    }
+    setFavoritos((prev) =>
+      prev.map((f) => (f.anuncio_id === anuncioId ? { ...f, lista_id: listaId } : f))
+    );
   };
 
   const quitarFavorito = async (anuncioId: string) => {
+    setError(null);
+    const { error: quitarError } = await supabase
+      .from("favoritos")
+      .delete()
+      .eq("user_id", currentUserId)
+      .eq("anuncio_id", anuncioId);
+    if (quitarError) {
+      console.error(quitarError);
+      setError("No se pudo quitar el anuncio de favoritos. Inténtalo de nuevo.");
+      return;
+    }
     setFavoritos((prev) => prev.filter((f) => f.anuncio_id !== anuncioId));
-    await supabase.from("favoritos").delete().eq("user_id", currentUserId).eq("anuncio_id", anuncioId);
   };
 
   return (
@@ -125,27 +152,30 @@ export default function GestorFavoritos({
         ))}
       </div>
 
-      <div className="flex gap-2 mb-6">
-        <input
-          className="border border-stone-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
-          placeholder="Nombre de una lista nueva (ej. Para visitar)"
-          value={nuevaLista}
-          onChange={(e) => setNuevaLista(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              crearLista();
-            }
-          }}
-        />
-        <button
-          type="button"
-          onClick={crearLista}
-          disabled={creando || !nuevaLista.trim()}
-          className="shrink-0 text-sm border border-stone-300 text-stone-600 px-3 py-1.5 rounded-lg hover:bg-stone-50 disabled:opacity-40"
-        >
-          + Nueva lista
-        </button>
+      <div className="mb-6">
+        <div className="flex gap-2">
+          <input
+            className="border border-stone-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+            placeholder="Nombre de una lista nueva (ej. Para visitar)"
+            value={nuevaLista}
+            onChange={(e) => setNuevaLista(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                crearLista();
+              }
+            }}
+          />
+          <button
+            type="button"
+            onClick={crearLista}
+            disabled={creando || !nuevaLista.trim()}
+            className="shrink-0 text-sm border border-stone-300 text-stone-600 px-3 py-1.5 rounded-lg hover:bg-stone-50 disabled:opacity-40"
+          >
+            + Nueva lista
+          </button>
+        </div>
+        {error && <p role="alert" className="text-sm text-red-600 mt-2">{error}</p>}
       </div>
 
       {favoritos.length === 0 && (
@@ -190,3 +220,4 @@ export default function GestorFavoritos({
     </div>
   );
 }
+
