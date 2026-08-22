@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import GestorFavoritos from "@/components/GestorFavoritos";
+import { CAMPOS_PUBLICOS_ANUNCIO } from "@/lib/anuncios";
 
 export default async function FavoritosPage() {
   const supabase = createClient();
@@ -18,7 +19,7 @@ export default async function FavoritosPage() {
       .order("created_at", { ascending: true }),
     supabase
       .from("favoritos")
-      .select("anuncio_id, lista_id, anuncios(*)")
+      .select(`anuncio_id, lista_id, anuncios(${CAMPOS_PUBLICOS_ANUNCIO})`)
       .eq("user_id", user.id),
   ]);
 

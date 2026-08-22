@@ -34,7 +34,7 @@ type Anuncio = {
   palabras_clave: string[];
   nombre_contacto: string;
   telefono_contacto: string | null;
-  email_contacto: string;
+  email_contacto: string | null;
   mostrar_telefono?: boolean;
   mostrar_email?: boolean;
   user_id: string;

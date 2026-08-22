@@ -6,6 +6,7 @@ import FiltrosInmobiliaria from "@/components/FiltrosInmobiliaria";
 import FiltrosTrabajo from "@/components/FiltrosTrabajo";
 import { esCategoriaValida, nombreCategoria } from "@/lib/categorias";
 import { estaDestacado } from "@/lib/destacar";
+import { CAMPOS_PUBLICOS_ANUNCIO } from "@/lib/anuncios";
 
 export default async function CategoriaPage({
   params,
@@ -22,7 +23,7 @@ export default async function CategoriaPage({
 
   const { data: anuncios } = await supabase
     .from("anuncios")
-    .select("*")
+    .select(CAMPOS_PUBLICOS_ANUNCIO)
     .eq("categoria", params.slug)
     .eq("activo", true)
     .order("created_at", { ascending: false })
@@ -35,11 +36,7 @@ export default async function CategoriaPage({
       if (destacadoA !== destacadoB) return destacadoA ? -1 : 1;
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     })
-    .map((a) =>
-      a.user_id === user?.id
-        ? a
-        : { ...a, telefono_contacto: null, email_contacto: null }
-    );
+    .map((a) => ({ ...a, telefono_contacto: null, email_contacto: null }));
 
   let favoritosIniciales: string[] = [];
   if (user) {

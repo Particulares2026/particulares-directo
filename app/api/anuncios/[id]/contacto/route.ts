@@ -32,6 +32,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
     .from("anuncios")
     .select("telefono_contacto, email_contacto, mostrar_telefono, mostrar_email")
     .eq("id", params.id)
+    .eq("activo", true)
     .single();
 
   if (!anuncio) {

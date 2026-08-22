@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AnuncioForm from "@/components/AnuncioForm";
 import { nombreCategoria } from "@/lib/categorias";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export default async function EditarPage({
   params,
@@ -15,14 +16,15 @@ export default async function EditarPage({
 
   if (!user) redirect("/login");
 
-  const { data: anuncio } = await supabase
+  const admin = createAdminClient();
+  const { data: anuncio } = await admin
     .from("anuncios")
     .select("*")
     .eq("id", params.id)
+    .eq("user_id", user.id)
     .single();
 
   if (!anuncio) notFound();
-  if (anuncio.user_id !== user.id) redirect("/mis-anuncios");
 
   return (
     <main className="max-w-6xl mx-auto px-4 md:px-8 py-10">

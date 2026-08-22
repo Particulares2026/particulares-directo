@@ -73,10 +73,11 @@ create index if not exists anuncios_sector_trabajo_idx on public.anuncios (secto
 -- podría leer o modificar toda la tabla directamente.
 alter table public.anuncios enable row level security;
 
--- Los anuncios son públicos: cualquier visitante (con o sin cuenta) puede verlos.
-create policy "Los anuncios son visibles para todos"
+-- Solo los anuncios activos son públicos; el propietario también puede leer los suyos
+-- cuando están inactivos para gestionarlos y reactivarlos.
+create policy "Los anuncios activos son visibles y cada usuario ve los suyos"
   on public.anuncios for select
-  using (true);
+  using (activo = true or auth.uid() = user_id);
 
 -- Solo un usuario autenticado puede crear anuncios, y únicamente a su propio nombre.
 create policy "Los usuarios crean sus propios anuncios"
@@ -105,6 +106,19 @@ revoke insert on public.anuncios from authenticated;
 revoke update on public.anuncios from authenticated;
 grant update (activo, fecha_activacion, aviso_5_enviado, aviso_3_enviado)
   on public.anuncios to authenticated;
+
+-- Teléfono y email nunca se leen con la clave pública. El servidor los entrega solo
+-- al propietario o a través del endpoint limitado de "Mostrar contacto".
+revoke select on public.anuncios from anon, authenticated;
+grant select (
+  id, user_id, categoria, tipo, titulo, descripcion, ubicacion, palabras_clave,
+  nombre_contacto, mostrar_telefono, mostrar_email, created_at, operacion,
+  provincia, municipio, tipo_inmueble, precio, precio_anterior, habitaciones,
+  banos, amueblado, tamano, caracteristicas, duracion_alquiler, fotos, estado,
+  lat, lng, sector_trabajo, modalidad_trabajo, salario_min, salario_max,
+  salario_periodo, experiencia_trabajo, idiomas_trabajo, incorporacion, activo,
+  fecha_activacion, destacado_hasta
+) on public.anuncios to anon, authenticated;
 
 -- Listas propias para agrupar favoritos (ej. "Para visitar", "Zona norte"...).
 create table if not exists public.listas_favoritos (

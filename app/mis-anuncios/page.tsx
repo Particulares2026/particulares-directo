@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AnuncioCard from "@/components/AnuncioCard";
 import EliminarCuentaButton from "@/components/EliminarCuentaButton";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export default async function MisAnunciosPage({
   searchParams,
@@ -16,7 +17,8 @@ export default async function MisAnunciosPage({
 
   if (!user) redirect("/login");
 
-  const { data: anuncios } = await supabase
+  const admin = createAdminClient();
+  const { data: anuncios } = await admin
     .from("anuncios")
     .select("*")
     .eq("user_id", user.id)

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { esAdmin } from "@/lib/admin";
 import PanelModeracion from "@/components/PanelModeracion";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export default async function ModeracionPage() {
   const supabase = createClient();
@@ -11,7 +12,8 @@ export default async function ModeracionPage() {
 
   if (!user || !esAdmin(user.email)) redirect("/");
 
-  const { data: anuncios } = await supabase
+  const admin = createAdminClient();
+  const { data: anuncios } = await admin
     .from("anuncios")
     .select("id, titulo, descripcion, categoria, tipo, nombre_contacto, telefono_contacto, email_contacto, activo, created_at")
     .order("created_at", { ascending: false })
