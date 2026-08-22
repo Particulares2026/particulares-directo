@@ -1,6 +1,7 @@
 const TAMANO_MAXIMO = 1600;
 const CALIDAD_JPEG = 0.8;
 const TIEMPO_MAXIMO_COMPRESION = 15_000;
+const TIEMPO_MAXIMO_CONVERSION_HEIC = 45_000;
 
 function extensionArchivo(nombre: string) {
   return nombre.split(".").pop()?.toLowerCase() ?? "";
@@ -8,18 +9,101 @@ function extensionArchivo(nombre: string) {
 
 function mensajeFormatoNoCompatible(file: File) {
   const extension = extensionArchivo(file.name);
-  if (file.type === "image/heic" || file.type === "image/heif" || extension === "heic" || extension === "heif") {
-    return "La foto está en formato HEIC/HEIF y este navegador no puede convertirla. Guárdala o compártela como JPG e inténtalo de nuevo.";
+  if (file.type.includes("heic") || file.type.includes("heif") || extension === "heic" || extension === "heif") {
+    return "No se pudo convertir esta foto HEIC/HEIF. Prueba a guardarla como JPG e inténtalo de nuevo.";
   }
   return "El navegador no puede leer esta imagen. Utiliza una foto JPG, PNG, WEBP o GIF.";
 }
 
-export function comprimirImagen(file: File, signal?: AbortSignal): Promise<File> {
+function nombreComoJpeg(nombre: string) {
+  const base = nombre.replace(/\.[^.]+$/, "").trim();
+  return `${base || "foto"}.jpg`;
+}
+
+function conCancelacionYLimite<T>(
+  promesa: Promise<T>,
+  signal: AbortSignal | undefined,
+  milisegundos: number,
+  mensajeLimite: string
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    let finalizado = false;
+
+    const limpiar = () => {
+      window.clearTimeout(temporizador);
+      signal?.removeEventListener("abort", cancelar);
+    };
+    const terminar = (valor: T) => {
+      if (finalizado) return;
+      finalizado = true;
+      limpiar();
+      resolve(valor);
+    };
+    const fallar = (error: unknown) => {
+      if (finalizado) return;
+      finalizado = true;
+      limpiar();
+      reject(error);
+    };
+    const cancelar = () => fallar(new DOMException("La preparación de la foto se canceló.", "AbortError"));
+    const temporizador = window.setTimeout(() => fallar(new Error(mensajeLimite)), milisegundos);
+
+    signal?.addEventListener("abort", cancelar, { once: true });
+    if (signal?.aborted) {
+      cancelar();
+      return;
+    }
+
+    promesa.then(terminar, fallar);
+  });
+}
+
+async function cabeceraPareceHeic(file: File) {
   const extension = extensionArchivo(file.name);
-  const pareceImagen = file.type.startsWith("image/") || ["jpg", "jpeg", "png", "webp", "gif", "heic", "heif"].includes(extension);
-  if (!pareceImagen || file.type === "image/svg+xml" || extension === "svg") {
-    return Promise.reject(new Error("El archivo no es una imagen JPG, PNG, WEBP o GIF válida."));
+  if (file.type.includes("heic") || file.type.includes("heif") || extension === "heic" || extension === "heif") {
+    return true;
   }
+
+  try {
+    const bytes = new Uint8Array(await file.slice(0, 64).arrayBuffer());
+    const texto = Array.from(bytes, (byte) => String.fromCharCode(byte)).join("");
+    return texto.slice(4, 8) === "ftyp" && /(heic|heix|hevc|hevx|heim|heis|mif1|msf1)/.test(texto.slice(8));
+  } catch {
+    return false;
+  }
+}
+
+async function convertirHeic(file: File, signal?: AbortSignal): Promise<File | null> {
+  const convertir = async () => {
+    const { heicTo, isHeic } = await import("heic-to/csp");
+    if (!(await isHeic(file))) return null;
+
+    const blob = await heicTo({
+      blob: file,
+      type: "image/jpeg",
+      quality: 0.9,
+    });
+    return new File([blob], nombreComoJpeg(file.name), {
+      type: "image/jpeg",
+      lastModified: file.lastModified,
+    });
+  };
+
+  try {
+    return await conCancelacionYLimite(
+      convertir(),
+      signal,
+      TIEMPO_MAXIMO_CONVERSION_HEIC,
+      "La conversión de la foto HEIC tardó demasiado. Prueba con una versión JPG de menor tamaño."
+    );
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") throw error;
+    if (error instanceof Error && error.message.startsWith("La conversión de la foto HEIC")) throw error;
+    throw new Error("No se pudo convertir esta foto HEIC/HEIF. Prueba a guardarla como JPG e inténtalo de nuevo.");
+  }
+}
+
+function comprimirConCanvas(file: File, signal?: AbortSignal): Promise<File> {
 
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
@@ -92,7 +176,7 @@ export function comprimirImagen(file: File, signal?: AbortSignal): Promise<File>
             fallar("No se pudo convertir la foto a un formato compatible.");
             return;
           }
-          const nombre = file.name.replace(/\.\w+$/, "") + ".jpg";
+          const nombre = nombreComoJpeg(file.name);
           terminar(new File([blob], nombre, { type: "image/jpeg" }));
         },
         "image/jpeg",
@@ -106,5 +190,33 @@ export function comprimirImagen(file: File, signal?: AbortSignal): Promise<File>
 
     img.src = url;
   });
+}
+
+export async function comprimirImagen(file: File, signal?: AbortSignal): Promise<File> {
+  const extension = extensionArchivo(file.name);
+  const pareceImagen = file.type.startsWith("image/") || ["jpg", "jpeg", "png", "webp", "gif", "heic", "heif"].includes(extension);
+  if (!pareceImagen || file.type === "image/svg+xml" || extension === "svg") {
+    throw new Error("El archivo no es una imagen JPG, PNG, WEBP, GIF, HEIC o HEIF válida.");
+  }
+
+  const posibleHeic = await cabeceraPareceHeic(file);
+  if (posibleHeic) {
+    const convertido = await convertirHeic(file, signal);
+    if (convertido) return comprimirConCanvas(convertido, signal);
+  }
+
+  try {
+    return await comprimirConCanvas(file, signal);
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") throw error;
+
+    // Algunos iPhone entregan archivos HEIC sin extensión ni MIME correctos.
+    // Si el navegador no los entiende, comprobamos el contenido antes de descartarlos.
+    if (!posibleHeic) {
+      const convertido = await convertirHeic(file, signal);
+      if (convertido) return comprimirConCanvas(convertido, signal);
+    }
+    throw error;
+  }
 }
 
