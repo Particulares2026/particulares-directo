@@ -313,6 +313,8 @@ revoke all privileges on table public.subidas_fotos from anon, authenticated;
 -- Crear anuncios y gestionar archivos se hace exclusivamente desde el servidor.
 drop policy if exists "Los usuarios crean sus propios anuncios" on public.anuncios;
 revoke insert, update, delete on storage.objects from authenticated;
+drop policy if exists "Los usuarios suben fotos a su propia carpeta" on storage.objects;
+drop policy if exists "Los usuarios eliminan solo sus propias fotos" on storage.objects;
 
 -- Privilegios mínimos para las tablas manejadas desde el navegador.
 revoke all privileges on table public.alertas_busqueda from anon, authenticated;
