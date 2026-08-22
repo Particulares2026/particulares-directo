@@ -1,4 +1,9 @@
-export const DIAS_DESTACADO = 7;
+// Durante el lanzamiento, el destacado gratuito debe rotar con rapidez para que
+// no termine ocupando todo el listado. La futura modalidad de pago conserva una
+// duración independiente.
+export const HORAS_DESTACADO_GRATIS = 24;
+export const DIAS_ESPERA_DESTACADO_GRATIS = 7;
+export const DIAS_DESTACADO_PAGO = 7;
 
 // A cero mientras la web está creciendo y aún no tiene tráfico suficiente.
 // Para volver a cobrar, pon aquí el precio en céntimos de cada categoría.
@@ -12,7 +17,9 @@ export function precioDestacarCentimos(categoria: string): number {
 
 export function precioDestacarTexto(categoria: string): string {
   const centimos = precioDestacarCentimos(categoria);
-  if (centimos === 0) return "gratis por tiempo limitado";
+  if (centimos === 0) {
+    return `gratis ${HORAS_DESTACADO_GRATIS} h · una vez cada ${DIAS_ESPERA_DESTACADO_GRATIS} días`;
+  }
   const euros = centimos / 100;
   return euros.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
 }
