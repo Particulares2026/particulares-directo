@@ -205,16 +205,14 @@ export default function AnuncioForm({
   const subirFotos = async (files: File[]) => {
     if (files.length === 0) return;
 
-    if (fotos.length + files.length > MAX_FOTOS) {
-      setFotosError(`Puedes subir un máximo de ${MAX_FOTOS} fotos.`);
+    const huecosDisponibles = MAX_FOTOS - fotos.length;
+    if (huecosDisponibles <= 0) {
+      setFotosError(`Ya has alcanzado el máximo de ${MAX_FOTOS} fotos.`);
       return;
     }
 
-    const TIPOS_PERMITIDOS = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-    if (files.some((f) => !TIPOS_PERMITIDOS.includes(f.type))) {
-      setFotosError("Solo se admiten imágenes JPG, PNG, WEBP o GIF.");
-      return;
-    }
+    const archivosAProcesar = files.slice(0, huecosDisponibles);
+    const omitidasPorLimite = files.length - archivosAProcesar.length;
 
     setFotosError(null);
     setFotosPendientes([]);
@@ -222,61 +220,67 @@ export default function AnuncioForm({
     cancelarFotosRef.current = false;
     const nuevas: string[] = [];
     const fallidas: File[] = [];
-    let ultimoError: string | null = null;
+    const errores: string[] = [];
+    if (omitidasPorLimite > 0) {
+      errores.push(
+        `${omitidasPorLimite} ${omitidasPorLimite === 1 ? "foto no se añadió" : "fotos no se añadieron"} porque el máximo es ${MAX_FOTOS}.`
+      );
+    }
 
     try {
-      for (let i = 0; i < files.length; i += 1) {
-        const file = files[i];
+      for (let i = 0; i < archivosAProcesar.length; i += 1) {
+        const file = archivosAProcesar[i];
         if (cancelarFotosRef.current) {
-          fallidas.push(...files.slice(i));
-          ultimoError = "Subida detenida. Puedes reintentar las fotos pendientes.";
+          fallidas.push(...archivosAProcesar.slice(i));
+          errores.push("Subida detenida. Puedes reintentar las fotos pendientes.");
           break;
         }
 
         const controller = new AbortController();
         compresionFotosRef.current = controller;
-        setProgresoFotos({ actual: i + 1, total: files.length, nombre: file.name, fase: "preparando" });
+        setProgresoFotos({ actual: i + 1, total: archivosAProcesar.length, nombre: file.name, fase: "preparando" });
+        let fotoPreparada = false;
 
         try {
           const comprimido = await comprimirImagen(file, controller.signal);
+          fotoPreparada = true;
           compresionFotosRef.current = null;
 
           if (cancelarFotosRef.current) {
-            fallidas.push(...files.slice(i));
-            ultimoError = "Subida detenida. Puedes reintentar las fotos pendientes.";
+            fallidas.push(...archivosAProcesar.slice(i));
+            errores.push("Subida detenida. Puedes reintentar las fotos pendientes.");
             break;
           }
 
-          setProgresoFotos({ actual: i + 1, total: files.length, nombre: file.name, fase: "subiendo" });
+          setProgresoFotos({ actual: i + 1, total: archivosAProcesar.length, nombre: file.name, fase: "subiendo" });
           const formData = new FormData();
           formData.append("foto", comprimido);
           const res = await fetch("/api/anuncios/fotos", { method: "POST", body: formData });
           const data = await res.json().catch(() => null);
           if (!res.ok || !data?.url) {
-            fallidas.push(file);
-            ultimoError = data?.error || `No se pudo subir ${file.name}.`;
+            if (res.status === 429 || res.status >= 500) fallidas.push(file);
+            errores.push(`${file.name}: ${data?.error || "no se pudo subir."}`);
             continue;
           }
           nuevas.push(data.url);
         } catch (err: any) {
           compresionFotosRef.current = null;
           if (err?.name === "AbortError") {
-            fallidas.push(...files.slice(i));
-            ultimoError = "Subida detenida. Puedes reintentar las fotos pendientes.";
+            fallidas.push(...archivosAProcesar.slice(i));
+            errores.push("Subida detenida. Puedes reintentar las fotos pendientes.");
             break;
           }
-          fallidas.push(file);
-          ultimoError = err?.message || `No se pudo subir ${file.name}.`;
+          if (fotoPreparada) fallidas.push(file);
+          errores.push(`${file.name}: ${err?.message || "no se pudo subir."}`);
         }
       }
     } catch (err: any) {
-      ultimoError = err?.message || "Error inesperado al subir la foto.";
-      fallidas.push(...files.filter((file) => !fallidas.includes(file)));
+      errores.push(err?.message || "Error inesperado al subir las fotos.");
     } finally {
       compresionFotosRef.current = null;
       setFotos((prev) => [...prev, ...nuevas]);
       setFotosPendientes(fallidas);
-      if (ultimoError) setFotosError(ultimoError);
+      if (errores.length > 0) setFotosError(errores.join(" "));
       setProgresoFotos(null);
       setSubiendoFotos(false);
     }
@@ -425,6 +429,9 @@ export default function AnuncioForm({
   return (
     <div className="lg:grid lg:grid-cols-[1fr_360px] lg:gap-6 lg:items-start">
     <form onSubmit={submit} className="space-y-3">
+      <p className="text-xs text-stone-500">
+        <span className="font-semibold text-red-600" aria-hidden="true">*</span> Campos obligatorios
+      </p>
       <div className="flex gap-2">
         <button
           type="button"
@@ -474,7 +481,7 @@ export default function AnuncioForm({
 
       <input
         className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
-        placeholder="Título del anuncio"
+        placeholder="Título del anuncio *"
         value={titulo}
         onChange={(e) => setTitulo(e.target.value)}
         required
@@ -489,11 +496,12 @@ export default function AnuncioForm({
               className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
               value={tipoInmueble}
               onChange={(e) => setTipoInmueble(e.target.value)}
+              aria-label="Tipo de inmueble (obligatorio)"
               required
             >
               {TIPOS_INMUEBLE.map((t) => (
                 <option key={t.valor} value={t.valor}>
-                  {t.label}
+                  {t.label} *
                 </option>
               ))}
             </select>
@@ -506,7 +514,7 @@ export default function AnuncioForm({
               }}
               required
             >
-              <option value="">Provincia</option>
+              <option value="">Provincia *</option>
               {PROVINCIAS.map((p) => (
                 <option key={p} value={p}>
                   {p}
@@ -534,7 +542,7 @@ export default function AnuncioForm({
           <div className="grid grid-cols-3 gap-2">
             <input
               className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
-              placeholder="Precio (€)"
+              placeholder="Precio (€) *"
               type="number"
               min="0"
               value={precio}
@@ -583,7 +591,7 @@ export default function AnuncioForm({
               onChange={(e) => setDuracionAlquiler(e.target.value)}
               required
             >
-              <option value="" disabled>Temporada o larga estancia</option>
+              <option value="" disabled>Temporada o larga estancia *</option>
               {DURACIONES_ALQUILER.map((d) => (
                 <option key={d.valor} value={d.valor}>
                   {d.label}
@@ -899,10 +907,15 @@ export default function AnuncioForm({
           </p>
         )}
         {fotos.length < MAX_FOTOS && (
+          <p className="text-xs text-stone-400 mb-2">
+            JPG, PNG, WEBP o GIF. Las fotos HEIC/HEIF de algunos móviles se convertirán si el navegador lo permite.
+          </p>
+        )}
+        {fotos.length < MAX_FOTOS && (
           <input
             className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm file:mr-3 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:bg-stone-100 file:text-stone-700"
             type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif"
+            accept="image/*,.heic,.heif"
             multiple
             disabled={subiendoFotos}
             onChange={handleFotosChange}
@@ -943,7 +956,7 @@ export default function AnuncioForm({
       {!esInmobiliaria && !esTrabajo && (
         <input
           className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
-          placeholder="Ciudad o modalidad (ej. Sevilla, remoto)"
+          placeholder="Ciudad o modalidad (ej. Sevilla, remoto) *"
           value={ubicacion}
           onChange={(e) => setUbicacion(e.target.value)}
           required
@@ -959,7 +972,7 @@ export default function AnuncioForm({
       )}
       <input
         className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
-        placeholder={esInmobiliaria || esTrabajo ? "Palabras clave separadas por comas (opcional)" : "Palabras clave separadas por comas"}
+        placeholder={esInmobiliaria || esTrabajo ? "Palabras clave separadas por comas (opcional)" : "Palabras clave separadas por comas *"}
         value={palabrasClave}
         onChange={(e) => setPalabrasClave(e.target.value)}
         required={!esInmobiliaria && !esTrabajo}
@@ -987,7 +1000,7 @@ export default function AnuncioForm({
       <textarea
         className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 resize-none"
         rows={3}
-        placeholder={esInmobiliaria || esTrabajo ? "Descripción (opcional)" : "Descripción"}
+        placeholder={esInmobiliaria || esTrabajo ? "Descripción (opcional)" : "Descripción *"}
         value={descripcion}
         onChange={(e) => setDescripcion(e.target.value)}
         required={!esInmobiliaria && !esTrabajo}
@@ -1012,14 +1025,16 @@ export default function AnuncioForm({
 
       <input
         className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
-        placeholder="Nombre de contacto"
+        placeholder="Nombre de contacto *"
         value={nombreContacto}
         onChange={(e) => setNombreContacto(e.target.value)}
         required
       />
 
       <div>
-        <p className="text-sm text-stone-500 mb-1.5">¿Cómo prefieres que te contacten?</p>
+        <p className="text-sm text-stone-500 mb-1.5">
+          ¿Cómo prefieres que te contacten? <span className="font-semibold text-red-600" aria-hidden="true">*</span>
+        </p>
         <div className="flex gap-2">
           <button
             type="button"
@@ -1056,6 +1071,7 @@ export default function AnuncioForm({
             className="w-28 shrink-0 border border-stone-300 rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
             value={prefijoTelefono}
             onChange={(e) => setPrefijoTelefono(e.target.value)}
+            aria-label="Prefijo telefónico (obligatorio)"
             required
           >
             {PREFIJOS_TELEFONO.map((p) => (
@@ -1066,7 +1082,7 @@ export default function AnuncioForm({
           </select>
           <input
             className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
-            placeholder="Número de teléfono de contacto"
+            placeholder="Número de teléfono de contacto *"
             type="tel"
             inputMode="numeric"
             pattern="\d{6,12}"
