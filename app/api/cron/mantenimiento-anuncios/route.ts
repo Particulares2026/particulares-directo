@@ -156,31 +156,80 @@ export async function GET(request: Request) {
   let desactivados = 0;
   let avisos5 = 0;
   let avisos3 = 0;
+  let errores = 0;
 
   for (const anuncio of anuncios || []) {
     const diasTranscurridos = (ahora - new Date(anuncio.fecha_activacion).getTime()) / DIA_MS;
     const diasRestantes = DIAS_CADUCIDAD - diasTranscurridos;
 
     if (diasRestantes <= 0) {
-      await admin.from("anuncios").update({ activo: false }).eq("id", anuncio.id);
-      desactivados++;
+      const { error: desactivarError } = await admin
+        .from("anuncios")
+        .update({ activo: false })
+        .eq("id", anuncio.id);
+      if (desactivarError) {
+        console.error("Error al desactivar anuncio caducado:", anuncio.id, desactivarError);
+        errores++;
+      } else {
+        desactivados++;
+      }
       continue;
     }
 
     if (diasRestantes <= 3 && !anuncio.aviso_3_enviado) {
       const { subject, text } = textoAviso(anuncio.nombre_contacto, anuncio.titulo, 3);
-      if (resend) {
-        await resend.emails.send({ from: REMITENTE, to: anuncio.email_contacto, subject, text });
+      if (!resend) {
+        errores++;
+        continue;
       }
-      await admin.from("anuncios").update({ aviso_3_enviado: true }).eq("id", anuncio.id);
-      avisos3++;
+      const { error: envioError } = await resend.emails.send({
+        from: REMITENTE,
+        to: anuncio.email_contacto,
+        subject,
+        text,
+      });
+      if (envioError) {
+        console.error("Error al enviar aviso de 3 días:", anuncio.id, envioError);
+        errores++;
+        continue;
+      }
+      const { error: marcarError } = await admin
+        .from("anuncios")
+        .update({ aviso_3_enviado: true })
+        .eq("id", anuncio.id);
+      if (marcarError) {
+        console.error("Error al registrar aviso de 3 días:", anuncio.id, marcarError);
+        errores++;
+      } else {
+        avisos3++;
+      }
     } else if (diasRestantes <= 5 && !anuncio.aviso_5_enviado) {
       const { subject, text } = textoAviso(anuncio.nombre_contacto, anuncio.titulo, 5);
-      if (resend) {
-        await resend.emails.send({ from: REMITENTE, to: anuncio.email_contacto, subject, text });
+      if (!resend) {
+        errores++;
+        continue;
       }
-      await admin.from("anuncios").update({ aviso_5_enviado: true }).eq("id", anuncio.id);
-      avisos5++;
+      const { error: envioError } = await resend.emails.send({
+        from: REMITENTE,
+        to: anuncio.email_contacto,
+        subject,
+        text,
+      });
+      if (envioError) {
+        console.error("Error al enviar aviso de 5 días:", anuncio.id, envioError);
+        errores++;
+        continue;
+      }
+      const { error: marcarError } = await admin
+        .from("anuncios")
+        .update({ aviso_5_enviado: true })
+        .eq("id", anuncio.id);
+      if (marcarError) {
+        console.error("Error al registrar aviso de 5 días:", anuncio.id, marcarError);
+        errores++;
+      } else {
+        avisos5++;
+      }
     }
   }
 
@@ -188,7 +237,7 @@ export async function GET(request: Request) {
   let alertasRevisadas = 0;
   let alertasAvisadas = 0;
 
-  const { data: alertas } = await admin
+  const { data: alertas, error: alertasError } = await admin
     .from("alertas_busqueda")
     .select(
       "id, email, query, operacion, tipo, provincia, tipo_inmueble, precio_min, precio_max, tamano_min, tamano_max, habitaciones, banos, amueblado, duracion_alquiler, estado, caracteristicas, ultima_revision"
@@ -196,10 +245,12 @@ export async function GET(request: Request) {
     .eq("categoria", "inmobiliaria")
     .returns<AlertaFila[]>();
 
-  for (const alerta of alertas || []) {
-    alertasRevisadas++;
+  if (alertasError) {
+    return NextResponse.json({ error: alertasError.message }, { status: 500 });
+  }
 
-    const { data: nuevos } = await admin
+  for (const alerta of alertas || []) {
+    const { data: nuevos, error: nuevosError } = await admin
       .from("anuncios")
       .select(
         "id, titulo, ubicacion, provincia, operacion, tipo, tipo_inmueble, precio, tamano, habitaciones, banos, amueblado, duracion_alquiler, estado, caracteristicas, created_at"
@@ -209,17 +260,44 @@ export async function GET(request: Request) {
       .gt("created_at", alerta.ultima_revision)
       .returns<AnuncioParaAlerta[]>();
 
+    if (nuevosError) {
+      console.error("Error al revisar anuncios para la alerta:", alerta.id, nuevosError);
+      errores++;
+      continue;
+    }
+
     const coincidencias = (nuevos || []).filter((a) => anuncioCoincideConAlerta(a, alerta));
 
     if (coincidencias.length > 0) {
-      if (resend) {
-        const { subject, text } = textoAlerta(coincidencias);
-        await resend.emails.send({ from: REMITENTE, to: alerta.email, subject, text });
+      if (!resend) {
+        errores++;
+        continue;
+      }
+      const { subject, text } = textoAlerta(coincidencias);
+      const { error: envioError } = await resend.emails.send({
+        from: REMITENTE,
+        to: alerta.email,
+        subject,
+        text,
+      });
+      if (envioError) {
+        console.error("Error al enviar alerta de búsqueda:", alerta.id, envioError);
+        errores++;
+        continue;
       }
       alertasAvisadas++;
     }
 
-    await admin.from("alertas_busqueda").update({ ultima_revision: ahoraIso }).eq("id", alerta.id);
+    const { error: revisionError } = await admin
+      .from("alertas_busqueda")
+      .update({ ultima_revision: ahoraIso })
+      .eq("id", alerta.id);
+    if (revisionError) {
+      console.error("Error al registrar la revisión de alerta:", alerta.id, revisionError);
+      errores++;
+      continue;
+    }
+    alertasRevisadas++;
   }
 
   return NextResponse.json({
@@ -229,5 +307,7 @@ export async function GET(request: Request) {
     avisos3,
     alertasRevisadas,
     alertasAvisadas,
+    errores,
   });
 }
+
