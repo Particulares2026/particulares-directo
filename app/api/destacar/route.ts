@@ -3,7 +3,12 @@ import Stripe from "stripe";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminSupabase } from "@supabase/supabase-js";
 import { nombreCategoria } from "@/lib/categorias";
-import { precioDestacarCentimos, DIAS_DESTACADO } from "@/lib/destacar";
+import {
+  DIAS_DESTACADO_PAGO,
+  DIAS_ESPERA_DESTACADO_GRATIS,
+  HORAS_DESTACADO_GRATIS,
+  precioDestacarCentimos,
+} from "@/lib/destacar";
 
 export async function POST(request: Request) {
   const supabase = createClient();
@@ -54,17 +59,33 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Faltan variables de entorno." }, { status: 503 });
     }
     const admin = createAdminSupabase(url, serviceKey);
-    const destacadoHasta = new Date(Date.now() + DIAS_DESTACADO * 24 * 60 * 60 * 1000);
-    const { data: actualizado, error } = await admin
-      .from("anuncios")
-      .update({ destacado_hasta: destacadoHasta.toISOString() })
-      .eq("id", anuncio.id)
-      .eq("user_id", user.id)
-      .select("id")
-      .maybeSingle();
+    const { data, error } = await admin.rpc("aplicar_destacado_gratuito", {
+      p_anuncio_id: anuncio.id,
+      p_user_id: user.id,
+      p_horas: HORAS_DESTACADO_GRATIS,
+      p_dias_espera: DIAS_ESPERA_DESTACADO_GRATIS,
+    });
 
-    if (error || !actualizado) {
+    if (error || !data || typeof data !== "object" || Array.isArray(data)) {
       return NextResponse.json({ error: "No se pudo destacar el anuncio." }, { status: 500 });
+    }
+    const resultado = data as { ok?: boolean; disponible_desde?: string };
+    if (!resultado.ok) {
+      const disponibleDesde = resultado.disponible_desde
+        ? new Date(resultado.disponible_desde).toLocaleString("es-ES", {
+            timeZone: "Europe/Madrid",
+            dateStyle: "medium",
+            timeStyle: "short",
+          })
+        : null;
+      return NextResponse.json(
+        {
+          error: disponibleDesde
+            ? `Este anuncio ya utilizó su destacado gratuito. Podrás volver a destacarlo el ${disponibleDesde}.`
+            : `El destacado gratuito solo puede activarse una vez cada ${DIAS_ESPERA_DESTACADO_GRATIS} días.`,
+        },
+        { status: 429 }
+      );
     }
     return NextResponse.json({ url: `${origin}/mis-anuncios?destacado=ok` });
   }
@@ -101,7 +122,7 @@ export async function POST(request: Request) {
         user_id: user.id,
         importe_centimos: String(precio),
         moneda: "eur",
-        dias: String(DIAS_DESTACADO),
+        dias: String(DIAS_DESTACADO_PAGO),
       },
       success_url: `${origin}/mis-anuncios?destacado=ok`,
       cancel_url: `${origin}/mis-anuncios?destacado=cancelado`,
