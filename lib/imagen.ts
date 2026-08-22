@@ -1,17 +1,49 @@
 const TAMANO_MAXIMO = 1600;
 const CALIDAD_JPEG = 0.8;
+const TIEMPO_MAXIMO_COMPRESION = 15_000;
 
-export function comprimirImagen(file: File): Promise<File> {
-  return new Promise((resolve) => {
-    if (!file.type.startsWith("image/") || file.type === "image/svg+xml") {
-      resolve(file);
+export function comprimirImagen(file: File, signal?: AbortSignal): Promise<File> {
+  if (!file.type.startsWith("image/") || file.type === "image/svg+xml") {
+    return Promise.resolve(file);
+  }
+
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    let finalizado = false;
+
+    const limpiar = () => {
+      window.clearTimeout(temporizador);
+      URL.revokeObjectURL(url);
+      img.onload = null;
+      img.onerror = null;
+      signal?.removeEventListener("abort", cancelar);
+    };
+
+    const terminar = (resultado: File) => {
+      if (finalizado) return;
+      finalizado = true;
+      limpiar();
+      resolve(resultado);
+    };
+
+    const cancelar = () => {
+      if (finalizado) return;
+      finalizado = true;
+      limpiar();
+      reject(new DOMException("La preparación de la foto se canceló.", "AbortError"));
+    };
+
+    const temporizador = window.setTimeout(() => terminar(file), TIEMPO_MAXIMO_COMPRESION);
+    signal?.addEventListener("abort", cancelar, { once: true });
+
+    if (signal?.aborted) {
+      cancelar();
       return;
     }
 
-    const url = URL.createObjectURL(file);
-    const img = new Image();
-
     img.onload = () => {
+      if (finalizado) return;
       const escala = Math.min(1, TAMANO_MAXIMO / Math.max(img.width, img.height));
       const ancho = Math.round(img.width * escala);
       const alto = Math.round(img.height * escala);
@@ -22,21 +54,20 @@ export function comprimirImagen(file: File): Promise<File> {
       const ctx = canvas.getContext("2d");
 
       if (!ctx) {
-        URL.revokeObjectURL(url);
-        resolve(file);
+        terminar(file);
         return;
       }
 
       ctx.drawImage(img, 0, 0, ancho, alto);
       canvas.toBlob(
         (blob) => {
-          URL.revokeObjectURL(url);
+          if (finalizado) return;
           if (!blob) {
-            resolve(file);
+            terminar(file);
             return;
           }
           const nombre = file.name.replace(/\.\w+$/, "") + ".jpg";
-          resolve(new File([blob], nombre, { type: "image/jpeg" }));
+          terminar(new File([blob], nombre, { type: "image/jpeg" }));
         },
         "image/jpeg",
         CALIDAD_JPEG
@@ -44,10 +75,10 @@ export function comprimirImagen(file: File): Promise<File> {
     };
 
     img.onerror = () => {
-      URL.revokeObjectURL(url);
-      resolve(file);
+      terminar(file);
     };
 
     img.src = url;
   });
 }
+
