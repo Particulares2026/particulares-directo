@@ -908,7 +908,7 @@ export default function AnuncioForm({
         )}
         {fotos.length < MAX_FOTOS && (
           <p className="text-xs text-stone-400 mb-2">
-            JPG, PNG, WEBP o GIF. Las fotos HEIC/HEIF de algunos móviles se convertirán si el navegador lo permite.
+            JPG, PNG, WEBP, GIF, HEIC o HEIF. Las fotos de iPhone se convierten automáticamente a JPG.
           </p>
         )}
         {fotos.length < MAX_FOTOS && (
