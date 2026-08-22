@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient as createAdminSupabase } from "@supabase/supabase-js";
-import { DIAS_DESTACADO } from "@/lib/destacar";
+import { DIAS_DESTACADO_PAGO } from "@/lib/destacar";
 
 export async function POST(request: Request) {
   const stripeKey = process.env.STRIPE_SECRET_KEY?.trim();
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
       !Number.isInteger(importeEsperado) ||
       importeEsperado <= 0 ||
       monedaEsperada !== "eur" ||
-      dias !== DIAS_DESTACADO ||
+      dias !== DIAS_DESTACADO_PAGO ||
       session.amount_total !== importeEsperado ||
       session.currency !== monedaEsperada
     ) {
