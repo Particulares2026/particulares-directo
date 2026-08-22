@@ -38,7 +38,7 @@ export default async function MisAnunciosPage({
 
       {searchParams.destacado === "ok" && (
         <p className="text-sm text-teal-700 bg-teal-50 border border-teal-200 rounded-lg px-3 py-2 mb-4">
-          Pago recibido. Tu anuncio se marcará como destacado en unos segundos — recarga la página si aún no lo ves.
+          Tu anuncio ya está destacado durante 24 horas.
         </p>
       )}
       {searchParams.destacado === "cancelado" && (
