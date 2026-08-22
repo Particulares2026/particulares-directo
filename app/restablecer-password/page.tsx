@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import CampoPassword from "@/components/CampoPassword";
@@ -13,6 +14,22 @@ export default function RestablecerPasswordPage() {
   const [confirmar, setConfirmar] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sesionValida, setSesionValida] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let activo = true;
+    createClient()
+      .auth.getUser()
+      .then(({ data }) => {
+        if (activo) setSesionValida(Boolean(data.user));
+      })
+      .catch(() => {
+        if (activo) setSesionValida(false);
+      });
+    return () => {
+      activo = false;
+    };
+  }, []);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -34,6 +51,36 @@ export default function RestablecerPasswordPage() {
     router.push("/mis-anuncios");
     router.refresh();
   };
+
+  if (sesionValida === null) {
+    return (
+      <main className="max-w-sm mx-auto px-4 py-16">
+        <div className="bg-white rounded-2xl shadow-md border border-fuchsia-100 p-6 text-sm text-stone-500">
+          Comprobando el enlace…
+        </div>
+      </main>
+    );
+  }
+
+  if (!sesionValida) {
+    return (
+      <main className="max-w-sm mx-auto px-4 py-16">
+        <div className="bg-white rounded-2xl shadow-md border border-fuchsia-100 p-6">
+          <span className="text-3xl">🔒</span>
+          <h1 className="font-serif text-xl mt-2 mb-1">El enlace no es válido</h1>
+          <p className="text-sm text-stone-500 mb-5">
+            Puede haber caducado o haberse utilizado ya. Solicita un enlace nuevo para continuar.
+          </p>
+          <Link
+            href="/olvide-password"
+            className="block w-full text-center bg-gradient-to-r from-fuchsia-600 to-pink-600 text-white rounded-lg py-2.5 text-sm font-medium"
+          >
+            Solicitar otro enlace
+          </Link>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="max-w-sm mx-auto px-4 py-16">
@@ -68,3 +115,4 @@ export default function RestablecerPasswordPage() {
     </main>
   );
 }
+

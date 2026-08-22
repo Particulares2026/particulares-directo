@@ -6,12 +6,20 @@ import { createClient } from "@/lib/supabase/client";
 import { traducirErrorAuth } from "@/lib/errores-auth";
 import Turnstile from "@/components/Turnstile";
 
-export default function OlvidePasswordPage() {
+export default function OlvidePasswordPage({
+  searchParams,
+}: {
+  searchParams?: { enlace?: string };
+}) {
   const supabase = createClient();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    searchParams?.enlace === "invalido"
+      ? "El enlace no es válido o ha caducado. Solicita uno nuevo."
+      : null
+  );
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [captchaResetKey, setCaptchaResetKey] = useState(0);
 
@@ -80,3 +88,4 @@ export default function OlvidePasswordPage() {
     </main>
   );
 }
+

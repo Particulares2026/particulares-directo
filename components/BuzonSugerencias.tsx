@@ -8,6 +8,7 @@ export default function BuzonSugerencias() {
   const [abierto, setAbierto] = useState(false);
   const [tipo, setTipo] = useState<"error" | "sugerencia">("sugerencia");
   const [mensaje, setMensaje] = useState("");
+  const [sitioWeb, setSitioWeb] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [enviado, setEnviado] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,6 +30,7 @@ export default function BuzonSugerencias() {
     setTimeout(() => {
       setTipo("sugerencia");
       setMensaje("");
+      setSitioWeb("");
       setEnviado(false);
       setError(null);
     }, 200);
@@ -42,12 +44,23 @@ export default function BuzonSugerencias() {
       const res = await fetch("/api/contacto", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tipo, mensaje: mensaje.trim() }),
+        body: JSON.stringify({ tipo, mensaje: mensaje.trim(), sitioWeb }),
       });
-      if (!res.ok) throw new Error();
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(
+          typeof data?.error === "string"
+            ? data.error
+            : "No se ha podido enviar. Inténtalo de nuevo en unos minutos."
+        );
+      }
       setEnviado(true);
-    } catch {
-      setError("No se ha podido enviar. Inténtalo de nuevo en unos minutos.");
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "No se ha podido enviar. Inténtalo de nuevo en unos minutos."
+      );
     } finally {
       setEnviando(false);
     }
@@ -149,6 +162,21 @@ export default function BuzonSugerencias() {
                   onChange={(e) => setMensaje(e.target.value)}
                   maxLength={2000}
                 />
+                <div
+                  aria-hidden="true"
+                  className="absolute -left-[10000px] top-auto h-px w-px overflow-hidden"
+                >
+                  <label htmlFor="contacto-sitio-web">Sitio web</label>
+                  <input
+                    id="contacto-sitio-web"
+                    name="sitio_web"
+                    type="text"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={sitioWeb}
+                    onChange={(e) => setSitioWeb(e.target.value)}
+                  />
+                </div>
                 <p className="text-xs text-stone-400 mb-3">Es anónimo: no pedimos tu nombre ni tu correo.</p>
 
                 {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
@@ -187,3 +215,4 @@ export default function BuzonSugerencias() {
     </>
   );
 }
+

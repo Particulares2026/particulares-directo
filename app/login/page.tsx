@@ -8,7 +8,11 @@ import CampoPassword from "@/components/CampoPassword";
 import Turnstile from "@/components/Turnstile";
 import { traducirErrorAuth } from "@/lib/errores-auth";
 
-export default function LoginPage() {
+export default function LoginPage({
+  searchParams,
+}: {
+  searchParams?: { enlace?: string };
+}) {
   const supabase = createClient();
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -16,7 +20,11 @@ export default function LoginPage() {
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [captchaResetKey, setCaptchaResetKey] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    searchParams?.enlace === "invalido"
+      ? "El enlace de confirmación no es válido o ha caducado."
+      : null
+  );
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -91,3 +99,4 @@ export default function LoginPage() {
     </main>
   );
 }
+

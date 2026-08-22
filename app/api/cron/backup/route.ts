@@ -3,7 +3,14 @@ import { createClient as createAdminSupabase } from "@supabase/supabase-js";
 
 const BUCKET = "backups";
 const DIAS_RETENCION = 14;
-const TABLAS = ["anuncios", "favoritos", "listas_favoritos", "alertas_busqueda", "historial_precios"] as const;
+const TABLAS = [
+  "anuncios",
+  "favoritos",
+  "listas_favoritos",
+  "alertas_busqueda",
+  "historial_precios",
+  "pagos_destacados",
+] as const;
 
 export async function GET(request: Request) {
   const cronSecret = process.env.CRON_SECRET?.trim();
@@ -64,7 +71,13 @@ export async function GET(request: Request) {
   }
 
   let copiasEliminadas = 0;
-  const { data: archivos } = await admin.storage.from(BUCKET).list();
+  const { data: archivos, error: listadoError } = await admin.storage.from(BUCKET).list();
+  if (listadoError) {
+    return NextResponse.json(
+      { error: `La copia se creó, pero no se pudo aplicar la retención: ${listadoError.message}` },
+      { status: 500 }
+    );
+  }
   if (archivos) {
     const limite = Date.now() - DIAS_RETENCION * 24 * 60 * 60 * 1000;
     const aBorrar = archivos
@@ -76,7 +89,13 @@ export async function GET(request: Request) {
       })
       .map((f) => f.name);
     if (aBorrar.length > 0) {
-      await admin.storage.from(BUCKET).remove(aBorrar);
+      const { error: borradoError } = await admin.storage.from(BUCKET).remove(aBorrar);
+      if (borradoError) {
+        return NextResponse.json(
+          { error: `La copia se creó, pero no se pudieron borrar las antiguas: ${borradoError.message}` },
+          { status: 500 }
+        );
+      }
       copiasEliminadas = aBorrar.length;
     }
   }
@@ -89,3 +108,4 @@ export async function GET(request: Request) {
     copiasEliminadas,
   });
 }
+

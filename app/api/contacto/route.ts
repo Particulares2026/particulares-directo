@@ -1,12 +1,30 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createClient as createAdminSupabase } from "@supabase/supabase-js";
+import { createHmac } from "crypto";
 
 const LIMITE_ENVIOS = 5;
 const VENTANA_MS = 60 * 60 * 1000; // 1 hora
 
 export async function POST(request: Request) {
-  const { tipo, mensaje } = await request.json();
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Solicitud no válida." }, { status: 400 });
+  }
+
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return NextResponse.json({ error: "Solicitud no válida." }, { status: 400 });
+  }
+
+  const { tipo, mensaje, sitioWeb } = body as Record<string, unknown>;
+
+  // Campo trampa invisible para personas. Los robots suelen rellenarlo; se les
+  // responde como si todo hubiese ido bien, pero no se envía ningún correo.
+  if (typeof sitioWeb === "string" && sitioWeb.trim()) {
+    return NextResponse.json({ ok: true });
+  }
 
   if (tipo !== "error" && tipo !== "sugerencia") {
     return NextResponse.json({ error: "Tipo no válido." }, { status: 400 });
@@ -26,24 +44,38 @@ export async function POST(request: Request) {
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "desconocida";
+  if (!url || !serviceKey) {
+    return NextResponse.json(
+      { error: "El buzón de sugerencias no está disponible temporalmente." },
+      { status: 503 }
+    );
+  }
 
-  if (url && serviceKey) {
-    const admin = createAdminSupabase(url, serviceKey);
-    const desde = new Date(Date.now() - VENTANA_MS).toISOString();
-    const { count } = await admin
-      .from("envios_contacto")
-      .select("id", { count: "exact", head: true })
-      .eq("ip", ip)
-      .gte("created_at", desde);
+  const ip = (
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip")?.trim() ||
+    "desconocida"
+  ).slice(0, 200);
+  const ipAnonimizada = createHmac("sha256", serviceKey).update(ip).digest("hex");
+  const admin = createAdminSupabase(url, serviceKey);
+  const desde = new Date(Date.now() - VENTANA_MS).toISOString();
+  const { data: permitido, error: limiteError } = await admin.rpc(
+    "registrar_envio_contacto",
+    { p_ip: ipAnonimizada, p_desde: desde, p_limite: LIMITE_ENVIOS }
+  );
 
-    if ((count || 0) >= LIMITE_ENVIOS) {
-      return NextResponse.json(
-        { error: "Has enviado demasiados mensajes seguidos. Inténtalo de nuevo más tarde." },
-        { status: 429 }
-      );
-    }
-    await admin.from("envios_contacto").insert({ ip });
+  if (limiteError) {
+    console.error("Error al aplicar el límite del buzón:", limiteError.message);
+    return NextResponse.json(
+      { error: "El buzón de sugerencias no está disponible temporalmente." },
+      { status: 503 }
+    );
+  }
+  if (!permitido) {
+    return NextResponse.json(
+      { error: "Has enviado demasiados mensajes seguidos. Inténtalo de nuevo más tarde." },
+      { status: 429 }
+    );
   }
 
   const resend = new Resend(apiKey);
@@ -63,3 +95,4 @@ export async function POST(request: Request) {
 
   return NextResponse.json({ ok: true });
 }
+

@@ -15,7 +15,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No has iniciado sesión." }, { status: 401 });
   }
 
-  const { anuncioId } = await request.json();
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Solicitud no válida." }, { status: 400 });
+  }
+  const anuncioId =
+    body && typeof body === "object" && !Array.isArray(body)
+      ? (body as Record<string, unknown>).anuncioId
+      : null;
   if (typeof anuncioId !== "string") {
     return NextResponse.json({ error: "Anuncio no válido." }, { status: 400 });
   }
@@ -30,7 +39,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No puedes destacar este anuncio." }, { status: 403 });
   }
 
-  const origin = new URL(request.url).origin;
+  const origin =
+    process.env.VERCEL_ENV === "production"
+      ? "https://www.particularesdirecto.com"
+      : new URL(request.url).origin;
   const precio = precioDestacarCentimos(anuncio.categoria);
 
   // Mientras el destacado sea gratis, se aplica directamente: Stripe no permite
@@ -43,12 +55,15 @@ export async function POST(request: Request) {
     }
     const admin = createAdminSupabase(url, serviceKey);
     const destacadoHasta = new Date(Date.now() + DIAS_DESTACADO * 24 * 60 * 60 * 1000);
-    const { error } = await admin
+    const { data: actualizado, error } = await admin
       .from("anuncios")
       .update({ destacado_hasta: destacadoHasta.toISOString() })
-      .eq("id", anuncio.id);
+      .eq("id", anuncio.id)
+      .eq("user_id", user.id)
+      .select("id")
+      .maybeSingle();
 
-    if (error) {
+    if (error || !actualizado) {
       return NextResponse.json({ error: "No se pudo destacar el anuncio." }, { status: 500 });
     }
     return NextResponse.json({ url: `${origin}/mis-anuncios?destacado=ok` });
@@ -64,25 +79,41 @@ export async function POST(request: Request) {
 
   const stripe = new Stripe(stripeKey);
 
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    payment_method_types: ["card"],
-    line_items: [
-      {
-        price_data: {
-          currency: "eur",
-          product_data: {
-            name: `Destacar anuncio (${nombreCategoria(anuncio.categoria)}): ${anuncio.titulo}`,
+  try {
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      payment_method_types: ["card"],
+      customer_email: user.email,
+      line_items: [
+        {
+          price_data: {
+            currency: "eur",
+            product_data: {
+              name: `Destacar anuncio (${nombreCategoria(anuncio.categoria)}): ${anuncio.titulo}`,
+            },
+            unit_amount: precio,
           },
-          unit_amount: precio,
+          quantity: 1,
         },
-        quantity: 1,
+      ],
+      metadata: {
+        anuncio_id: anuncio.id,
+        user_id: user.id,
+        importe_centimos: String(precio),
+        moneda: "eur",
+        dias: String(DIAS_DESTACADO),
       },
-    ],
-    metadata: { anuncio_id: anuncio.id },
-    success_url: `${origin}/mis-anuncios?destacado=ok`,
-    cancel_url: `${origin}/mis-anuncios?destacado=cancelado`,
-  });
+      success_url: `${origin}/mis-anuncios?destacado=ok`,
+      cancel_url: `${origin}/mis-anuncios?destacado=cancelado`,
+    });
 
-  return NextResponse.json({ url: session.url });
+    if (!session.url) {
+      return NextResponse.json({ error: "No se pudo iniciar el pago." }, { status: 502 });
+    }
+    return NextResponse.json({ url: session.url });
+  } catch (err) {
+    console.error("Error al crear el pago de Stripe:", err);
+    return NextResponse.json({ error: "No se pudo iniciar el pago." }, { status: 502 });
+  }
 }
+
