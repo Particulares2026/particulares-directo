@@ -2,9 +2,23 @@ const TAMANO_MAXIMO = 1600;
 const CALIDAD_JPEG = 0.8;
 const TIEMPO_MAXIMO_COMPRESION = 15_000;
 
+function extensionArchivo(nombre: string) {
+  return nombre.split(".").pop()?.toLowerCase() ?? "";
+}
+
+function mensajeFormatoNoCompatible(file: File) {
+  const extension = extensionArchivo(file.name);
+  if (file.type === "image/heic" || file.type === "image/heif" || extension === "heic" || extension === "heif") {
+    return "La foto está en formato HEIC/HEIF y este navegador no puede convertirla. Guárdala o compártela como JPG e inténtalo de nuevo.";
+  }
+  return "El navegador no puede leer esta imagen. Utiliza una foto JPG, PNG, WEBP o GIF.";
+}
+
 export function comprimirImagen(file: File, signal?: AbortSignal): Promise<File> {
-  if (!file.type.startsWith("image/") || file.type === "image/svg+xml") {
-    return Promise.resolve(file);
+  const extension = extensionArchivo(file.name);
+  const pareceImagen = file.type.startsWith("image/") || ["jpg", "jpeg", "png", "webp", "gif", "heic", "heif"].includes(extension);
+  if (!pareceImagen || file.type === "image/svg+xml" || extension === "svg") {
+    return Promise.reject(new Error("El archivo no es una imagen JPG, PNG, WEBP o GIF válida."));
   }
 
   return new Promise((resolve, reject) => {
@@ -27,6 +41,13 @@ export function comprimirImagen(file: File, signal?: AbortSignal): Promise<File>
       resolve(resultado);
     };
 
+    const fallar = (mensaje: string) => {
+      if (finalizado) return;
+      finalizado = true;
+      limpiar();
+      reject(new Error(mensaje));
+    };
+
     const cancelar = () => {
       if (finalizado) return;
       finalizado = true;
@@ -34,7 +55,10 @@ export function comprimirImagen(file: File, signal?: AbortSignal): Promise<File>
       reject(new DOMException("La preparación de la foto se canceló.", "AbortError"));
     };
 
-    const temporizador = window.setTimeout(() => terminar(file), TIEMPO_MAXIMO_COMPRESION);
+    const temporizador = window.setTimeout(
+      () => fallar("La foto tardó demasiado en prepararse. Prueba con una versión JPG de menor tamaño."),
+      TIEMPO_MAXIMO_COMPRESION
+    );
     signal?.addEventListener("abort", cancelar, { once: true });
 
     if (signal?.aborted) {
@@ -54,16 +78,18 @@ export function comprimirImagen(file: File, signal?: AbortSignal): Promise<File>
       const ctx = canvas.getContext("2d");
 
       if (!ctx) {
-        terminar(file);
+        fallar("No se pudo preparar la foto en este navegador.");
         return;
       }
 
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, ancho, alto);
       ctx.drawImage(img, 0, 0, ancho, alto);
       canvas.toBlob(
         (blob) => {
           if (finalizado) return;
           if (!blob) {
-            terminar(file);
+            fallar("No se pudo convertir la foto a un formato compatible.");
             return;
           }
           const nombre = file.name.replace(/\.\w+$/, "") + ".jpg";
@@ -75,7 +101,7 @@ export function comprimirImagen(file: File, signal?: AbortSignal): Promise<File>
     };
 
     img.onerror = () => {
-      terminar(file);
+      fallar(mensajeFormatoNoCompatible(file));
     };
 
     img.src = url;
