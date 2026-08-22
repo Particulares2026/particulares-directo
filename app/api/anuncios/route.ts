@@ -238,7 +238,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const camposLimpios = {
+  const camposLimpios: Record<string, unknown> = {
     ...filtrarCamposPermitidos(payload),
     // El correo procede siempre de la sesión confirmada, nunca del cuerpo manipulable.
     email_contacto: user.email || "",
