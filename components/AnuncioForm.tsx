@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent, type ChangeEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ChangeEvent, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { etiquetasTipo } from "@/lib/categorias";
@@ -73,6 +73,13 @@ type AnuncioExistente = {
   incorporacion?: string | null;
 };
 
+type ProgresoFotos = {
+  actual: number;
+  total: number;
+  nombre: string;
+  fase: "preparando" | "subiendo";
+};
+
 export default function AnuncioForm({
   userId,
   categoria,
@@ -131,7 +138,11 @@ export default function AnuncioForm({
   const [fotos, setFotos] = useState<string[]>(anuncioExistente?.fotos ?? []);
   const [subiendoFotos, setSubiendoFotos] = useState(false);
   const [fotosError, setFotosError] = useState<string | null>(null);
+  const [progresoFotos, setProgresoFotos] = useState<ProgresoFotos | null>(null);
+  const [fotosPendientes, setFotosPendientes] = useState<File[]>([]);
   const [fotoArrastrada, setFotoArrastrada] = useState<number | null>(null);
+  const cancelarFotosRef = useRef(false);
+  const compresionFotosRef = useRef<AbortController | null>(null);
 
   const [sectorTrabajo, setSectorTrabajo] = useState(anuncioExistente?.sector_trabajo ?? "");
   const [modalidadTrabajo, setModalidadTrabajo] = useState(anuncioExistente?.modalidad_trabajo ?? "");
@@ -163,14 +174,19 @@ export default function AnuncioForm({
     };
   }, [provincia, esInmobiliaria, esTrabajo]);
 
-  const moverFoto = (destino: number) => {
-    if (fotoArrastrada === null || fotoArrastrada === destino) return;
+  const recolocarFoto = (origen: number, destino: number) => {
+    if (origen === destino || destino < 0 || destino >= fotos.length) return;
     setFotos((prev) => {
       const siguiente = [...prev];
-      const [movida] = siguiente.splice(fotoArrastrada, 1);
+      const [movida] = siguiente.splice(origen, 1);
       siguiente.splice(destino, 0, movida);
       return siguiente;
     });
+  };
+
+  const moverFoto = (destino: number) => {
+    if (fotoArrastrada === null) return;
+    recolocarFoto(fotoArrastrada, destino);
     setFotoArrastrada(null);
   };
 
@@ -186,47 +202,95 @@ export default function AnuncioForm({
     );
   };
 
-  const handleFotosChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
+  const subirFotos = async (files: File[]) => {
     if (files.length === 0) return;
 
     if (fotos.length + files.length > MAX_FOTOS) {
       setFotosError(`Puedes subir un máximo de ${MAX_FOTOS} fotos.`);
-      e.target.value = "";
       return;
     }
 
     const TIPOS_PERMITIDOS = ["image/jpeg", "image/png", "image/webp", "image/gif"];
     if (files.some((f) => !TIPOS_PERMITIDOS.includes(f.type))) {
       setFotosError("Solo se admiten imágenes JPG, PNG, WEBP o GIF.");
-      e.target.value = "";
       return;
     }
 
     setFotosError(null);
+    setFotosPendientes([]);
     setSubiendoFotos(true);
+    cancelarFotosRef.current = false;
     const nuevas: string[] = [];
+    const fallidas: File[] = [];
     let ultimoError: string | null = null;
+
     try {
-      for (const file of files) {
-        const comprimido = await comprimirImagen(file);
-        const formData = new FormData();
-        formData.append("foto", comprimido);
-        const res = await fetch("/api/anuncios/fotos", { method: "POST", body: formData });
-        const data = await res.json().catch(() => null);
-        if (!res.ok || !data?.url) {
-          ultimoError = data?.error || "No se pudo subir la foto.";
-          continue;
+      for (let i = 0; i < files.length; i += 1) {
+        const file = files[i];
+        if (cancelarFotosRef.current) {
+          fallidas.push(...files.slice(i));
+          ultimoError = "Subida detenida. Puedes reintentar las fotos pendientes.";
+          break;
         }
-        nuevas.push(data.url);
+
+        const controller = new AbortController();
+        compresionFotosRef.current = controller;
+        setProgresoFotos({ actual: i + 1, total: files.length, nombre: file.name, fase: "preparando" });
+
+        try {
+          const comprimido = await comprimirImagen(file, controller.signal);
+          compresionFotosRef.current = null;
+
+          if (cancelarFotosRef.current) {
+            fallidas.push(...files.slice(i));
+            ultimoError = "Subida detenida. Puedes reintentar las fotos pendientes.";
+            break;
+          }
+
+          setProgresoFotos({ actual: i + 1, total: files.length, nombre: file.name, fase: "subiendo" });
+          const formData = new FormData();
+          formData.append("foto", comprimido);
+          const res = await fetch("/api/anuncios/fotos", { method: "POST", body: formData });
+          const data = await res.json().catch(() => null);
+          if (!res.ok || !data?.url) {
+            fallidas.push(file);
+            ultimoError = data?.error || `No se pudo subir ${file.name}.`;
+            continue;
+          }
+          nuevas.push(data.url);
+        } catch (err: any) {
+          compresionFotosRef.current = null;
+          if (err?.name === "AbortError") {
+            fallidas.push(...files.slice(i));
+            ultimoError = "Subida detenida. Puedes reintentar las fotos pendientes.";
+            break;
+          }
+          fallidas.push(file);
+          ultimoError = err?.message || `No se pudo subir ${file.name}.`;
+        }
       }
     } catch (err: any) {
       ultimoError = err?.message || "Error inesperado al subir la foto.";
+      fallidas.push(...files.filter((file) => !fallidas.includes(file)));
+    } finally {
+      compresionFotosRef.current = null;
+      setFotos((prev) => [...prev, ...nuevas]);
+      setFotosPendientes(fallidas);
+      if (ultimoError) setFotosError(ultimoError);
+      setProgresoFotos(null);
+      setSubiendoFotos(false);
     }
-    setFotos((prev) => [...prev, ...nuevas]);
-    if (ultimoError) setFotosError(ultimoError);
-    setSubiendoFotos(false);
+  };
+
+  const handleFotosChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
     e.target.value = "";
+    await subirFotos(files);
+  };
+
+  const cancelarSubidaFotos = () => {
+    cancelarFotosRef.current = true;
+    compresionFotosRef.current?.abort();
   };
 
   const eliminarFoto = async (url: string) => {
@@ -784,7 +848,12 @@ export default function AnuncioForm({
                   "relative cursor-move " + (fotoArrastrada === i ? "opacity-40" : "")
                 }
               >
-                <img src={url} alt="" loading="lazy" className="w-full aspect-square object-cover rounded-lg border border-stone-200" />
+                <img
+                  src={url}
+                  alt={`Foto ${i + 1} del anuncio${i === 0 ? ", portada" : ""}`}
+                  loading="lazy"
+                  className="w-full aspect-square object-cover rounded-lg border border-stone-200"
+                />
                 {i === 0 && (
                   <span className="absolute bottom-1 left-1 text-[10px] px-1.5 py-0.5 rounded bg-stone-900/80 text-white">
                     Portada
@@ -793,17 +862,41 @@ export default function AnuncioForm({
                 <button
                   type="button"
                   onClick={() => eliminarFoto(url)}
-                  aria-label="Quitar foto"
+                  aria-label={`Quitar foto ${i + 1}`}
                   className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-stone-900 text-white text-xs leading-none flex items-center justify-center"
                 >
                   ×
                 </button>
+                {fotos.length > 1 && (
+                  <div className="absolute bottom-1 right-1 flex gap-1">
+                    <button
+                      type="button"
+                      onClick={() => recolocarFoto(i, i - 1)}
+                      disabled={i === 0}
+                      aria-label={`Mover foto ${i + 1} a la izquierda`}
+                      className="w-7 h-7 rounded bg-stone-900/80 text-white text-sm disabled:opacity-30"
+                    >
+                      ←
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => recolocarFoto(i, i + 1)}
+                      disabled={i === fotos.length - 1}
+                      aria-label={`Mover foto ${i + 1} a la derecha`}
+                      className="w-7 h-7 rounded bg-stone-900/80 text-white text-sm disabled:opacity-30"
+                    >
+                      →
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
         )}
         {fotos.length > 1 && (
-          <p className="text-xs text-stone-400 mb-2">Arrastra las fotos para cambiar el orden.</p>
+          <p className="text-xs text-stone-400 mb-2">
+            Arrastra las fotos o usa las flechas para cambiar el orden.
+          </p>
         )}
         {fotos.length < MAX_FOTOS && (
           <input
@@ -815,8 +908,34 @@ export default function AnuncioForm({
             onChange={handleFotosChange}
           />
         )}
-        {subiendoFotos && <p className="text-xs text-stone-400 mt-1">Subiendo fotos…</p>}
-        {fotosError && <p className="text-xs text-red-600 mt-1">{fotosError}</p>}
+        {subiendoFotos && progresoFotos && (
+          <div className="mt-2 rounded-lg border border-stone-200 bg-stone-50 px-3 py-2" role="status" aria-live="polite">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs text-stone-600">
+                Foto {progresoFotos.actual} de {progresoFotos.total}: {progresoFotos.fase === "preparando" ? "preparando" : "subiendo"} {progresoFotos.nombre}…
+              </p>
+              <button type="button" onClick={cancelarSubidaFotos} className="text-xs font-medium text-red-600 hover:underline">
+                Detener
+              </button>
+            </div>
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-stone-200" aria-hidden="true">
+              <div
+                className="h-full rounded-full bg-teal-600 transition-[width]"
+                style={{ width: `${Math.round(((progresoFotos.actual - (progresoFotos.fase === "preparando" ? 1 : 0.5)) / progresoFotos.total) * 100)}%` }}
+              />
+            </div>
+          </div>
+        )}
+        {!subiendoFotos && fotosPendientes.length > 0 && (
+          <button
+            type="button"
+            onClick={() => subirFotos(fotosPendientes)}
+            className="mt-2 text-xs font-medium text-teal-700 hover:underline"
+          >
+            Reintentar {fotosPendientes.length} {fotosPendientes.length === 1 ? "foto pendiente" : "fotos pendientes"}
+          </button>
+        )}
+        {fotosError && <p className="text-xs text-red-600 mt-1" role="alert">{fotosError}</p>}
       </div>
 
       <Seccion>Detalles adicionales{esInmobiliaria || esTrabajo ? " (opcional)" : ""}</Seccion>
