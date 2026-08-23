@@ -1,0 +1,48 @@
+name: Verificación gratuita de la base de datos
+
+on:
+  pull_request:
+    paths:
+      - "supabase/**"
+      - ".github/workflows/database-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  database:
+    name: Esquema y permisos en una base temporal
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Preparar Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.115.0
+
+      - name: Arrancar una base local vacía
+        shell: bash
+        run: |
+          mv supabase/migrations supabase/migrations.saved
+          mkdir supabase/migrations
+          supabase db start
+          rmdir supabase/migrations
+          mv supabase/migrations.saved supabase/migrations
+
+      - name: Aplicar el esquema actual
+        shell: bash
+        run: |
+          docker exec -i supabase_db_particulares_directo_ci \
+            psql --username postgres --dbname postgres --set ON_ERROR_STOP=1 \
+            < supabase/schema.sql
+
+      - name: Revisar funciones SQL
+        run: supabase db lint --local --level warning --fail-on error
+
+      - name: Probar permisos y datos privados
+        run: supabase test db --local
