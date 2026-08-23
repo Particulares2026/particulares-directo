@@ -14,11 +14,30 @@ const CSP = [
   `connect-src 'self' ${SUPABASE_ORIGIN} https://nominatim.openstreetmap.org`,
 ].join("; ");
 
+const PRIVATE_NO_INDEX_ROUTES = [
+  "/api/:path*",
+  "/auth/:path*",
+  "/editar/:path*",
+  "/favoritos/:path*",
+  "/login/:path*",
+  "/mi-perfil/:path*",
+  "/mis-anuncios/:path*",
+  "/moderacion/:path*",
+  "/olvide-password/:path*",
+  "/publicar/:path*",
+  "/registro/:path*",
+  "/restablecer-password/:path*",
+];
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
   async headers() {
     return [
+      ...PRIVATE_NO_INDEX_ROUTES.map((source) => ({
+        source,
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" }],
+      })),
       {
         source: "/:path*",
         headers: [

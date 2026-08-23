@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 const TEXTO = "Cádiz Paraíso Natural";
@@ -46,7 +47,14 @@ export default function BannerPublicidad() {
               zIndex: pos.z,
             }}
           >
-            <img src={src} alt="" className="absolute inset-0 w-full h-full object-cover brightness-110 saturate-125" />
+            <Image
+              src={src}
+              alt=""
+              fill
+              priority={i === 0}
+              sizes={relativo === 0 ? "(max-width: 640px) 70vw, 44vw" : "(max-width: 640px) 45vw, 30vw"}
+              className="object-cover brightness-110 saturate-125"
+            />
             {relativo === 0 && (
               <>
                 <div className="absolute inset-0 bg-black/20" />

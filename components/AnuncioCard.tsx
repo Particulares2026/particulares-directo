@@ -389,6 +389,9 @@ export default function AnuncioCard({
                   src={url}
                   alt={`${anuncio.titulo}, foto ${i + 1}`}
                   loading="lazy"
+                  decoding="async"
+                  width={112}
+                  height={112}
                   className="h-28 w-28 object-cover rounded-lg border border-stone-200"
                 />
               </a>
@@ -398,6 +401,9 @@ export default function AnuncioCard({
             <img
               src={fotoAmpliada}
               alt={`${anuncio.titulo}, vista ampliada`}
+              decoding="async"
+              width={224}
+              height={224}
               className="pointer-events-none absolute left-0 top-0 z-20 w-56 h-56 max-w-[75vw] max-h-[75vw] object-cover rounded-lg border border-stone-300 shadow-lg"
             />
           )}
