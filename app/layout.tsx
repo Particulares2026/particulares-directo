@@ -6,6 +6,8 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BannerPublicidad from "@/components/BannerPublicidad";
 
+const SITE_URL = "https://www.particularesdirecto.com";
+
 const fraunces = Fraunces({
   subsets: ["latin"],
   variable: "--font-serif",
@@ -18,8 +20,25 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Particulares Directo",
-  description: "Anuncios de empleo entre particulares, sin intermediarios.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Particulares Directo",
+    template: "%s | Particulares Directo",
+  },
+  description: "Anuncios de vivienda y empleo entre particulares, sin intermediarios.",
+  openGraph: {
+    title: "Particulares Directo",
+    description: "Anuncios de vivienda y empleo entre particulares, sin intermediarios.",
+    url: SITE_URL,
+    siteName: "Particulares Directo",
+    locale: "es_ES",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Particulares Directo",
+    description: "Anuncios de vivienda y empleo entre particulares, sin intermediarios.",
+  },
 };
 
 export default function RootLayout({
