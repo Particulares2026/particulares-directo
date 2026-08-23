@@ -1,12 +1,44 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Buscador from "@/components/Buscador";
 import FiltrosInmobiliaria from "@/components/FiltrosInmobiliaria";
 import FiltrosTrabajo from "@/components/FiltrosTrabajo";
-import { esCategoriaValida, nombreCategoria } from "@/lib/categorias";
+import { CATEGORIAS, esCategoriaValida, nombreCategoria } from "@/lib/categorias";
 import { estaDestacado } from "@/lib/destacar";
 import { CAMPOS_PUBLICOS_ANUNCIO } from "@/lib/anuncios";
+import { marcarTipoAnunciante } from "@/lib/tipo-anunciante";
+
+const SITE_URL = "https://www.particularesdirecto.com";
+
+const DESCRIPCIONES: Record<string, string> = {
+  inmobiliaria: "Viviendas en venta y alquiler anunciadas directamente por particulares, sin intermediarios.",
+  trabajo: "Ofertas y búsquedas de empleo publicadas directamente por particulares y pequeños negocios.",
+};
+
+export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
+  if (!esCategoriaValida(params.slug)) return {};
+  const titulo = nombreCategoria(params.slug);
+  const descripcion = DESCRIPCIONES[params.slug] ?? `Anuncios de ${titulo.toLowerCase()} entre particulares.`;
+  const indexable = CATEGORIAS.find((categoria) => categoria.slug === params.slug)?.destacada === true;
+  const canonical = `${SITE_URL}/categoria/${params.slug}`;
+
+  return {
+    title: titulo,
+    description: descripcion,
+    alternates: { canonical },
+    robots: { index: indexable, follow: true },
+    openGraph: {
+      title: `${titulo} | Particulares Directo`,
+      description: descripcion,
+      url: canonical,
+      type: "website",
+      locale: "es_ES",
+    },
+    twitter: { card: "summary", title: `${titulo} | Particulares Directo`, description: descripcion },
+  };
+}
 
 export default async function CategoriaPage({
   params,
@@ -29,7 +61,7 @@ export default async function CategoriaPage({
     .order("created_at", { ascending: false })
     .limit(500);
 
-  const anunciosOrdenados = [...(anuncios || [])]
+  const anunciosOrdenados = marcarTipoAnunciante([...(anuncios || [])])
     .sort((a, b) => {
       const destacadoA = estaDestacado(a.destacado_hasta);
       const destacadoB = estaDestacado(b.destacado_hasta);
