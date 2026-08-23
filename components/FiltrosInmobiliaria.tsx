@@ -447,7 +447,7 @@ export default function FiltrosInmobiliaria({
         <p className="text-sm text-stone-500">
           {filtrados.length} {filtrados.length === 1 ? "inmueble encontrado" : "inmuebles encontrados"}
         </p>
-        <div className="flex items-center gap-2">
+        <div className="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:flex-row sm:items-center">
           <select
             className={SELECT_CLASS}
             value={orden}
