@@ -3,7 +3,7 @@ import Link from "next/link";
 import { CATEGORIAS_DESTACADAS, colorCategoria } from "@/lib/categorias";
 
 export const metadata: Metadata = {
-  title: "Anuncios de vivienda y empleo entre particulares",
+  title: "Particulares Directo | Anuncios de vivienda y empleo",
   description:
     "Encuentra o publica viviendas y oportunidades de empleo con contacto directo, sin agencias ni intermediarios.",
   alternates: { canonical: "https://www.particularesdirecto.com/" },
