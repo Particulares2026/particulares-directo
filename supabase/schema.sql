@@ -55,6 +55,9 @@ create table if not exists public.anuncios (
   fecha_activacion timestamptz not null default now(),
   aviso_5_enviado boolean not null default false,
   aviso_3_enviado boolean not null default false,
+  -- Seguimiento interno: las ediciones vuelven a dejar el anuncio pendiente.
+  moderado_at timestamptz,
+  moderado_por uuid references auth.users(id) on delete set null,
   -- Anuncio destacado (de pago): vigente mientras destacado_hasta sea futuro.
   destacado_hasta timestamptz
 );
@@ -68,6 +71,12 @@ create index if not exists anuncios_user_id_idx on public.anuncios (user_id);
 create index if not exists anuncios_provincia_idx on public.anuncios (provincia);
 create index if not exists anuncios_municipio_idx on public.anuncios (municipio);
 create index if not exists anuncios_sector_trabajo_idx on public.anuncios (sector_trabajo);
+create index if not exists anuncios_pendientes_moderacion_idx
+  on public.anuncios (created_at desc)
+  where moderado_at is null;
+create index if not exists anuncios_moderado_por_idx
+  on public.anuncios (moderado_por)
+  where moderado_por is not null;
 
 -- Activa la seguridad a nivel de fila: sin esto, con la clave "anon" cualquiera
 -- podría leer o modificar toda la tabla directamente.
@@ -601,9 +610,8 @@ create policy "Los usuarios crean sus propias alertas"
     and lower(email) = (select lower(auth.jwt() ->> 'email'))
   );
 
--- Los destacados gratuitos duran 24 horas y solo pueden activarse una vez cada
--- 7 días por anuncio. El registro es privado y el límite se aplica de forma
--- atómica para impedir activaciones simultáneas o llamadas directas a la API.
+-- Historial privado para rotar los destacados gratuitos. Cada anuncio puede
+-- permanecer destacado 24 horas y volver a solicitarlo después de 7 días.
 create table if not exists public.destacados_gratuitos (
   id uuid primary key default gen_random_uuid(),
   anuncio_id uuid not null references public.anuncios(id) on delete cascade,
