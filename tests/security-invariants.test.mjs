@@ -105,3 +105,16 @@ test("la revelación de contacto sigue limitada y no se almacena en caché", () 
   assert.match(source, /LIMITE_POR_ANUNCIO\s*=\s*10/);
   assert.match(source, /UUID\.test\(id\)/);
 });
+
+test("la base temporal de CI nunca se conecta a producción", () => {
+  const workflow = read(".github/workflows/database-ci.yml");
+  const config = read("supabase/config.toml");
+
+  assert.match(workflow, /supabase db start/);
+  assert.match(workflow, /supabase db lint --local/);
+  assert.match(workflow, /supabase test db --local/);
+  assert.equal(workflow.includes("SUPABASE_ACCESS_TOKEN"), false);
+  assert.equal(workflow.includes("mxixwpcqxwhbyzqikalr"), false);
+  assert.match(config, /project_id\s*=\s*"particulares_directo_ci"/);
+  assert.match(config, /major_version\s*=\s*17/);
+});
