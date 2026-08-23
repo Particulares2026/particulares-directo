@@ -17,6 +17,7 @@ export default async function ModeracionPage() {
     .from("anuncios")
     .select("id, titulo, descripcion, categoria, tipo, nombre_contacto, telefono_contacto, email_contacto, activo, created_at, fotos")
     .is("moderado_at", null)
+    .eq("activo", true)
     .order("created_at", { ascending: false })
     .limit(100);
 
