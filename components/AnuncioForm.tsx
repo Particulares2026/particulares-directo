@@ -514,7 +514,7 @@ export default function AnuncioForm({
       )}
 
       <input
-        className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+        className="w-full border border-stone-300 rounded-lg px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
         placeholder="Título del anuncio *"
         value={titulo}
         onChange={(e) => setTitulo(e.target.value)}
@@ -525,9 +525,9 @@ export default function AnuncioForm({
         <>
           <Seccion>Datos del inmueble</Seccion>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <select
-              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
               value={tipoInmueble}
               onChange={(e) => setTipoInmueble(e.target.value)}
               aria-label="Tipo de inmueble (obligatorio)"
@@ -540,7 +540,7 @@ export default function AnuncioForm({
               ))}
             </select>
             <select
-              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
               value={provincia}
               onChange={(e) => {
                 setProvincia(e.target.value);
@@ -558,7 +558,7 @@ export default function AnuncioForm({
           </div>
           {provincia && (
             <select
-              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
               value={municipio}
               onChange={(e) => setMunicipio(e.target.value)}
               disabled={municipiosDisponibles.length === 0}
@@ -573,9 +573,9 @@ export default function AnuncioForm({
               ))}
             </select>
           )}
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
             <input
-              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
               placeholder="Precio (€) *"
               type="number"
               min="0"
@@ -584,7 +584,7 @@ export default function AnuncioForm({
               required
             />
             <input
-              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
               placeholder="Habitaciones"
               type="number"
               min="0"
@@ -592,7 +592,7 @@ export default function AnuncioForm({
               onChange={(e) => setHabitaciones(e.target.value)}
             />
             <input
-              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
               placeholder="Nº Baños"
               type="number"
               min="0"
@@ -601,7 +601,7 @@ export default function AnuncioForm({
             />
           </div>
           <input
-            className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+            className="w-full border border-stone-300 rounded-lg px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
             placeholder="Tamaño (m²)"
             type="number"
             min="0"
@@ -609,7 +609,7 @@ export default function AnuncioForm({
             onChange={(e) => setTamano(e.target.value)}
           />
           <select
-            className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+            className="w-full border border-stone-300 rounded-lg px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
             value={amueblado}
             onChange={(e) => setAmueblado(e.target.value)}
           >
@@ -620,7 +620,7 @@ export default function AnuncioForm({
 
           {operacion === "alquiler" && (
             <select
-              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
               value={duracionAlquiler}
               onChange={(e) => setDuracionAlquiler(e.target.value)}
               required
@@ -680,7 +680,7 @@ export default function AnuncioForm({
           <Seccion>Ubicación</Seccion>
 
           <input
-            className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+            className="w-full border border-stone-300 rounded-lg px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
             placeholder="Barrio o zona (opcional)"
             value={ubicacion}
             onChange={(e) => setUbicacion(e.target.value)}
@@ -708,7 +708,7 @@ export default function AnuncioForm({
           <Seccion>Datos del empleo (opcional)</Seccion>
 
           <select
-            className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+            className="w-full border border-stone-300 rounded-lg px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
             value={sectorTrabajo}
             onChange={(e) => setSectorTrabajo(e.target.value)}
           >
@@ -720,9 +720,9 @@ export default function AnuncioForm({
             ))}
           </select>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <select
-              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
               value={provincia}
               onChange={(e) => {
                 setProvincia(e.target.value);
@@ -738,7 +738,7 @@ export default function AnuncioForm({
             </select>
             {provincia && (
               <select
-                className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+                className="w-full border border-stone-300 rounded-lg px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
                 value={municipio}
                 onChange={(e) => setMunicipio(e.target.value)}
                 disabled={municipiosDisponibles.length === 0}
@@ -756,7 +756,7 @@ export default function AnuncioForm({
           </div>
 
           <select
-            className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+            className="w-full border border-stone-300 rounded-lg px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
             value={modalidadTrabajo}
             onChange={(e) => setModalidadTrabajo(e.target.value)}
           >
@@ -768,9 +768,9 @@ export default function AnuncioForm({
             ))}
           </select>
 
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
             <input
-              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
               placeholder="Salario mín. (€)"
               type="number"
               min="0"
@@ -778,7 +778,7 @@ export default function AnuncioForm({
               onChange={(e) => setSalarioMin(e.target.value)}
             />
             <input
-              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
               placeholder="Salario máx. (€)"
               type="number"
               min="0"
@@ -786,7 +786,7 @@ export default function AnuncioForm({
               onChange={(e) => setSalarioMax(e.target.value)}
             />
             <select
-              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
               value={salarioPeriodo}
               onChange={(e) => setSalarioPeriodo(e.target.value)}
             >
@@ -799,9 +799,9 @@ export default function AnuncioForm({
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <select
-              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
               value={experienciaTrabajo}
               onChange={(e) => setExperienciaTrabajo(e.target.value)}
             >
@@ -813,7 +813,7 @@ export default function AnuncioForm({
               ))}
             </select>
             <select
-              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+              className="w-full border border-stone-300 rounded-lg px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
               value={incorporacion}
               onChange={(e) => setIncorporacion(e.target.value)}
             >
@@ -874,7 +874,7 @@ export default function AnuncioForm({
           {fotos.length}/{MAX_FOTOS}
         </p>
         {fotos.length > 0 && (
-          <div className="grid grid-cols-4 gap-2 mb-2">
+          <div className="mb-2 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-2">
             {fotos.map((url, i) => (
               <div
                 key={url}
@@ -947,7 +947,7 @@ export default function AnuncioForm({
         )}
         {fotos.length < MAX_FOTOS && (
           <input
-            className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm file:mr-3 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:bg-stone-100 file:text-stone-700"
+            className="w-full border border-stone-300 rounded-lg px-3 py-2 text-base sm:text-sm file:mr-3 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:bg-stone-100 file:text-stone-700"
             type="file"
             accept="image/*,.heic,.heif"
             multiple
@@ -989,7 +989,7 @@ export default function AnuncioForm({
 
       {!esInmobiliaria && !esTrabajo && (
         <input
-          className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+          className="w-full border border-stone-300 rounded-lg px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
           placeholder="Ciudad o modalidad (ej. Sevilla, remoto) *"
           value={ubicacion}
           onChange={(e) => setUbicacion(e.target.value)}
@@ -998,14 +998,14 @@ export default function AnuncioForm({
       )}
       {esTrabajo && (
         <input
-          className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+          className="w-full border border-stone-300 rounded-lg px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
           placeholder="Barrio o zona (opcional)"
           value={ubicacion}
           onChange={(e) => setUbicacion(e.target.value)}
         />
       )}
       <input
-        className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+        className="w-full border border-stone-300 rounded-lg px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
         placeholder={esInmobiliaria || esTrabajo ? "Palabras clave separadas por comas (opcional)" : "Palabras clave separadas por comas *"}
         value={palabrasClave}
         onChange={(e) => setPalabrasClave(e.target.value)}
@@ -1032,7 +1032,7 @@ export default function AnuncioForm({
       )}
 
       <textarea
-        className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 resize-none"
+        className="w-full border border-stone-300 rounded-lg px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 resize-none"
         rows={3}
         placeholder={esInmobiliaria || esTrabajo ? "Descripción (opcional)" : "Descripción *"}
         value={descripcion}
@@ -1058,7 +1058,7 @@ export default function AnuncioForm({
       <Seccion>Contacto</Seccion>
 
       <input
-        className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+        className="w-full border border-stone-300 rounded-lg px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
         placeholder="Nombre de contacto *"
         value={nombreContacto}
         onChange={(e) => setNombreContacto(e.target.value)}
@@ -1102,7 +1102,7 @@ export default function AnuncioForm({
       {mostrarTelefono && (
         <div className="flex gap-2">
           <select
-            className="w-28 shrink-0 border border-stone-300 rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+            className="w-28 shrink-0 border border-stone-300 rounded-lg px-2 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
             value={prefijoTelefono}
             onChange={(e) => setPrefijoTelefono(e.target.value)}
             aria-label="Prefijo telefónico (obligatorio)"
@@ -1115,7 +1115,7 @@ export default function AnuncioForm({
             ))}
           </select>
           <input
-            className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+            className="w-full border border-stone-300 rounded-lg px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
             placeholder="Número de teléfono de contacto *"
             type="tel"
             inputMode="numeric"
