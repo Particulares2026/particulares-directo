@@ -10,7 +10,7 @@ export default async function Header() {
   } = await supabase.auth.getUser();
 
   return (
-    <header className="relative z-30 flex items-center justify-between border-b-2 border-fuchsia-100 bg-white/90 px-4 py-3 backdrop-blur md:px-8">
+    <header className="sticky top-0 z-30 flex items-center justify-between border-b-2 border-fuchsia-100 bg-white/90 px-4 py-3 backdrop-blur md:px-8">
       <Link href="/" aria-label="Ir a la portada" className="flex min-w-0 items-center gap-2 sm:gap-3">
         <svg
           viewBox="0 0 100 100"
