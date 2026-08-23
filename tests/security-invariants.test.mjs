@@ -89,6 +89,16 @@ test("el destacado gratuito conserva la rotación y el cobro desactivado", () =>
   assert.match(source, /PRECIOS_CENTIMOS[^=]*=\s*\{\}/s);
 });
 
+test("los destacados heredados se limitan sin alterar pagos ni rotaciones válidas", () => {
+  const migration = read("supabase/migrations/0037_normalizar_destacados_heredados.sql");
+
+  assert.match(migration, /destacado_hasta\\s*>\\s*statement_timestamp\\(\\)\\s*\\+\\s*interval '24 hours'/);
+  assert.match(migration, /not exists[\\s\\S]*public\\.pagos_destacados/);
+  assert.match(migration, /not exists[\\s\\S]*public\\.destacados_gratuitos/);
+  assert.match(migration, /insert into public\\.destacados_gratuitos/);
+  assert.match(migration, /set destacado_hasta\\s*=\\s*statement_timestamp\\(\\)\\s*\\+\\s*interval '24 hours'/);
+});
+
 test("las rutas privadas verifican al usuario antes de mostrar datos", () => {
   for (const relativePath of [
     "app/editar/[id]/page.tsx",
