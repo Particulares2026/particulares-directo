@@ -25,6 +25,7 @@ import { PREFIJOS_TELEFONO, parseTelefono } from "@/lib/telefono";
 import { comprimirImagen } from "@/lib/imagen";
 import AsistenteCurriculum from "@/components/AsistenteCurriculum";
 import AnuncioCard from "@/components/AnuncioCard";
+import { esEmpresaPorCantidad } from "@/lib/tipo-anunciante";
 
 const SelectorUbicacion = dynamic(() => import("@/components/mapa/SelectorUbicacion"), {
   ssr: false,
@@ -86,6 +87,7 @@ export default function AnuncioForm({
   defaultNombre,
   defaultTelefono,
   defaultEmail,
+  anunciosActivosCategoria = 0,
   anuncioExistente,
 }: {
   userId: string;
@@ -93,6 +95,7 @@ export default function AnuncioForm({
   defaultNombre: string;
   defaultTelefono: string;
   defaultEmail: string;
+  anunciosActivosCategoria?: number;
   anuncioExistente?: AnuncioExistente;
 }) {
   const router = useRouter();
@@ -424,6 +427,9 @@ export default function AnuncioForm({
     experiencia_trabajo: esTrabajo ? experienciaTrabajo || null : null,
     idiomas_trabajo: esTrabajo ? idiomasTrabajo : [],
     incorporacion: esTrabajo ? incorporacion || null : null,
+    es_empresa: esEmpresaPorCantidad(
+      esEdicion ? anunciosActivosCategoria : anunciosActivosCategoria + 1
+    ),
   };
 
   return (
@@ -432,6 +438,34 @@ export default function AnuncioForm({
       <p className="text-xs text-stone-500">
         <span className="font-semibold text-red-600" aria-hidden="true">*</span> Campos obligatorios
       </p>
+      {!esEdicion && (
+        <div
+          className={
+            "rounded-xl border px-4 py-3 text-sm " +
+            (anunciosActivosCategoria === 0
+              ? "border-teal-200 bg-teal-50 text-teal-900"
+              : "border-violet-200 bg-violet-50 text-violet-950")
+          }
+        >
+          {anunciosActivosCategoria === 0 ? (
+            <>
+              <p className="font-medium">👤 Este anuncio aparecerá como particular.</p>
+              <p className="mt-1 text-xs opacity-80">
+                Si publicas un segundo anuncio activo en esta categoría, pasarás a aparecer como empresa.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="font-medium">
+                🏢 Este será tu anuncio activo número {anunciosActivosCategoria + 1} en esta categoría.
+              </p>
+              <p className="mt-1 text-xs opacity-80">
+                Aparecerás como empresa. Publicar continúa siendo gratuito y no se realizará ningún cobro sin avisarte antes.
+              </p>
+            </>
+          )}
+        </div>
+      )}
       <div className="flex gap-2">
         <button
           type="button"
