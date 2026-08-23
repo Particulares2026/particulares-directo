@@ -640,3 +640,4 @@ export default function AnuncioCard({
     </div>
   );
 }
+
