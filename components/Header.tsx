@@ -57,6 +57,9 @@ export default async function Header() {
             <Link href="/mis-anuncios" className="text-stone-600 hover:text-fuchsia-700 hover:bg-fuchsia-50 rounded-lg px-2 py-1">
               Mis anuncios
             </Link>
+            <Link href="/mi-perfil" className="text-stone-600 hover:text-fuchsia-700 hover:bg-fuchsia-50 rounded-lg px-2 py-1">
+              👤 Perfil
+            </Link>
             <Link href="/favoritos" className="text-stone-600 hover:text-fuchsia-700 hover:bg-fuchsia-50 rounded-lg px-2 py-1">
               ❤ Favoritos
             </Link>
