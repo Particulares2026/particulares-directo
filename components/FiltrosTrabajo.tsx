@@ -23,9 +23,9 @@ function tokenize(text: string) {
 const POR_PAGINA = 20;
 
 const SELECT_CLASS =
-  "border border-stone-300 rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white max-w-full";
+  "min-h-11 w-full max-w-full rounded-lg border border-stone-300 bg-white px-2.5 py-2 text-base focus:outline-none focus:ring-2 focus:ring-teal-600 sm:w-auto sm:text-sm";
 const INPUT_CLASS =
-  "border border-stone-300 rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 w-full";
+  "min-h-11 w-full rounded-lg border border-stone-300 px-2.5 py-2 text-base focus:outline-none focus:ring-2 focus:ring-teal-600 sm:text-sm";
 
 const ORDEN_OPCIONES = [
   { valor: "relevancia", label: "Relevancia" },
@@ -188,7 +188,7 @@ export default function FiltrosTrabajo({
   return (
     <div>
       <input
-        className="w-full border border-stone-300 rounded-lg px-3 py-2.5 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent"
+        className="mb-3 min-h-11 w-full rounded-lg border border-stone-300 px-3 py-2.5 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent"
         placeholder="Busca por puesto, habilidad o ciudad"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
@@ -274,7 +274,7 @@ export default function FiltrosTrabajo({
               </select>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               <input
                 className={INPUT_CLASS}
                 placeholder="Salario mínimo €"

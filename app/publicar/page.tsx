@@ -26,7 +26,7 @@ export default async function PublicarPage({
         <p className="text-sm text-stone-500 mb-6">
           Elige primero en qué categoría quieres publicar.
         </p>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {CATEGORIAS_DESTACADAS.map((c) => (
             <Link
               key={c.slug}
