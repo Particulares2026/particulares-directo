@@ -87,7 +87,7 @@ export default async function CategoriaPage({
         ← Todas las categorías
       </Link>
 
-      <div className="flex flex-wrap items-center justify-between mt-2 mb-6 gap-2">
+      <div className="flex flex-wrap items-center justify-between mt-2 mb-2 gap-2">
         <h1 className="font-serif text-2xl">{nombreCategoria(slug)}</h1>
         <div className="flex items-center gap-2 flex-wrap">
           {slug === "inmobiliaria" && (
@@ -114,6 +114,9 @@ export default async function CategoriaPage({
           </Link>
         </div>
       </div>
+      <p className="mb-6 max-w-3xl text-sm text-stone-600">
+        {DESCRIPCIONES[slug] ?? "Anuncios de " + nombreCategoria(slug).toLowerCase() + " entre particulares."}
+      </p>
 
       {slug === "inmobiliaria" ? (
         <FiltrosInmobiliaria
