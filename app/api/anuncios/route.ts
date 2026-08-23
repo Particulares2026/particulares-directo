@@ -257,9 +257,13 @@ export async function POST(request: Request) {
     const nuevoPrecio = camposLimpios.precio as number | null | undefined;
     const precioCambiado =
       nuevoPrecio != null && existente.precio != null && nuevoPrecio !== existente.precio;
-    const updatePayload = precioCambiado
-      ? { ...camposLimpios, precio_anterior: existente.precio }
-      : camposLimpios;
+    const updatePayload = {
+      ...camposLimpios,
+      ...(precioCambiado ? { precio_anterior: existente.precio } : {}),
+      // Cualquier cambio de contenido debe revisarse de nuevo en moderación.
+      moderado_at: null,
+      moderado_por: null,
+    };
 
     const { error } = await admin.from("anuncios").update(updatePayload).eq("id", anuncioId);
     if (error) return NextResponse.json({ error: "No se pudo actualizar el anuncio." }, { status: 500 });
@@ -331,4 +335,3 @@ export async function DELETE(request: Request) {
 
   return NextResponse.json({ ok: true });
 }
-
