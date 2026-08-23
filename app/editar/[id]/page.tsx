@@ -26,6 +26,13 @@ export default async function EditarPage({
 
   if (!anuncio) notFound();
 
+  const { count: anunciosActivosCategoria } = await admin
+    .from("anuncios")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .eq("categoria", anuncio.categoria)
+    .eq("activo", true);
+
   return (
     <main className="max-w-6xl mx-auto px-4 md:px-8 py-10">
       <h1 className="font-serif text-xl mb-1">Editar anuncio</h1>
@@ -38,8 +45,10 @@ export default async function EditarPage({
         defaultNombre={(user.user_metadata as any)?.nombre || ""}
         defaultTelefono={(user.user_metadata as any)?.telefono || ""}
         defaultEmail={user.email || ""}
+        anunciosActivosCategoria={anunciosActivosCategoria || 0}
         anuncioExistente={anuncio}
       />
     </main>
   );
 }
+
