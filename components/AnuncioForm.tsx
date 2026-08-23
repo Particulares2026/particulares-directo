@@ -460,7 +460,7 @@ export default function AnuncioForm({
                 🏢 Este será tu anuncio activo número {anunciosActivosCategoria + 1} en esta categoría.
               </p>
               <p className="mt-1 text-xs opacity-80">
-                Aparecerás como empresa. Publicar continúa siendo gratuito y no se realizará ningún cobro sin avisarte antes.
+                Aparecerás como empresa. Publicar es gratuito.
               </p>
             </>
           )}
