@@ -25,6 +25,10 @@ const CAMPOS_HUELLA_DUPLICADO = [
   "precio",
 ] as const;
 
+type DatosHuellaDuplicado = Partial<
+  Record<(typeof CAMPOS_HUELLA_DUPLICADO)[number], unknown>
+>;
+
 const LIMITES_TEXTO: Record<string, number> = {
   categoria: 40,
   tipo: 20,
@@ -102,7 +106,7 @@ function normalizarParaHuella(valor: unknown) {
     .trim();
 }
 
-function huellaDuplicado(payload: Record<string, unknown>) {
+function huellaDuplicado(payload: DatosHuellaDuplicado) {
   return CAMPOS_HUELLA_DUPLICADO.map((campo) => normalizarParaHuella(payload[campo])).join("|");
 }
 
@@ -264,7 +268,7 @@ export async function POST(request: Request) {
 
     const { data: activosCategoria, error: activosError } = await admin
       .from("anuncios")
-      .select(CAMPOS_HUELLA_DUPLICADO.join(","))
+      .select("categoria,tipo,titulo,descripcion,ubicacion,provincia,municipio,operacion,tipo_inmueble,precio")
       .eq("user_id", user.id)
       .eq("categoria", payload.categoria as string)
       .eq("activo", true);
@@ -279,7 +283,7 @@ export async function POST(request: Request) {
     anunciosActivosCategoriaAntes = activosCategoria?.length || 0;
     const huellaNueva = huellaDuplicado(payload);
     const esDuplicado = (activosCategoria || []).some(
-      (anuncio) => huellaDuplicado(anuncio as Record<string, unknown>) === huellaNueva
+      (anuncio) => huellaDuplicado(anuncio) === huellaNueva
     );
     if (esDuplicado) {
       return NextResponse.json(
