@@ -4,10 +4,30 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { contieneContactoPublico, contieneContenidoProhibido } from "@/lib/moderacion";
 import { FOTOS_BUCKET, MAX_FOTOS, extraerPathStorage } from "@/lib/inmobiliaria";
+import { esEmpresaPorCantidad } from "@/lib/tipo-anunciante";
+import { esCategoriaValida } from "@/lib/categorias";
 
 const REMITENTE = "Particulares Directo <noreply@particularesdirecto.com>";
 const LIMITE_ANUNCIOS_POR_HORA = 5;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const TELEFONO_PERFIL = /^\+\d{1,4}\s\d{6,12}$/;
+
+const CAMPOS_HUELLA_DUPLICADO = [
+  "categoria",
+  "tipo",
+  "titulo",
+  "descripcion",
+  "ubicacion",
+  "provincia",
+  "municipio",
+  "operacion",
+  "tipo_inmueble",
+  "precio",
+] as const;
+
+type DatosHuellaDuplicado = Partial<
+  Record<(typeof CAMPOS_HUELLA_DUPLICADO)[number], unknown>
+>;
 
 const LIMITES_TEXTO: Record<string, number> = {
   categoria: 40,
@@ -77,6 +97,19 @@ function filtrarCamposPermitidos(payload: Record<string, unknown>) {
   return limpio;
 }
 
+function normalizarParaHuella(valor: unknown) {
+  return String(valor ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function huellaDuplicado(payload: DatosHuellaDuplicado) {
+  return CAMPOS_HUELLA_DUPLICADO.map((campo) => normalizarParaHuella(payload[campo])).join("|");
+}
+
 function validarPayload(
   payload: Record<string, unknown>,
   userId: string,
@@ -91,6 +124,12 @@ function validarPayload(
 
   if (typeof payload.titulo !== "string" || payload.titulo.trim().length < 5) {
     return "El título debe tener entre 5 y 120 caracteres.";
+  }
+  if (typeof payload.categoria !== "string" || !esCategoriaValida(payload.categoria)) {
+    return "La categoría del anuncio no es válida.";
+  }
+  if (payload.tipo !== "busco" && payload.tipo !== "ofrezco") {
+    return "El tipo de anuncio no es válido.";
   }
   if (typeof payload.nombre_contacto !== "string" || !payload.nombre_contacto.trim()) {
     return "Indica un nombre de contacto.";
@@ -169,6 +208,11 @@ function textoRechazo(titulo: string) {
 }
 
 export async function POST(request: Request) {
+  const origin = request.headers.get("origin");
+  if (origin && origin !== new URL(request.url).origin) {
+    return NextResponse.json({ error: "Solicitud no permitida." }, { status: 403 });
+  }
+
   const supabase = createClient();
   const {
     data: { user },
@@ -176,6 +220,14 @@ export async function POST(request: Request) {
 
   if (!user) {
     return NextResponse.json({ error: "No has iniciado sesión." }, { status: 401 });
+  }
+
+  const telefonoPerfil = (user.user_metadata as Record<string, unknown>)?.telefono;
+  if (typeof telefonoPerfil !== "string" || !TELEFONO_PERFIL.test(telefonoPerfil)) {
+    return NextResponse.json(
+      { error: "Completa el teléfono de tu perfil antes de publicar o editar un anuncio." },
+      { status: 422 }
+    );
   }
 
   const body = await request.json().catch(() => null);
@@ -199,6 +251,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: errorValidacion }, { status: 422 });
   }
 
+  let anunciosActivosCategoriaAntes = 0;
   if (!anuncioId) {
     const haceUnaHora = new Date(Date.now() - 60 * 60 * 1000).toISOString();
     const { count } = await admin
@@ -210,6 +263,32 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "Has publicado demasiados anuncios seguidos. Espera un rato antes de publicar otro." },
         { status: 429 }
+      );
+    }
+
+    const { data: activosCategoria, error: activosError } = await admin
+      .from("anuncios")
+      .select("categoria,tipo,titulo,descripcion,ubicacion,provincia,municipio,operacion,tipo_inmueble,precio")
+      .eq("user_id", user.id)
+      .eq("categoria", payload.categoria as string)
+      .eq("activo", true);
+
+    if (activosError) {
+      return NextResponse.json(
+        { error: "No se pudo comprobar tu cuenta. Inténtalo de nuevo en un momento." },
+        { status: 503 }
+      );
+    }
+
+    anunciosActivosCategoriaAntes = activosCategoria?.length || 0;
+    const huellaNueva = huellaDuplicado(payload);
+    const esDuplicado = (activosCategoria || []).some(
+      (anuncio) => huellaDuplicado(anuncio) === huellaNueva
+    );
+    if (esDuplicado) {
+      return NextResponse.json(
+        { error: "Ya tienes publicado un anuncio igual en esta categoría. Puedes editar el existente." },
+        { status: 409 }
       );
     }
   }
@@ -284,10 +363,21 @@ export async function POST(request: Request) {
   if (camposLimpios.precio != null) {
     await admin.from("historial_precios").insert({ anuncio_id: data.id, precio: camposLimpios.precio });
   }
-  return NextResponse.json({ ok: true, id: data.id });
+  const anunciosActivosCategoria = anunciosActivosCategoriaAntes + 1;
+  return NextResponse.json({
+    ok: true,
+    id: data.id,
+    anuncios_activos_categoria: anunciosActivosCategoria,
+    es_empresa: esEmpresaPorCantidad(anunciosActivosCategoria),
+  });
 }
 
 export async function DELETE(request: Request) {
+  const origin = request.headers.get("origin");
+  if (origin && origin !== new URL(request.url).origin) {
+    return NextResponse.json({ error: "Solicitud no permitida." }, { status: 403 });
+  }
+
   const supabase = createClient();
   const {
     data: { user },
@@ -335,4 +425,4 @@ export async function DELETE(request: Request) {
 
   return NextResponse.json({ ok: true });
 }
-
+
