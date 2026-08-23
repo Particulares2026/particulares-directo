@@ -69,55 +69,72 @@ export default function RegistroPage() {
       <span className="text-3xl">✨</span>
       <h1 className="font-serif text-xl mt-2 mb-1">Crear cuenta</h1>
       <p className="text-sm text-stone-500 mb-6">
-        Con tu correo y una contraseña podrás publicar y gestionar tus propios anuncios.
+        El correo y el teléfono son obligatorios para proteger la confianza entre anunciantes.
       </p>
       <form onSubmit={submit} className="space-y-3">
-        <input
-          className="w-full border border-stone-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent"
-          placeholder="Tu nombre"
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
-          required
-        />
-        <div className="flex gap-2">
-          <select
-            className="w-28 shrink-0 border border-stone-300 rounded-lg px-2 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
-            value={prefijoTelefono}
-            onChange={(e) => setPrefijoTelefono(e.target.value)}
-            required
-          >
-            {PREFIJOS_TELEFONO.map((p) => (
-              <option key={p.codigo} value={p.codigo}>
-                {p.codigo} {p.pais}
-              </option>
-            ))}
-          </select>
+        <label className="block text-sm text-stone-700">
+          <span className="block mb-1 font-medium">Nombre <span className="text-red-600">*</span></span>
           <input
             className="w-full border border-stone-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent"
-            placeholder="Número de teléfono"
-            type="tel"
-            inputMode="numeric"
-            pattern="\d{6,12}"
-            value={numeroTelefono}
-            onChange={(e) => setNumeroTelefono(e.target.value.replace(/[^0-9]/g, ""))}
+            placeholder="Tu nombre"
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
             required
           />
-        </div>
-        <input
-          className="w-full border border-stone-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent"
-          placeholder="Correo electrónico"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <CampoPassword
-          value={password}
-          onChange={setPassword}
-          placeholder="Contraseña (mínimo 10 caracteres)"
-          minLength={10}
-          required
-        />
+        </label>
+        <fieldset>
+          <legend className="mb-1 text-sm font-medium text-stone-700">
+            Teléfono <span className="text-red-600">*</span>
+          </legend>
+          <div className="flex gap-2">
+            <select
+              aria-label="Prefijo telefónico"
+              className="w-28 shrink-0 border border-stone-300 rounded-lg px-2 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+              value={prefijoTelefono}
+              onChange={(e) => setPrefijoTelefono(e.target.value)}
+              required
+            >
+              {PREFIJOS_TELEFONO.map((p) => (
+                <option key={p.codigo} value={p.codigo}>
+                  {p.codigo} {p.pais}
+                </option>
+              ))}
+            </select>
+            <input
+              aria-label="Número de teléfono"
+              className="w-full border border-stone-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent"
+              placeholder="Número de teléfono"
+              type="tel"
+              inputMode="numeric"
+              pattern="\d{6,12}"
+              value={numeroTelefono}
+              onChange={(e) => setNumeroTelefono(e.target.value.replace(/[^0-9]/g, ""))}
+              required
+            />
+          </div>
+          <p className="mt-1 text-xs text-stone-500">No se mostrará en un anuncio salvo que tú lo elijas.</p>
+        </fieldset>
+        <label className="block text-sm text-stone-700">
+          <span className="block mb-1 font-medium">Correo electrónico <span className="text-red-600">*</span></span>
+          <input
+            className="w-full border border-stone-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent"
+            placeholder="Correo electrónico"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </label>
+        <label className="block text-sm text-stone-700">
+          <span className="block mb-1 font-medium">Contraseña <span className="text-red-600">*</span></span>
+          <CampoPassword
+            value={password}
+            onChange={setPassword}
+            placeholder="Mínimo 10 caracteres"
+            minLength={10}
+            required
+          />
+        </label>
         <label className="flex items-start gap-2 text-sm text-stone-600">
           <input
             type="checkbox"
