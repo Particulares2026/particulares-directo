@@ -26,7 +26,7 @@ const ETIQUETAS_CARACTERISTICAS_LEGACY: Record<string, string> = {
   incorporacion_inmediata: "Incorporación inmediata",
 };
 
-type Anuncio = {
+export type Anuncio = {
   id: string;
   categoria: string;
   tipo: "busco" | "ofrezco";
@@ -64,6 +64,8 @@ type Anuncio = {
   experiencia_trabajo?: string | null;
   idiomas_trabajo?: string[];
   incorporacion?: string | null;
+  created_at?: string;
+  es_empresa?: boolean;
 };
 
 export default function AnuncioCard({
@@ -71,11 +73,13 @@ export default function AnuncioCard({
   isOwner,
   esFavorito,
   onToggleFavorito,
+  modoDetalle = false,
 }: {
   anuncio: Anuncio;
   isOwner: boolean;
   esFavorito?: boolean;
   onToggleFavorito?: () => void;
+  modoDetalle?: boolean;
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -195,11 +199,15 @@ export default function AnuncioCard({
   };
 
   const compartirWhatsApp = () => {
+    const urlAnuncio =
+      anuncio.id === "preview"
+        ? `https://www.particularesdirecto.com/categoria/${anuncio.categoria}`
+        : `https://www.particularesdirecto.com/anuncio/${anuncio.id}`;
     const partes = [
       anuncio.titulo,
       [anuncio.provincia, anuncio.municipio, anuncio.ubicacion].filter(Boolean).join(", "),
       anuncio.precio != null ? `${anuncio.precio.toLocaleString("es-ES")} €` : null,
-      `Ver más en https://particularesdirecto.com/categoria/${anuncio.categoria}`,
+      `Ver anuncio: ${urlAnuncio}`,
     ].filter(Boolean);
     const texto = partes.join("\n");
     window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, "_blank", "noopener,noreferrer");
@@ -210,9 +218,12 @@ export default function AnuncioCard({
   const esInmobiliaria = anuncio.categoria === "inmobiliaria";
   const esTrabajo = anuncio.categoria === "trabajo";
   const destacado = estaDestacado(anuncio.destacado_hasta);
+  const esEmpresa = anuncio.es_empresa === true;
   const colorCat = colorCategoria(anuncio.categoria);
 
-  const claseColor = esTrabajo
+  const claseColor = esEmpresa
+    ? "border-violet-400 bg-violet-50/80"
+    : esTrabajo
     ? esOferta
       ? "border-green-300 bg-green-50"
       : "border-blue-300 bg-blue-50"
@@ -223,7 +234,7 @@ export default function AnuncioCard({
   return (
     <div
       className={
-        (esTrabajo ? "rounded-2xl p-4 border-2 " : "rounded-2xl p-4 border ") +
+        (esTrabajo || esEmpresa ? "rounded-2xl p-4 border-2 " : "rounded-2xl p-4 border ") +
         claseColor +
         " shadow-sm hover:shadow-md transition-shadow duration-200" +
         (destacado && esTrabajo ? " ring-2 ring-amber-400 ring-offset-1" : "")
@@ -237,6 +248,16 @@ export default function AnuncioCard({
                 ★ Destacado
               </span>
             )}
+            <span
+              className={
+                "text-xs font-medium px-2 py-0.5 rounded-full border " +
+                (esEmpresa
+                  ? "bg-violet-100 text-violet-800 border-violet-300"
+                  : "bg-white/80 text-stone-600 border-stone-300")
+              }
+            >
+              {esEmpresa ? "🏢 Empresa" : "👤 Particular"}
+            </span>
             <span
               className={
                 "text-xs font-medium px-2 py-0.5 rounded-full border " +
@@ -282,7 +303,20 @@ export default function AnuncioCard({
               </span>
             )}
           </div>
-          <p className="font-medium text-stone-900 mt-1.5">{anuncio.titulo}</p>
+          {modoDetalle ? (
+            <h1 className="font-serif text-2xl md:text-3xl text-stone-900 mt-2">
+              {anuncio.titulo}
+            </h1>
+          ) : anuncio.id === "preview" ? (
+            <p className="font-medium text-stone-900 mt-1.5">{anuncio.titulo}</p>
+          ) : (
+            <Link
+              href={`/anuncio/${anuncio.id}`}
+              className="block font-medium text-stone-900 mt-1.5 hover:text-teal-700"
+            >
+              {anuncio.titulo}
+            </Link>
+          )}
           {(anuncio.provincia || anuncio.municipio || anuncio.ubicacion) && (
             <p className="text-sm text-stone-500">
               {[anuncio.provincia, anuncio.municipio, anuncio.ubicacion].filter(Boolean).join(" · ")}
@@ -353,7 +387,7 @@ export default function AnuncioCard({
               >
                 <img
                   src={url}
-                  alt=""
+                  alt={`${anuncio.titulo}, foto ${i + 1}`}
                   loading="lazy"
                   className="h-28 w-28 object-cover rounded-lg border border-stone-200"
                 />
@@ -363,7 +397,7 @@ export default function AnuncioCard({
           {fotoAmpliada && (
             <img
               src={fotoAmpliada}
-              alt=""
+              alt={`${anuncio.titulo}, vista ampliada`}
               className="pointer-events-none absolute left-0 top-0 z-20 w-56 h-56 max-w-[75vw] max-h-[75vw] object-cover rounded-lg border border-stone-300 shadow-lg"
             />
           )}
@@ -542,6 +576,15 @@ export default function AnuncioCard({
           )}
       </p>
 
+      {!modoDetalle && anuncio.id !== "preview" && (
+        <Link
+          href={`/anuncio/${anuncio.id}`}
+          className="inline-flex mt-3 text-sm font-medium text-teal-700 hover:text-teal-800 hover:underline"
+        >
+          Ver anuncio completo →
+        </Link>
+      )}
+
       {isOwner && (
         <div className="flex flex-wrap gap-3 mt-2 pt-2 border-t border-stone-100">
           {anuncio.activo !== false && (
@@ -597,4 +640,3 @@ export default function AnuncioCard({
     </div>
   );
 }
-
