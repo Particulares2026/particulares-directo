@@ -607,7 +607,7 @@ create policy "Los usuarios crean sus propias alertas"
   to authenticated
   with check (
     (select auth.uid()) = user_id
-    and lower(email) = (select lower(auth.jwt() ->> 'email'))
+    and lower(email) = lower(((select auth.jwt()) ->> 'email'))
   );
 
 -- Historial privado para rotar los destacados gratuitos. Cada anuncio puede
