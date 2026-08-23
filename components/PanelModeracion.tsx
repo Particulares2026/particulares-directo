@@ -112,7 +112,7 @@ export default function PanelModeracion({
               className="w-full h-32 object-cover rounded-lg mb-3 border border-stone-100"
             />
           )}
-          <div className="flex items-start justify-between gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap mb-1">
                 <span className="text-xs px-2 py-0.5 rounded-full border bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200">
@@ -137,11 +137,11 @@ export default function PanelModeracion({
                   </span>
                 )}
               </div>
-              <p className="font-medium text-stone-900">{a.titulo}</p>
+              <p className="break-words font-medium text-stone-900">{a.titulo}</p>
               {a.descripcion && (
                 <p className="text-sm text-stone-600 mt-1 line-clamp-3">{a.descripcion}</p>
               )}
-              <p className="text-xs text-stone-400 mt-1.5">
+              <p className="mt-1.5 break-all text-xs text-stone-400 sm:break-normal">
                 {a.nombre_contacto}
                 {a.telefono_contacto ? ` · ${a.telefono_contacto}` : ""}
                 {a.email_contacto ? ` · ${a.email_contacto}` : ""}
@@ -153,21 +153,21 @@ export default function PanelModeracion({
                 {a.anuncios_activos_categoria} {a.anuncios_activos_categoria === 1 ? "anuncio activo" : "anuncios activos"} en esta categoría
               </p>
             </div>
-            <div className="flex flex-col items-end gap-2 shrink-0">
+            <div className="flex w-full flex-row flex-wrap items-center justify-end gap-2 sm:w-auto sm:shrink-0 sm:flex-col sm:items-end">
               <button
                 onClick={() => aceptar(a.id)}
                 disabled={procesando === a.id}
-                className="text-xs font-medium text-white bg-teal-600 hover:bg-teal-700 rounded-lg px-3 py-1.5 disabled:opacity-40"
+                className="inline-flex min-h-10 items-center rounded-lg bg-teal-600 px-4 text-xs font-medium text-white hover:bg-teal-700 disabled:opacity-40"
               >
                 {procesando === a.id ? "Procesando…" : "Aceptar"}
               </button>
-              <Link href={`/anuncio/${a.id}`} target="_blank" className="text-xs text-teal-700 hover:underline">
+              <Link href={`/anuncio/${a.id}`} target="_blank" className="inline-flex min-h-10 items-center rounded-lg px-2 text-xs text-teal-700 hover:bg-teal-50 hover:underline">
                 Ver anuncio
               </Link>
               <button
                 onClick={() => eliminar(a.id, a.titulo)}
                 disabled={procesando === a.id}
-                className="text-xs text-red-600 hover:underline disabled:opacity-40"
+                className="inline-flex min-h-10 items-center rounded-lg px-2 text-xs text-red-600 hover:bg-red-50 hover:underline disabled:opacity-40"
               >
                 Eliminar
               </button>
