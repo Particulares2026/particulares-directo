@@ -5,7 +5,7 @@ import { esAdmin } from "@/lib/admin";
 import { FOTOS_BUCKET, extraerPathStorage } from "@/lib/inmobiliaria";
 
 export async function POST(request: Request) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

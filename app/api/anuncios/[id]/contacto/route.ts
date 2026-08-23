@@ -13,8 +13,9 @@ function jsonPrivado(body: Record<string, unknown>, status = 200) {
   });
 }
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
-  if (!UUID.test(params.id)) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  if (!UUID.test(id)) {
     return jsonPrivado({ error: "Anuncio no válido." }, 400);
   }
 
@@ -38,7 +39,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
       .from("revelaciones_contacto")
       .select("id", { count: "exact", head: true })
       .eq("ip", ip)
-      .eq("anuncio_id", params.id)
+      .eq("anuncio_id", id)
       .gte("created_at", desde),
   ]);
 
@@ -55,7 +56,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
   const { data: anuncio } = await admin
     .from("anuncios")
     .select("telefono_contacto, email_contacto, mostrar_telefono, mostrar_email")
-    .eq("id", params.id)
+    .eq("id", id)
     .eq("activo", true)
     .single();
 
@@ -65,7 +66,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 
   const { error: errorRegistro } = await admin
     .from("revelaciones_contacto")
-    .insert({ ip, anuncio_id: params.id });
+    .insert({ ip, anuncio_id: id });
   if (errorRegistro) {
     return jsonPrivado({ error: "No se pudo registrar la petición de forma segura." }, 503);
   }

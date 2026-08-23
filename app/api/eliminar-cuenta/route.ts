@@ -4,7 +4,7 @@ import { createClient as createAdminSupabase } from "@supabase/supabase-js";
 import { FOTOS_BUCKET, extraerPathStorage } from "@/lib/inmobiliaria";
 
 export async function POST() {
-  const supabase = createServerSupabase();
+  const supabase = await createServerSupabase();
   const {
     data: { user },
   } = await supabase.auth.getUser();

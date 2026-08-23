@@ -213,7 +213,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Solicitud no permitida." }, { status: 403 });
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -378,7 +378,7 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "Solicitud no permitida." }, { status: 403 });
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -425,4 +425,3 @@ export async function DELETE(request: Request) {
 
   return NextResponse.json({ ok: true });
 }
-

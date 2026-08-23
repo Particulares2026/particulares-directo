@@ -17,12 +17,13 @@ const DESCRIPCIONES: Record<string, string> = {
   trabajo: "Ofertas y búsquedas de empleo publicadas directamente por particulares y pequeños negocios.",
 };
 
-export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
-  if (!esCategoriaValida(params.slug)) return {};
-  const titulo = nombreCategoria(params.slug);
-  const descripcion = DESCRIPCIONES[params.slug] ?? `Anuncios de ${titulo.toLowerCase()} entre particulares.`;
-  const indexable = CATEGORIAS.find((categoria) => categoria.slug === params.slug)?.destacada === true;
-  const canonical = `${SITE_URL}/categoria/${params.slug}`;
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  if (!esCategoriaValida(slug)) return {};
+  const titulo = nombreCategoria(slug);
+  const descripcion = DESCRIPCIONES[slug] ?? `Anuncios de ${titulo.toLowerCase()} entre particulares.`;
+  const indexable = CATEGORIAS.find((categoria) => categoria.slug === slug)?.destacada === true;
+  const canonical = `${SITE_URL}/categoria/${slug}`;
 
   return {
     title: titulo,
@@ -43,11 +44,12 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
 export default async function CategoriaPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  if (!esCategoriaValida(params.slug)) notFound();
+  const { slug } = await params;
+  if (!esCategoriaValida(slug)) notFound();
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const {
     data: { user },
@@ -56,7 +58,7 @@ export default async function CategoriaPage({
   const { data: anuncios } = await supabase
     .from("anuncios")
     .select(CAMPOS_PUBLICOS_ANUNCIO)
-    .eq("categoria", params.slug)
+    .eq("categoria", slug)
     .eq("activo", true)
     .order("created_at", { ascending: false })
     .limit(500);
@@ -86,9 +88,9 @@ export default async function CategoriaPage({
       </Link>
 
       <div className="flex flex-wrap items-center justify-between mt-2 mb-6 gap-2">
-        <h1 className="font-serif text-2xl">{nombreCategoria(params.slug)}</h1>
+        <h1 className="font-serif text-2xl">{nombreCategoria(slug)}</h1>
         <div className="flex items-center gap-2 flex-wrap">
-          {params.slug === "inmobiliaria" && (
+          {slug === "inmobiliaria" && (
             <>
               <Link
                 href="/calculadora-hipoteca"
@@ -105,7 +107,7 @@ export default async function CategoriaPage({
             </>
           )}
           <Link
-            href={`/publicar?categoria=${params.slug}`}
+            href={`/publicar?categoria=${slug}`}
             className="text-sm bg-gradient-to-r from-fuchsia-600 to-pink-600 text-white px-3 py-1.5 rounded-full hover:from-fuchsia-700 hover:to-pink-700 shadow-sm"
           >
             Publicar anuncio
@@ -113,14 +115,14 @@ export default async function CategoriaPage({
         </div>
       </div>
 
-      {params.slug === "inmobiliaria" ? (
+      {slug === "inmobiliaria" ? (
         <FiltrosInmobiliaria
           anuncios={anunciosOrdenados}
           currentUserId={user?.id ?? null}
           userEmail={user?.email ?? null}
           favoritosIniciales={favoritosIniciales}
         />
-      ) : params.slug === "trabajo" ? (
+      ) : slug === "trabajo" ? (
         <FiltrosTrabajo
           anuncios={anunciosOrdenados}
           currentUserId={user?.id ?? null}

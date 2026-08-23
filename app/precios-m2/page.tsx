@@ -17,7 +17,7 @@ type Fila = {
 };
 
 export default async function PreciosM2Page() {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { data: anuncios } = await supabase
     .from("anuncios")

@@ -4,7 +4,7 @@ import { nombreCategoria } from "@/lib/categorias";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function MiPerfilPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -84,4 +84,3 @@ export default async function MiPerfilPage() {
     </main>
   );
 }
-

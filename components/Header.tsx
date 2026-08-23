@@ -5,7 +5,7 @@ import LogoutButton from "./LogoutButton";
 import BuzonSugerencias from "./BuzonSugerencias";
 
 export default async function Header() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

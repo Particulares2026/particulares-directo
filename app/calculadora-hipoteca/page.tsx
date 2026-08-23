@@ -6,12 +6,13 @@ export const metadata = {
   description: "Calcula la cuota mensual estimada de una hipoteca según el precio, la entrada, el plazo y el interés.",
 };
 
-export default function CalculadoraHipotecaPage({
+export default async function CalculadoraHipotecaPage({
   searchParams,
 }: {
-  searchParams: { precio?: string };
+  searchParams: Promise<{ precio?: string }>;
 }) {
-  const precioInicial = searchParams.precio ? Number(searchParams.precio) : null;
+  const resolvedSearchParams = await searchParams;
+  const precioInicial = resolvedSearchParams.precio ? Number(resolvedSearchParams.precio) : null;
 
   return (
     <main className="max-w-md mx-auto px-4 py-10">
