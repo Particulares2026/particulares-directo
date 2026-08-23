@@ -25,6 +25,9 @@ export default async function MisAnunciosPage({
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
   const anunciosConTipo = marcarTipoAnunciante(anuncios || []);
+  const telefonoPerfil = (user.user_metadata as Record<string, unknown>)?.telefono;
+  const perfilSinTelefono =
+    typeof telefonoPerfil !== "string" || !/^\+\d{1,4}\s\d{6,12}$/.test(telefonoPerfil);
 
   return (
     <main className="max-w-[1600px] mx-auto px-4 md:px-8 xl:px-12 py-8">
@@ -47,6 +50,18 @@ export default async function MisAnunciosPage({
         <p className="text-sm text-stone-500 bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 mb-4">
           Has cancelado el pago, tu anuncio sigue como estaba.
         </p>
+      )}
+
+      {perfilSinTelefono && (
+        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <p className="font-medium">Completa el teléfono de tu cuenta</p>
+          <p className="mt-0.5 text-amber-800/80">
+            Tu cuenta es anterior a este requisito. Añádelo para que tus próximos anuncios tengan los datos correctos.
+          </p>
+          <Link href="/mi-perfil" className="mt-2 inline-flex font-medium text-amber-900 underline">
+            Completar mi perfil
+          </Link>
+        </div>
       )}
 
       {anunciosConTipo.length === 0 && (
