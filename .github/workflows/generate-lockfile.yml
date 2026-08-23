@@ -25,15 +25,15 @@ jobs:
         with:
           node-version: 22
 
-      - name: Generar el archivo de versiones exactas si falta
+      - name: Actualizar el archivo de versiones exactas
         shell: bash
         run: |
-          if [ ! -f package-lock.json ]; then
-            npm install --package-lock-only --ignore-scripts
+          npm install --package-lock-only --ignore-scripts
+          if ! git diff --quiet -- package-lock.json; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add package-lock.json
-            git commit -m "Fija las versiones exactas de las dependencias"
+            git commit -m "Actualiza las versiones exactas de las dependencias"
             git push origin HEAD:${{ github.event.pull_request.head.ref }}
           fi
 
@@ -43,5 +43,5 @@ jobs:
       - name: Ejecutar las pruebas
         run: npm test
 
-      - name: Comprobar vulnerabilidades críticas de producción
-        run: npm audit --omit=dev --audit-level=critical
+      - name: Bloquear vulnerabilidades altas o críticas de producción
+        run: npm audit --omit=dev --audit-level=high
