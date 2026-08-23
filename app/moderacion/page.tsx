@@ -10,7 +10,7 @@ import {
 } from "@/lib/tipo-anunciante";
 
 export default async function ModeracionPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -72,4 +72,3 @@ export default async function ModeracionPage() {
     </main>
   );
 }
-

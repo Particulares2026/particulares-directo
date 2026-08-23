@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { use, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -11,8 +11,9 @@ import { traducirErrorAuth } from "@/lib/errores-auth";
 export default function LoginPage({
   searchParams,
 }: {
-  searchParams?: { enlace?: string };
+  searchParams: Promise<{ enlace?: string }>;
 }) {
+  const resolvedSearchParams = use(searchParams);
   const supabase = createClient();
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -21,7 +22,7 @@ export default function LoginPage({
   const [captchaResetKey, setCaptchaResetKey] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(
-    searchParams?.enlace === "invalido"
+    resolvedSearchParams.enlace === "invalido"
       ? "El enlace de confirmación no es válido o ha caducado."
       : null
   );
@@ -99,4 +100,3 @@ export default function LoginPage({
     </main>
   );
 }
-

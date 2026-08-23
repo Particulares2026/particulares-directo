@@ -7,9 +7,10 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export default async function EditarPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const supabase = createClient();
+  const { id } = await params;
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -20,7 +21,7 @@ export default async function EditarPage({
   const { data: anuncio } = await admin
     .from("anuncios")
     .select("*")
-    .eq("id", params.id)
+    .eq("id", id)
     .eq("user_id", user.id)
     .single();
 
@@ -51,4 +52,3 @@ export default async function EditarPage({
     </main>
   );
 }
-

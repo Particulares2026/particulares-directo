@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { use, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { traducirErrorAuth } from "@/lib/errores-auth";
@@ -9,14 +9,15 @@ import Turnstile from "@/components/Turnstile";
 export default function OlvidePasswordPage({
   searchParams,
 }: {
-  searchParams?: { enlace?: string };
+  searchParams: Promise<{ enlace?: string }>;
 }) {
+  const resolvedSearchParams = use(searchParams);
   const supabase = createClient();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(
-    searchParams?.enlace === "invalido"
+    resolvedSearchParams.enlace === "invalido"
       ? "El enlace no es válido o ha caducado. Solicita uno nuevo."
       : null
   );
@@ -88,4 +89,3 @@ export default function OlvidePasswordPage({
     </main>
   );
 }
-

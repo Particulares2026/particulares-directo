@@ -9,9 +9,10 @@ import { marcarTipoAnunciante } from "@/lib/tipo-anunciante";
 export default async function MisAnunciosPage({
   searchParams,
 }: {
-  searchParams: { destacado?: string };
+  searchParams: Promise<{ destacado?: string }>;
 }) {
-  const supabase = createClient();
+  const resolvedSearchParams = await searchParams;
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -41,12 +42,12 @@ export default async function MisAnunciosPage({
         </Link>
       </div>
 
-      {searchParams.destacado === "ok" && (
+      {resolvedSearchParams.destacado === "ok" && (
         <p className="text-sm text-teal-700 bg-teal-50 border border-teal-200 rounded-lg px-3 py-2 mb-4">
           Tu anuncio ya está destacado durante 24 horas.
         </p>
       )}
-      {searchParams.destacado === "cancelado" && (
+      {resolvedSearchParams.destacado === "cancelado" && (
         <p className="text-sm text-stone-500 bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 mb-4">
           La operación se ha cancelado y tu anuncio sigue como estaba.
         </p>

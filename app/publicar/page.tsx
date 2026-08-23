@@ -7,16 +7,17 @@ import { CATEGORIAS_DESTACADAS, esCategoriaValida, nombreCategoria } from "@/lib
 export default async function PublicarPage({
   searchParams,
 }: {
-  searchParams: { categoria?: string };
+  searchParams: Promise<{ categoria?: string }>;
 }) {
-  const supabase = createClient();
+  const resolvedSearchParams = await searchParams;
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) redirect("/login");
 
-  const categoria = searchParams.categoria;
+  const categoria = resolvedSearchParams.categoria;
 
   if (!categoria || !esCategoriaValida(categoria)) {
     return (
@@ -64,4 +65,3 @@ export default async function PublicarPage({
     </main>
   );
 }
-

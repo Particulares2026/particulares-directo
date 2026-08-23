@@ -4,7 +4,7 @@ import GestorFavoritos from "@/components/GestorFavoritos";
 import { CAMPOS_PUBLICOS_ANUNCIO } from "@/lib/anuncios";
 
 export default async function FavoritosPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

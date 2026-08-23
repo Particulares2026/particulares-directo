@@ -10,7 +10,7 @@ import { createClient } from "@/lib/supabase/server";
 const SITE_URL = "https://www.particularesdirecto.com";
 
 const obtenerAnuncio = cache(async (id: string) => {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("anuncios")
     .select(CAMPOS_PUBLICOS_ANUNCIO)
@@ -27,8 +27,9 @@ function descripcionSeo(anuncio: NonNullable<Awaited<ReturnType<typeof obtenerAn
   return base.replace(/\s+/g, " ").slice(0, 160);
 }
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const anuncio = await obtenerAnuncio(params.id);
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const anuncio = await obtenerAnuncio(id);
   if (!anuncio) return { title: "Anuncio no encontrado", robots: { index: false, follow: false } };
 
   const canonical = `${SITE_URL}/anuncio/${anuncio.id}`;
@@ -58,11 +59,12 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   };
 }
 
-export default async function AnuncioPage({ params }: { params: { id: string } }) {
-  const anuncio = await obtenerAnuncio(params.id);
+export default async function AnuncioPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const anuncio = await obtenerAnuncio(id);
   if (!anuncio) notFound();
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { count: anunciosActivosMismaCategoria } = await supabase
     .from("anuncios")
     .select("id", { count: "exact", head: true })

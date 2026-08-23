@@ -11,7 +11,7 @@ import {
 } from "@/lib/destacar";
 
 export async function POST(request: Request) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -137,4 +137,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No se pudo iniciar el pago." }, { status: 502 });
   }
 }
-
