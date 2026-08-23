@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import AnuncioCard from "@/components/AnuncioCard";
 import EliminarCuentaButton from "@/components/EliminarCuentaButton";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { marcarTipoAnunciante } from "@/lib/tipo-anunciante";
 
 export default async function MisAnunciosPage({
   searchParams,
@@ -23,6 +24,7 @@ export default async function MisAnunciosPage({
     .select("*")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
+  const anunciosConTipo = marcarTipoAnunciante(anuncios || []);
 
   return (
     <main className="max-w-[1600px] mx-auto px-4 md:px-8 xl:px-12 py-8">
@@ -47,14 +49,14 @@ export default async function MisAnunciosPage({
         </p>
       )}
 
-      {(!anuncios || anuncios.length === 0) && (
+      {anunciosConTipo.length === 0 && (
         <p className="text-sm text-stone-400 py-10 text-center">
           Todavía no has publicado ningún anuncio.
         </p>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3">
-        {anuncios?.map((a) => (
+        {anunciosConTipo.map((a) => (
           <AnuncioCard key={a.id} anuncio={a} isOwner={true} />
         ))}
       </div>

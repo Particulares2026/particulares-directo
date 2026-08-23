@@ -1,5 +1,10 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { CATEGORIAS_DESTACADAS, colorCategoria } from "@/lib/categorias";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "https://www.particularesdirecto.com" },
+};
 
 export default function HomePage() {
   return (

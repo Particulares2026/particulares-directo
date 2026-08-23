@@ -7,7 +7,18 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/mis-anuncios", "/editar", "/api"],
+      disallow: [
+        "/api",
+        "/editar",
+        "/favoritos",
+        "/login",
+        "/mis-anuncios",
+        "/moderacion",
+        "/olvide-password",
+        "/publicar",
+        "/registro",
+        "/restablecer-password",
+      ],
     },
     sitemap: `${SITE_URL}/sitemap.xml`,
   };

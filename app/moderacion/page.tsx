@@ -15,7 +15,9 @@ export default async function ModeracionPage() {
   const admin = createAdminClient();
   const { data: anuncios } = await admin
     .from("anuncios")
-    .select("id, titulo, descripcion, categoria, tipo, nombre_contacto, telefono_contacto, email_contacto, activo, created_at")
+    .select("id, titulo, descripcion, categoria, tipo, nombre_contacto, telefono_contacto, email_contacto, activo, created_at, fotos")
+    .is("moderado_at", null)
+    .eq("activo", true)
     .order("created_at", { ascending: false })
     .limit(100);
 
@@ -23,7 +25,7 @@ export default async function ModeracionPage() {
     <main className="max-w-[1600px] mx-auto px-4 md:px-8 xl:px-12 py-8">
       <h1 className="font-serif text-2xl mb-1">🛡️ Moderación</h1>
       <p className="text-sm text-stone-500 mb-6">
-        Los 100 anuncios más recientes de todas las categorías, para revisarlos rápido.
+        Anuncios pendientes de revisión. Al aceptar uno desaparecerá de esta lista.
       </p>
       <PanelModeracion anunciosIniciales={anuncios || []} />
     </main>
