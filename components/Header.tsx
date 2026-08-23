@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { esAdmin } from "@/lib/admin";
 import HeaderNav from "./HeaderNav";
@@ -10,7 +11,7 @@ export default async function Header() {
 
   return (
     <header className="relative z-30 flex items-center justify-between border-b-2 border-fuchsia-100 bg-white/90 px-4 py-3 backdrop-blur md:px-8">
-      <a href="/" aria-label="Ir a la portada" className="flex min-w-0 items-center gap-2 sm:gap-3">
+      <Link href="/" aria-label="Ir a la portada" className="flex min-w-0 items-center gap-2 sm:gap-3">
         <svg
           viewBox="0 0 100 100"
           className="h-10 w-10 shrink-0 sm:h-14 sm:w-14"
@@ -41,7 +42,7 @@ export default async function Header() {
         <span className="truncate font-sans text-lg font-bold tracking-tight sm:text-2xl">
           Particulares Directo
         </span>
-      </a>
+      </Link>
       <HeaderNav
         authenticated={Boolean(user)}
         email={user?.email ?? null}
