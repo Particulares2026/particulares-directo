@@ -20,11 +20,12 @@ test("el entorno principal usa versiones mantenidas y reproducibles", () => {
   const packageJson = JSON.parse(read("package.json"));
 
   assert.equal(packageJson.engines.node, "22.x");
-  assert.equal(packageJson.dependencies.next, "15.5.21");
+  assert.equal(packageJson.dependencies.next, "16.3.2");
   assert.equal(packageJson.dependencies.react, "19.2.7");
   assert.equal(packageJson.dependencies["react-dom"], "19.2.7");
   assert.equal(packageJson.dependencies["react-leaflet"], "5.0.0");
   assert.match(packageJson.scripts.build, /npm test/);
+  assert.doesNotMatch(packageJson.scripts.lint, /next lint/);
 });
 
 test("Next.js mantiene las cabeceras defensivas esenciales", () => {
@@ -60,10 +61,14 @@ test("ningún componente de navegador contiene secretos de servidor", () => {
   }
 });
 
-test("la sesión de servidor usa la API asíncrona de Next.js 15", () => {
+test("la sesión de servidor usa las API asíncronas y el proxy de Next.js 16", () => {
   const source = read("lib/supabase/server.ts");
+  const proxy = read("proxy.ts");
+
   assert.match(source, /export async function createClient/);
   assert.match(source, /await cookies\(\)/);
+  assert.match(proxy, /export async function proxy/);
+  assert.match(proxy, /await supabase\.auth\.getUser\(\)/);
 
   for (const relativePath of [...sourceFiles("app"), ...sourceFiles("components")]) {
     const routeSource = read(relativePath);
