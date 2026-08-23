@@ -64,6 +64,16 @@ test("la sesión de servidor usa la API asíncrona de Next.js 15", () => {
   const source = read("lib/supabase/server.ts");
   assert.match(source, /export async function createClient/);
   assert.match(source, /await cookies\(\)/);
+
+  for (const relativePath of [...sourceFiles("app"), ...sourceFiles("components")]) {
+    const routeSource = read(relativePath);
+    if (!routeSource.includes("@/lib/supabase/server")) continue;
+    assert.equal(
+      /(?<!await )createClient\(\)/.test(routeSource),
+      false,
+      `${relativePath} no espera al cliente de servidor`
+    );
+  }
 });
 
 test("el destacado gratuito conserva la rotación y el cobro desactivado", () => {
