@@ -48,7 +48,7 @@ export default async function MisAnunciosPage({
       )}
       {searchParams.destacado === "cancelado" && (
         <p className="text-sm text-stone-500 bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 mb-4">
-          Has cancelado el pago, tu anuncio sigue como estaba.
+          La operación se ha cancelado y tu anuncio sigue como estaba.
         </p>
       )}
 

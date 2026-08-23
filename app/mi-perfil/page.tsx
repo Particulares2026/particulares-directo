@@ -77,7 +77,7 @@ export default async function MiPerfilPage() {
           )}
 
           <p className="mt-4 text-xs text-violet-800/70">
-            No se realizará ningún cobro sin informar antes del precio y pedir una aceptación expresa.
+            Publicar anuncios es gratuito.
           </p>
         </section>
       </div>

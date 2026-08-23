@@ -32,9 +32,7 @@ export default function AvisoLegalPage() {
             Al crear una cuenta pedimos tu nombre, correo electrónico y número de teléfono. Al
             publicar un anuncio, los datos de contacto que decidas incluir (nombre y teléfono) se
             muestran junto al anuncio para que otras personas puedan ponerse en contacto contigo.
-            Si subes fotos a un anuncio, se almacenan para mostrarlas en ese anuncio. Si destacas
-            un anuncio de pago, el cobro lo procesa Stripe directamente (no almacenamos los datos
-            de tu tarjeta).
+            Si subes fotos a un anuncio, se almacenan para mostrarlas en ese anuncio.
           </p>
         </section>
 
@@ -60,7 +58,6 @@ export default function AvisoLegalPage() {
             <li><strong>Supabase</strong> (base de datos, autenticación y almacenamiento de fotos).</li>
             <li><strong>Vercel</strong> (alojamiento de la web).</li>
             <li><strong>Resend</strong> (envío de correos de la plataforma: confirmación de cuenta, avisos, alertas).</li>
-            <li><strong>Stripe</strong> (cobro de los anuncios destacados de pago).</li>
           </ul>
           <p className="mt-1.5">
             Algunos de estos proveedores pueden tratar datos fuera del Espacio Económico Europeo;
@@ -73,8 +70,8 @@ export default function AvisoLegalPage() {
           <h2 className="font-medium text-stone-900 mb-1">Cuánto tiempo se conservan</h2>
           <p>
             Mientras tu cuenta esté activa. Si la eliminas, tus datos personales se borran de
-            inmediato, salvo que la ley nos obligue a conservar algún registro durante más tiempo
-            (por ejemplo, justificantes de pagos realizados a través de Stripe).
+            inmediato, salvo la información que debamos conservar temporalmente para cumplir
+            obligaciones legales o atender posibles responsabilidades.
           </p>
         </section>
 

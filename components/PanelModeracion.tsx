@@ -75,7 +75,7 @@ export default function PanelModeracion({
       <section className="rounded-2xl border border-violet-200 bg-violet-50/60 p-4" aria-labelledby="resumen-empresas">
         <h2 id="resumen-empresas" className="font-medium text-violet-950">🏢 Cuentas empresa detectadas</h2>
         <p className="mt-1 text-xs text-violet-900/70">
-          Una cuenta aparece aquí cuando mantiene dos o más anuncios activos en la misma categoría. Por ahora no se cobra nada.
+          Una cuenta aparece aquí cuando mantiene dos o más anuncios activos en la misma categoría. La publicación está configurada como gratuita.
         </p>
         {resumenEmpresas.length === 0 ? (
           <p className="mt-3 text-sm text-violet-800">Todavía no hay cuentas empresa.</p>

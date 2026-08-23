@@ -52,12 +52,10 @@ export default function TerminosPage() {
         </section>
 
         <section>
-          <h2 className="font-medium text-stone-900 mb-1">5. Anuncios destacados de pago</h2>
+          <h2 className="font-medium text-stone-900 mb-1">5. Publicación y anuncios destacados</h2>
           <p>
-            Puedes pagar para destacar un anuncio durante un tiempo limitado, según el precio
-            indicado en cada categoría. El pago se procesa a través de Stripe. Al tratarse de un
-            servicio digital que se activa de forma inmediata, no se admiten devoluciones una vez
-            contratado, salvo error nuestro o lo que exija la normativa de consumidores aplicable.
+            Actualmente, publicar, renovar y destacar anuncios es gratuito, sujeto a los límites
+            de uso indicados en la propia web. No se realizará ningún cargo por estas acciones.
           </p>
         </section>
 
