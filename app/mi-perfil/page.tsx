@@ -60,7 +60,7 @@ export default async function MiPerfilPage() {
             </p>
           ) : (
             <ul className="mt-4 space-y-2">
-              {[...anunciosPorCategoria.entries()]
+              {Array.from(anunciosPorCategoria.entries())
                 .sort(([a], [b]) => a.localeCompare(b, "es"))
                 .map(([categoria, cantidad]) => {
                   const esEmpresa = cantidad > 1;
@@ -84,3 +84,4 @@ export default async function MiPerfilPage() {
     </main>
   );
 }
+
