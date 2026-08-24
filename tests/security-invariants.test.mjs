@@ -128,6 +128,10 @@ test("las acciones sensibles rechazan peticiones iniciadas desde otras webs", ()
   for (const relativePath of [
     "app/api/anuncios/[id]/contacto/route.ts",
     "app/api/anuncios/[id]/estado/route.ts",
+    "app/api/anuncios/fotos/route.ts",
+    "app/api/admin/aceptar-anuncio/route.ts",
+    "app/api/admin/eliminar-anuncio/route.ts",
+    "app/api/eliminar-cuenta/route.ts",
     "app/api/contacto/route.ts",
     "app/api/destacar/route.ts",
   ]) {
@@ -135,6 +139,17 @@ test("las acciones sensibles rechazan peticiones iniciadas desde otras webs", ()
     assert.match(source, /esOrigenPermitido\(request\)/, `${relativePath} no valida el origen`);
     assert.match(source, /Origen no permitido/, `${relativePath} no rechaza otros orígenes`);
   }
+});
+
+test("eliminar una cuenta borra también las fotos sueltas antes que el usuario", () => {
+  const source = read("app/api/eliminar-cuenta/route.ts");
+
+  assert.match(source, /\.list\(user\.id/);
+  assert.match(source, /limit:\s*TAMANO_PAGINA/);
+  assert.match(source, /offset/);
+  assert.match(source, /bucket\.remove/);
+  assert.match(source, /errorBorrado/);
+  assert.ok(source.indexOf("bucket.remove") < source.indexOf("deleteUser"));
 });
 
 test("la renovación y los cambios de estado se autorizan solo en el servidor", () => {
