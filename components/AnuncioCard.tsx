@@ -21,6 +21,7 @@ import {
   textoSalario,
 } from "@/lib/trabajo";
 import GraficoPrecios from "./GraficoPrecios";
+import GaleriaFotos from "./GaleriaFotos";
 
 const ETIQUETAS_CARACTERISTICAS_LEGACY: Record<string, string> = {
   incorporacion_inmediata: "Incorporación inmediata",
@@ -87,7 +88,6 @@ export default function AnuncioCard({
   const [gestionando, setGestionando] = useState(false);
   const [gestionError, setGestionError] = useState<string | null>(null);
   const [destacando, setDestacando] = useState(false);
-  const [fotoAmpliada, setFotoAmpliada] = useState<string | null>(null);
   const [contactoRevelado, setContactoRevelado] = useState<{ telefono: string | null; email: string | null } | null>(null);
   const [revelando, setRevelando] = useState(false);
   const [historialAbierto, setHistorialAbierto] = useState(false);
@@ -371,43 +371,7 @@ export default function AnuncioCard({
       </div>
 
       {anuncio.fotos && anuncio.fotos.length > 0 && (
-        <div className="relative mt-2">
-          <div className="flex gap-2 overflow-x-auto">
-            {anuncio.fotos.map((url, i) => (
-              <a
-                key={i}
-                href={url}
-                target="_blank"
-                rel="noreferrer"
-                className="shrink-0"
-                onMouseEnter={() => setFotoAmpliada(url)}
-                onMouseLeave={() => setFotoAmpliada(null)}
-                onTouchStart={() => setFotoAmpliada(url)}
-                onTouchEnd={() => setFotoAmpliada(null)}
-              >
-                <img
-                  src={url}
-                  alt={`${anuncio.titulo}, foto ${i + 1}`}
-                  loading="lazy"
-                  decoding="async"
-                  width={112}
-                  height={112}
-                  className="h-28 w-28 object-cover rounded-lg border border-stone-200"
-                />
-              </a>
-            ))}
-          </div>
-          {fotoAmpliada && (
-            <img
-              src={fotoAmpliada}
-              alt={`${anuncio.titulo}, vista ampliada`}
-              decoding="async"
-              width={224}
-              height={224}
-              className="pointer-events-none absolute left-0 top-0 z-20 w-56 h-56 max-w-[75vw] max-h-[75vw] object-cover rounded-lg border border-stone-300 shadow-lg"
-            />
-          )}
-        </div>
+        <GaleriaFotos fotos={anuncio.fotos} titulo={anuncio.titulo} modoDetalle={modoDetalle} />
       )}
 
       {esInmobiliaria && (
