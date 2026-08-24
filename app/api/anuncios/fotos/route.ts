@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { FOTOS_BUCKET, extraerPathStorage } from "@/lib/inmobiliaria";
+import { esOrigenPermitido } from "@/lib/seguridad-request";
 
 const TAMANO_MAXIMO = 5 * 1024 * 1024;
 const LIMITE_POR_HORA = 30;
@@ -31,9 +32,8 @@ function extensionPara(tipo: TipoImagen) {
 }
 
 export async function POST(request: Request) {
-  const origin = request.headers.get("origin");
-  if (origin && origin !== new URL(request.url).origin) {
-    return NextResponse.json({ error: "Solicitud no permitida." }, { status: 403 });
+  if (!esOrigenPermitido(request)) {
+    return NextResponse.json({ error: "Origen no permitido." }, { status: 403 });
   }
 
   const supabase = await createClient();
@@ -104,9 +104,8 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const origin = request.headers.get("origin");
-  if (origin && origin !== new URL(request.url).origin) {
-    return NextResponse.json({ error: "Solicitud no permitida." }, { status: 403 });
+  if (!esOrigenPermitido(request)) {
+    return NextResponse.json({ error: "Origen no permitido." }, { status: 403 });
   }
 
   const supabase = await createClient();
@@ -142,3 +141,4 @@ export async function DELETE(request: Request) {
 
   return NextResponse.json({ ok: true });
 }
+

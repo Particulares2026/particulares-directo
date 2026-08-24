@@ -2,13 +2,13 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { esAdmin } from "@/lib/admin";
+import { esOrigenPermitido } from "@/lib/seguridad-request";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export async function POST(request: Request) {
-  const origin = request.headers.get("origin");
-  if (origin && origin !== new URL(request.url).origin) {
-    return NextResponse.json({ error: "Solicitud no permitida." }, { status: 403 });
+  if (!esOrigenPermitido(request)) {
+    return NextResponse.json({ error: "Origen no permitido." }, { status: 403 });
   }
 
   const supabase = await createClient();
@@ -46,3 +46,4 @@ export async function POST(request: Request) {
 
   return NextResponse.json({ ok: true });
 }
+
