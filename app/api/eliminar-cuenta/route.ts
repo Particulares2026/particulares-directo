@@ -3,7 +3,12 @@ import { createClient as createServerSupabase } from "@/lib/supabase/server";
 import { createClient as createAdminSupabase } from "@supabase/supabase-js";
 import { FOTOS_BUCKET, extraerPathStorage } from "@/lib/inmobiliaria";
 
-export async function POST() {
+export async function POST(request: Request) {
+  const origin = request.headers.get("origin");
+  if (origin && origin !== new URL(request.url).origin) {
+    return NextResponse.json({ error: "Solicitud no permitida." }, { status: 403 });
+  }
+
   const supabase = await createServerSupabase();
   const {
     data: { user },
