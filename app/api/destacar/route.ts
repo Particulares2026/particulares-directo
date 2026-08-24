@@ -10,7 +10,23 @@ import {
   precioDestacarCentimos,
 } from "@/lib/destacar";
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function esOrigenPermitido(request: Request) {
+  const origen = request.headers.get("origin");
+  if (!origen) return request.headers.get("sec-fetch-site") !== "cross-site";
+  try {
+    return new URL(origen).origin === new URL(request.url).origin;
+  } catch {
+    return false;
+  }
+}
+
 export async function POST(request: Request) {
+  if (!esOrigenPermitido(request)) {
+    return NextResponse.json({ error: "Origen no permitido." }, { status: 403 });
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -30,7 +46,7 @@ export async function POST(request: Request) {
     body && typeof body === "object" && !Array.isArray(body)
       ? (body as Record<string, unknown>).anuncioId
       : null;
-  if (typeof anuncioId !== "string") {
+  if (typeof anuncioId !== "string" || !UUID.test(anuncioId)) {
     return NextResponse.json({ error: "Anuncio no válido." }, { status: 400 });
   }
 
