@@ -86,6 +86,7 @@ export default function Buscador({
   return (
     <div>
       <input
+        aria-label="Buscar anuncios"
         className="w-full border border-stone-300 rounded-lg px-3 py-2.5 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent"
         placeholder="Busca por puesto, habilidad o ciudad (ej. React, Sevilla)"
         value={query}
@@ -113,13 +114,13 @@ export default function Buscador({
       )}
 
       {anuncios.length === 0 && (
-        <p className="text-sm text-stone-400 text-center py-10">
+        <p className="text-sm text-stone-600 text-center py-10">
           Todavía no hay anuncios publicados. Sé la primera persona en publicar uno.
         </p>
       )}
 
       {anuncios.length > 0 && filtrados.length === 0 && (
-        <p className="text-sm text-stone-400 text-center py-10">
+        <p className="text-sm text-stone-600 text-center py-10">
           No hay anuncios que coincidan con esa búsqueda.
         </p>
       )}
