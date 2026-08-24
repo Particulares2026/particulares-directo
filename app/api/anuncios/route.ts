@@ -6,6 +6,7 @@ import { contieneContactoPublico, contieneContenidoProhibido } from "@/lib/moder
 import { FOTOS_BUCKET, MAX_FOTOS, extraerPathStorage } from "@/lib/inmobiliaria";
 import { esEmpresaPorCantidad } from "@/lib/tipo-anunciante";
 import { esCategoriaValida } from "@/lib/categorias";
+import { obtenerUsuarioActualizado } from "@/lib/perfil";
 
 const REMITENTE = "Particulares Directo <noreply@particularesdirecto.com>";
 const LIMITE_ANUNCIOS_POR_HORA = 5;
@@ -222,7 +223,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No has iniciado sesión." }, { status: 401 });
   }
 
-  const telefonoPerfil = (user.user_metadata as Record<string, unknown>)?.telefono;
+  const usuarioActualizado = await obtenerUsuarioActualizado(user);
+  const telefonoPerfil = (usuarioActualizado.user_metadata as Record<string, unknown>)?.telefono;
   if (typeof telefonoPerfil !== "string" || !TELEFONO_PERFIL.test(telefonoPerfil)) {
     return NextResponse.json(
       { error: "Completa el teléfono de tu perfil antes de publicar o editar un anuncio." },

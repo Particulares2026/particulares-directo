@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import PerfilForm from "@/components/PerfilForm";
 import { nombreCategoria } from "@/lib/categorias";
 import { createClient } from "@/lib/supabase/server";
+import { obtenerUsuarioActualizado } from "@/lib/perfil";
 
 export default async function MiPerfilPage() {
   const supabase = await createClient();
@@ -9,6 +10,7 @@ export default async function MiPerfilPage() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+  const usuarioActualizado = await obtenerUsuarioActualizado(user);
 
   const { data: anuncios } = await supabase
     .from("anuncios")
@@ -24,7 +26,7 @@ export default async function MiPerfilPage() {
     );
   }
 
-  const metadata = user.user_metadata as Record<string, unknown>;
+  const metadata = usuarioActualizado.user_metadata as Record<string, unknown>;
   const nombre = typeof metadata.nombre === "string" ? metadata.nombre : "";
   const telefono = typeof metadata.telefono === "string" ? metadata.telefono : "";
 
@@ -40,7 +42,7 @@ export default async function MiPerfilPage() {
           <h2 id="datos-cuenta" className="font-medium text-stone-900">Datos de la cuenta</h2>
           <div className="mt-4">
             <PerfilForm
-              email={user.email || ""}
+              email={usuarioActualizado.email || user.email || ""}
               nombreInicial={nombre}
               telefonoInicial={telefono}
             />

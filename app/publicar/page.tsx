@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { obtenerUsuarioActualizado } from "@/lib/perfil";
 import AnuncioForm from "@/components/AnuncioForm";
 import { CATEGORIAS_DESTACADAS, esCategoriaValida, nombreCategoria } from "@/lib/categorias";
 
@@ -16,6 +17,7 @@ export default async function PublicarPage({
   } = await supabase.auth.getUser();
 
   if (!user) redirect("/login");
+  const usuarioActualizado = await obtenerUsuarioActualizado(user);
 
   const categoria = resolvedSearchParams.categoria;
 
@@ -57,9 +59,9 @@ export default async function PublicarPage({
       <AnuncioForm
         userId={user.id}
         categoria={categoria}
-        defaultNombre={(user.user_metadata as any)?.nombre || ""}
-        defaultTelefono={(user.user_metadata as any)?.telefono || ""}
-        defaultEmail={user.email || ""}
+        defaultNombre={(usuarioActualizado.user_metadata as any)?.nombre || ""}
+        defaultTelefono={(usuarioActualizado.user_metadata as any)?.telefono || ""}
+        defaultEmail={usuarioActualizado.email || user.email || ""}
         anunciosActivosCategoria={anunciosActivosCategoria || 0}
       />
     </main>
