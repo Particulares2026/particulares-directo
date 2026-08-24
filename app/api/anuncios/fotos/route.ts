@@ -31,6 +31,11 @@ function extensionPara(tipo: TipoImagen) {
 }
 
 export async function POST(request: Request) {
+  const origin = request.headers.get("origin");
+  if (origin && origin !== new URL(request.url).origin) {
+    return NextResponse.json({ error: "Solicitud no permitida." }, { status: 403 });
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -99,6 +104,11 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const origin = request.headers.get("origin");
+  if (origin && origin !== new URL(request.url).origin) {
+    return NextResponse.json({ error: "Solicitud no permitida." }, { status: 403 });
+  }
+
   const supabase = await createClient();
   const {
     data: { user },

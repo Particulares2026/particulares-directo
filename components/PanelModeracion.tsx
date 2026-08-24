@@ -21,6 +21,12 @@ type AnuncioModeracion = {
   anuncios_activos_categoria: number;
 };
 
+const FORMATO_FECHA = new Intl.DateTimeFormat("es-ES", {
+  dateStyle: "short",
+  timeStyle: "short",
+  timeZone: "Europe/Madrid",
+});
+
 type ResumenEmpresa = {
   categoria: string;
   cuentas: number;
@@ -147,7 +153,7 @@ export default function PanelModeracion({
                 {a.email_contacto ? ` · ${a.email_contacto}` : ""}
               </p>
               <p className="text-xs text-stone-300 mt-0.5">
-                {new Date(a.created_at).toLocaleString("es-ES")}
+                {FORMATO_FECHA.format(new Date(a.created_at))}
               </p>
               <p className="text-xs text-violet-600 mt-0.5">
                 {a.anuncios_activos_categoria} {a.anuncios_activos_categoria === 1 ? "anuncio activo" : "anuncios activos"} en esta categoría
