@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { PREFIJOS_TELEFONO } from "@/lib/telefono";
+import { esOrigenPermitido } from "@/lib/seguridad-request";
 
 export async function PATCH(request: Request) {
-  const origin = request.headers.get("origin");
-  if (origin && origin !== new URL(request.url).origin) {
-    return NextResponse.json({ error: "Solicitud no permitida." }, { status: 403 });
+  if (!esOrigenPermitido(request)) {
+    return NextResponse.json({ error: "Origen no permitido." }, { status: 403 });
   }
 
   const supabase = await createClient();
