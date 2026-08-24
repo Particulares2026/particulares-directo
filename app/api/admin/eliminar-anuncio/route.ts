@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
-import { createClient as createAdminSupabase } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { esAdmin } from "@/lib/admin";
 import { FOTOS_BUCKET, extraerPathStorage } from "@/lib/inmobiliaria";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { esOrigenPermitido } from "@/lib/seguridad-request";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export async function POST(request: Request) {
-  const origin = request.headers.get("origin");
-  if (origin && origin !== new URL(request.url).origin) {
-    return NextResponse.json({ error: "Solicitud no permitida." }, { status: 403 });
+  if (!esOrigenPermitido(request)) {
+    return NextResponse.json({ error: "Origen no permitido." }, { status: 403 });
   }
 
   const supabase = await createClient();
@@ -29,18 +29,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Anuncio no válido." }, { status: 400 });
   }
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !serviceKey) {
-    return NextResponse.json({ error: "Faltan variables de entorno." }, { status: 503 });
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return NextResponse.json({ error: "El servicio no está disponible." }, { status: 503 });
   }
-  const admin = createAdminSupabase(url, serviceKey);
 
   const { data: anuncio } = await admin.from("anuncios").select("fotos").eq("id", id).single();
 
   const { error } = await admin.from("anuncios").delete().eq("id", id);
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "No se pudo eliminar el anuncio." }, { status: 500 });
   }
 
   if (anuncio?.fotos && anuncio.fotos.length > 0) {
@@ -50,3 +50,4 @@ export async function POST(request: Request) {
 
   return NextResponse.json({ ok: true });
 }
+
