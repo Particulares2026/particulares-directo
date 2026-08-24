@@ -6,6 +6,7 @@ import { contieneContactoPublico, contieneContenidoProhibido } from "@/lib/moder
 import { FOTOS_BUCKET, MAX_FOTOS, extraerPathStorage } from "@/lib/inmobiliaria";
 import { esEmpresaPorCantidad } from "@/lib/tipo-anunciante";
 import { esCategoriaValida } from "@/lib/categorias";
+import { esOrigenPermitido } from "@/lib/seguridad-request";
 import { obtenerUsuarioActualizado } from "@/lib/perfil";
 
 const REMITENTE = "Particulares Directo <noreply@particularesdirecto.com>";
@@ -209,9 +210,8 @@ function textoRechazo(titulo: string) {
 }
 
 export async function POST(request: Request) {
-  const origin = request.headers.get("origin");
-  if (origin && origin !== new URL(request.url).origin) {
-    return NextResponse.json({ error: "Solicitud no permitida." }, { status: 403 });
+  if (!esOrigenPermitido(request)) {
+    return NextResponse.json({ error: "Origen no permitido." }, { status: 403 });
   }
 
   const supabase = await createClient();
@@ -255,19 +255,6 @@ export async function POST(request: Request) {
 
   let anunciosActivosCategoriaAntes = 0;
   if (!anuncioId) {
-    const haceUnaHora = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-    const { count } = await admin
-      .from("anuncios")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .gte("created_at", haceUnaHora);
-    if ((count || 0) >= LIMITE_ANUNCIOS_POR_HORA) {
-      return NextResponse.json(
-        { error: "Has publicado demasiados anuncios seguidos. Espera un rato antes de publicar otro." },
-        { status: 429 }
-      );
-    }
-
     const { data: activosCategoria, error: activosError } = await admin
       .from("anuncios")
       .select("categoria,tipo,titulo,descripcion,ubicacion,provincia,municipio,operacion,tipo_inmueble,precio")
@@ -346,13 +333,34 @@ export async function POST(request: Request) {
       moderado_por: null,
     };
 
-    const { error } = await admin.from("anuncios").update(updatePayload).eq("id", anuncioId);
+    const { error } = await admin
+      .from("anuncios")
+      .update(updatePayload)
+      .eq("id", anuncioId)
+      .eq("user_id", user.id);
     if (error) return NextResponse.json({ error: "No se pudo actualizar el anuncio." }, { status: 500 });
 
     if (precioCambiado) {
       await admin.from("historial_precios").insert({ anuncio_id: anuncioId, precio: nuevoPrecio });
     }
     return NextResponse.json({ ok: true, id: anuncioId });
+  }
+
+  const { data: plazaReservada, error: limiteError } = await admin.rpc(
+    "reservar_publicacion_anuncio",
+    { p_user_id: user.id, p_limite: LIMITE_ANUNCIOS_POR_HORA }
+  );
+  if (limiteError) {
+    return NextResponse.json(
+      { error: "No se pudo comprobar el límite de publicaciones. Inténtalo de nuevo en un momento." },
+      { status: 503 }
+    );
+  }
+  if (!plazaReservada) {
+    return NextResponse.json(
+      { error: "Has publicado demasiados anuncios seguidos. Espera un rato antes de publicar otro." },
+      { status: 429 }
+    );
   }
 
   const { data, error } = await admin
@@ -375,9 +383,8 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const origin = request.headers.get("origin");
-  if (origin && origin !== new URL(request.url).origin) {
-    return NextResponse.json({ error: "Solicitud no permitida." }, { status: 403 });
+  if (!esOrigenPermitido(request)) {
+    return NextResponse.json({ error: "Origen no permitido." }, { status: 403 });
   }
 
   const supabase = await createClient();
