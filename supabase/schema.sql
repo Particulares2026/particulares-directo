@@ -337,7 +337,7 @@ returns boolean
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 begin
   if p_user_id is null or p_limite < 1 then
     return false;
@@ -357,7 +357,7 @@ begin
   insert into public.publicaciones_anuncios (user_id) values (p_user_id);
   return true;
 end;
-$;
+$$;
 
 revoke all on function public.reservar_publicacion_anuncio(uuid, integer)
   from public, anon, authenticated;
