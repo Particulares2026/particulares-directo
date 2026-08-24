@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import AnuncioForm from "@/components/AnuncioForm";
 import { nombreCategoria } from "@/lib/categorias";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { obtenerUsuarioActualizado } from "@/lib/perfil";
 
 export default async function EditarPage({
   params,
@@ -16,6 +17,7 @@ export default async function EditarPage({
   } = await supabase.auth.getUser();
 
   if (!user) redirect("/login");
+  const usuarioActualizado = await obtenerUsuarioActualizado(user);
 
   const admin = createAdminClient();
   const { data: anuncio } = await admin
@@ -43,9 +45,9 @@ export default async function EditarPage({
       <AnuncioForm
         userId={user.id}
         categoria={anuncio.categoria}
-        defaultNombre={(user.user_metadata as any)?.nombre || ""}
-        defaultTelefono={(user.user_metadata as any)?.telefono || ""}
-        defaultEmail={user.email || ""}
+        defaultNombre={(usuarioActualizado.user_metadata as any)?.nombre || ""}
+        defaultTelefono={(usuarioActualizado.user_metadata as any)?.telefono || ""}
+        defaultEmail={usuarioActualizado.email || user.email || ""}
         anunciosActivosCategoria={anunciosActivosCategoria || 0}
         anuncioExistente={anuncio}
       />
