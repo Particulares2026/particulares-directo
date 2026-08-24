@@ -119,6 +119,21 @@ test("la revelación de contacto sigue limitada y no se almacena en caché", () 
   assert.match(source, /LIMITE_REVELACIONES\s*=\s*20/);
   assert.match(source, /LIMITE_POR_ANUNCIO\s*=\s*10/);
   assert.match(source, /UUID\.test\(id\)/);
+  assert.match(source, /export async function POST/);
+  assert.match(source, /createHmac\("sha256"/);
+  assert.doesNotMatch(source, /export async function GET/);
+});
+
+test("las acciones sensibles rechazan peticiones iniciadas desde otras webs", () => {
+  for (const relativePath of [
+    "app/api/anuncios/[id]/contacto/route.ts",
+    "app/api/contacto/route.ts",
+    "app/api/destacar/route.ts",
+  ]) {
+    const source = read(relativePath);
+    assert.match(source, /esOrigenPermitido\(request\)/, `${relativePath} no valida el origen`);
+    assert.match(source, /Origen no permitido/, `${relativePath} no rechaza otros orígenes`);
+  }
 });
 
 test("la base temporal de CI nunca se conecta a producción", () => {
