@@ -128,6 +128,7 @@ test("las acciones sensibles rechazan peticiones iniciadas desde otras webs", ()
   for (const relativePath of [
     "app/api/anuncios/[id]/contacto/route.ts",
     "app/api/anuncios/[id]/estado/route.ts",
+    "app/api/anuncios/route.ts",
     "app/api/anuncios/fotos/route.ts",
     "app/api/admin/aceptar-anuncio/route.ts",
     "app/api/admin/eliminar-anuncio/route.ts",
@@ -187,6 +188,22 @@ test("la renovación y los cambios de estado se autorizan solo en el servidor", 
   assert.match(route, /DIAS_ANTES_RENOVACION\s*=\s*5/);
   assert.match(route, /accion === "renovar" && !yaRenovable/);
   assert.match(migration, /revoke update \(activo, fecha_activacion, aviso_5_enviado, aviso_3_enviado\)/);
+});
+
+test("las altas simultáneas y el borrado directo de anuncios quedan bloqueados", () => {
+  const route = read("app/api/anuncios/route.ts");
+  const cron = read("app/api/cron/mantenimiento-anuncios/route.ts");
+  const migration = read("supabase/migrations/0039_limitar_publicacion_y_borrado.sql");
+
+  assert.equal((route.match(/esOrigenPermitido\(request\)/g) || []).length, 2);
+  assert.match(route, /rpc\([\s\S]*"reservar_publicacion_anuncio"/);
+  assert.match(route, /p_limite:\s*LIMITE_ANUNCIOS_POR_HORA/);
+  assert.match(route, /\.update\(updatePayload\)[\s\S]*\.eq\("user_id", user\.id\)/);
+  assert.match(migration, /revoke delete on public\.anuncios from authenticated/);
+  assert.match(migration, /pg_advisory_xact_lock/);
+  assert.match(migration, /publicaciones_anuncios_user_fecha_idx/);
+  assert.match(migration, /grant execute[\s\S]*to service_role/);
+  assert.match(cron, /"publicaciones_anuncios"/);
 });
 
 test("los registros técnicos antiabuso tienen una retención máxima", () => {
