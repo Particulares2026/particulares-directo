@@ -31,6 +31,9 @@ export default function PerfilForm({
       const { data } = await createClient().auth.refreshSession();
       const telefonoActualizado = data.user?.user_metadata?.telefono;
       if (!cancelado && typeof telefonoActualizado === "string" && telefonoActualizado.trim()) {
+        const telefonoSincronizado = parseTelefono(telefonoActualizado);
+        setPrefijoTelefono(telefonoSincronizado.prefijo);
+        setNumeroTelefono(telefonoSincronizado.numero.replace(/\D/g, ""));
         router.refresh();
       }
     })();
@@ -59,11 +62,18 @@ export default function PerfilForm({
       return;
     }
 
-    const { error: errorSesion } = await createClient().auth.refreshSession();
+    const { data: sesionActualizada, error: errorSesion } = await createClient().auth.refreshSession();
     setGuardando(false);
     if (errorSesion) {
       setError("El perfil se guardó, pero necesitas salir y volver a entrar para actualizar la sesión.");
       return;
+    }
+
+    const telefonoActualizado = sesionActualizada.user?.user_metadata?.telefono;
+    if (typeof telefonoActualizado === "string" && telefonoActualizado.trim()) {
+      const telefonoSincronizado = parseTelefono(telefonoActualizado);
+      setPrefijoTelefono(telefonoSincronizado.prefijo);
+      setNumeroTelefono(telefonoSincronizado.numero.replace(/\D/g, ""));
     }
 
     setMensaje("Perfil actualizado correctamente.");
