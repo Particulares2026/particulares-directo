@@ -110,7 +110,10 @@ export default function AnuncioCard({
   const revelarContacto = async () => {
     setRevelando(true);
     try {
-      const res = await fetch(`/api/anuncios/${anuncio.id}/contacto`);
+      const res = await fetch(`/api/anuncios/${anuncio.id}/contacto`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
       const data = await res.json().catch(() => null);
       if (res.ok && data) {
         setContactoRevelado({ telefono: data.telefono_contacto ?? null, email: data.email_contacto ?? null });
@@ -318,7 +321,7 @@ export default function AnuncioCard({
             </Link>
           )}
           {(anuncio.provincia || anuncio.municipio || anuncio.ubicacion) && (
-            <p className="text-sm text-stone-500">
+            <p className="text-sm text-stone-600">
               {[anuncio.provincia, anuncio.municipio, anuncio.ubicacion].filter(Boolean).join(" · ")}
             </p>
           )}
@@ -379,7 +382,7 @@ export default function AnuncioCard({
           {anuncio.precio != null && (
             <span className="inline-flex items-center gap-1.5">
               {anuncio.precio_anterior != null && anuncio.precio_anterior !== anuncio.precio && (
-                <span className="text-stone-400 line-through">
+                <span className="text-stone-600 line-through">
                   {anuncio.precio_anterior.toLocaleString("es-ES")} €
                 </span>
               )}
@@ -402,7 +405,7 @@ export default function AnuncioCard({
           )}
           {anuncio.tamano != null && <span>{anuncio.tamano} m²</span>}
           {anuncio.precio != null && anuncio.tamano ? (
-            <span className="text-stone-400">{Math.round(anuncio.precio / anuncio.tamano).toLocaleString("es-ES")} €/m²</span>
+            <span className="text-stone-600">{Math.round(anuncio.precio / anuncio.tamano).toLocaleString("es-ES")} €/m²</span>
           ) : null}
           {anuncio.habitaciones != null && <span>{anuncio.habitaciones} hab.</span>}
           {anuncio.banos != null && <span>{anuncio.banos} baños</span>}
@@ -414,7 +417,7 @@ export default function AnuncioCard({
             <button
               type="button"
               onClick={verHistorial}
-              className="text-xs text-red-600 font-medium hover:underline inline-flex items-center gap-1"
+              className="text-xs text-red-700 font-medium hover:underline inline-flex items-center gap-1"
             >
               {historialAbierto ? "Ocultar histórico de precio" : "Ver histórico de precio"}
             </button>
@@ -424,9 +427,9 @@ export default function AnuncioCard({
 
       {esInmobiliaria && historialAbierto && (
         <div className="mt-2 border border-stone-200 rounded-lg p-2.5 text-sm">
-          {cargandoHistorial && <p className="text-stone-400">Cargando…</p>}
+          {cargandoHistorial && <p className="text-stone-600">Cargando…</p>}
           {!cargandoHistorial && historialPrecios && historialPrecios.length === 0 && (
-            <p className="text-stone-400">Sin cambios de precio registrados.</p>
+            <p className="text-stone-600">Sin cambios de precio registrados.</p>
           )}
           {!cargandoHistorial && historialPrecios && historialPrecios.length > 0 && (
             <GraficoPrecios historial={historialPrecios} />
@@ -491,7 +494,7 @@ export default function AnuncioCard({
           {anuncio.palabras_clave.map((k, i) => (
             <span
               key={i}
-              className="text-xs px-2 py-0.5 rounded-full border border-stone-200 bg-stone-50 text-stone-500"
+              className="text-xs px-2 py-0.5 rounded-full border border-stone-200 bg-stone-50 text-stone-600"
             >
               {k}
             </span>
@@ -499,7 +502,7 @@ export default function AnuncioCard({
         </div>
       )}
 
-      <p className="text-xs text-stone-400 mt-2">
+      <p className="text-xs text-stone-600 mt-2">
         Contacto: {anuncio.nombre_contacto}
         {(contactoRevelado?.telefono ?? (anuncio.mostrar_telefono !== false ? anuncio.telefono_contacto : null)) && (
           <>
@@ -549,6 +552,7 @@ export default function AnuncioCard({
       {!modoDetalle && anuncio.id !== "preview" && (
         <Link
           href={`/anuncio/${anuncio.id}`}
+          aria-label={`Ver anuncio completo: ${anuncio.titulo}`}
           className="inline-flex mt-3 text-sm font-medium text-teal-700 hover:text-teal-800 hover:underline"
         >
           Ver anuncio completo →
@@ -610,4 +614,4 @@ export default function AnuncioCard({
     </div>
   );
 }
-
+

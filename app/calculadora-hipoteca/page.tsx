@@ -2,7 +2,7 @@ import Link from "next/link";
 import CalculadoraHipoteca from "@/components/CalculadoraHipoteca";
 
 export const metadata = {
-  title: "Calculadora de hipoteca - Particulares Directo",
+  title: "Calculadora de hipoteca",
   description: "Calcula la cuota mensual estimada de una hipoteca según el precio, la entrada, el plazo y el interés.",
 };
 

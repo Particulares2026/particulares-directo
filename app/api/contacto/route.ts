@@ -6,7 +6,21 @@ import { createHmac } from "crypto";
 const LIMITE_ENVIOS = 5;
 const VENTANA_MS = 60 * 60 * 1000; // 1 hora
 
+function esOrigenPermitido(request: Request) {
+  const origen = request.headers.get("origin");
+  if (!origen) return request.headers.get("sec-fetch-site") !== "cross-site";
+  try {
+    return new URL(origen).origin === new URL(request.url).origin;
+  } catch {
+    return false;
+  }
+}
+
 export async function POST(request: Request) {
+  if (!esOrigenPermitido(request)) {
+    return NextResponse.json({ error: "Origen no permitido." }, { status: 403 });
+  }
+
   let body: unknown;
   try {
     body = await request.json();

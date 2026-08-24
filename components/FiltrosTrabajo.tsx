@@ -188,6 +188,7 @@ export default function FiltrosTrabajo({
   return (
     <div>
       <input
+        aria-label="Buscar anuncios de trabajo"
         className="mb-3 min-h-11 w-full rounded-lg border border-stone-300 px-3 py-2.5 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent"
         placeholder="Busca por puesto, habilidad o ciudad"
         value={query}
@@ -197,6 +198,7 @@ export default function FiltrosTrabajo({
       <div className="border border-fuchsia-100 bg-gradient-to-br from-fuchsia-50/60 to-teal-50/40 rounded-xl p-3 mb-5 space-y-2.5">
         <div className="flex flex-wrap gap-2">
           <select
+            aria-label="Sector"
             className={SELECT_CLASS}
             value={sector}
             onChange={(e) => setSector(e.target.value)}
@@ -207,6 +209,7 @@ export default function FiltrosTrabajo({
             ))}
           </select>
           <select
+            aria-label="Provincia"
             className={SELECT_CLASS}
             value={provincia}
             onChange={(e) => {
@@ -220,14 +223,14 @@ export default function FiltrosTrabajo({
             ))}
           </select>
           {provincia && municipiosDisponibles.length > 0 && (
-            <select className={SELECT_CLASS} value={municipio} onChange={(e) => setMunicipio(e.target.value)}>
+            <select aria-label="Municipio" className={SELECT_CLASS} value={municipio} onChange={(e) => setMunicipio(e.target.value)}>
               <option value="">Municipio</option>
               {municipiosDisponibles.map((m) => (
                 <option key={m} value={m}>{m}</option>
               ))}
             </select>
           )}
-          <select className={SELECT_CLASS} value={modalidad} onChange={(e) => setModalidad(e.target.value)}>
+          <select aria-label="Tipo de contrato" className={SELECT_CLASS} value={modalidad} onChange={(e) => setModalidad(e.target.value)}>
             <option value="">Contrato</option>
             {MODALIDADES_TRABAJO.map((m) => (
               <option key={m.valor} value={m.valor}>{m.label}</option>
@@ -261,12 +264,12 @@ export default function FiltrosTrabajo({
         {masFiltrosAbierto && (
           <div className="space-y-2.5 pt-1 border-t border-stone-100">
             <div className="flex flex-wrap gap-2 pt-2">
-              <select className={SELECT_CLASS} value={tipo} onChange={(e) => setTipo(e.target.value)}>
+              <select aria-label="Busco u ofrezco empleo" className={SELECT_CLASS} value={tipo} onChange={(e) => setTipo(e.target.value)}>
                 <option value="">Busco o ofrezco</option>
                 <option value="busco">Busco empleo</option>
                 <option value="ofrezco">Ofrezco empleo</option>
               </select>
-              <select className={SELECT_CLASS} value={experiencia} onChange={(e) => setExperiencia(e.target.value)}>
+              <select aria-label="Experiencia" className={SELECT_CLASS} value={experiencia} onChange={(e) => setExperiencia(e.target.value)}>
                 <option value="">Experiencia</option>
                 {EXPERIENCIA_TRABAJO.map((ex) => (
                   <option key={ex.valor} value={ex.valor}>{ex.label}</option>
@@ -276,6 +279,7 @@ export default function FiltrosTrabajo({
 
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               <input
+                aria-label="Salario mínimo"
                 className={INPUT_CLASS}
                 placeholder="Salario mínimo €"
                 type="number"
@@ -284,6 +288,7 @@ export default function FiltrosTrabajo({
                 onChange={(e) => setSalarioMin(e.target.value)}
               />
               <input
+                aria-label="Salario máximo"
                 className={INPUT_CLASS}
                 placeholder="Salario máximo €"
                 type="number"
@@ -294,18 +299,19 @@ export default function FiltrosTrabajo({
             </div>
 
             <div>
-              <p className="text-xs text-stone-400 mb-1.5">Idiomas</p>
+              <p className="text-xs text-stone-600 mb-1.5">Idiomas</p>
               <div className="flex flex-wrap gap-1.5">
                 {IDIOMAS_TRABAJO.map((i) => (
                   <button
                     key={i}
                     type="button"
+                    aria-pressed={idiomas.includes(i)}
                     onClick={() => toggleIdioma(i)}
                     className={
                       "text-xs px-2.5 py-1.5 rounded-full border " +
                       (idiomas.includes(i)
                         ? "border-fuchsia-600 bg-fuchsia-50 text-fuchsia-700 font-medium"
-                        : "border-stone-200 text-stone-500")
+                        : "border-stone-200 text-stone-600")
                     }
                   >
                     {i}
@@ -315,8 +321,9 @@ export default function FiltrosTrabajo({
             </div>
 
             <div className="relative">
-              <button
-                type="button"
+                <button
+                  type="button"
+                  aria-expanded={caracteristicasAbierto}
                 onClick={() => setCaracteristicasAbierto((v) => !v)}
                 className={
                   SELECT_CLASS +
@@ -349,7 +356,7 @@ export default function FiltrosTrabajo({
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-        <p className="text-sm text-stone-500">
+        <p className="text-sm text-stone-600">
           {filtrados.length} {filtrados.length === 1 ? "anuncio encontrado" : "anuncios encontrados"}
         </p>
         <select
@@ -369,13 +376,13 @@ export default function FiltrosTrabajo({
       {favoritosError && <p role="alert" className="text-sm text-red-600 mb-3">{favoritosError}</p>}
 
       {anuncios.length === 0 && (
-        <p className="text-sm text-stone-400 text-center py-10">
+        <p className="text-sm text-stone-600 text-center py-10">
           Todavía no hay anuncios publicados. Sé la primera persona en publicar uno.
         </p>
       )}
 
       {anuncios.length > 0 && filtrados.length === 0 && (
-        <p className="text-sm text-stone-400 text-center py-10">
+        <p className="text-sm text-stone-600 text-center py-10">
           No hay anuncios que coincidan con estos filtros.
         </p>
       )}

@@ -1,3 +1,11 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Aviso legal y privacidad",
+  description: "Información legal, privacidad y tratamiento de datos de Particulares Directo.",
+  alternates: { canonical: "/aviso-legal" },
+};
+
 export default function AvisoLegalPage() {
   return (
     <main className="max-w-2xl mx-auto px-4 md:px-8 py-10">

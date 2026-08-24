@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createHmac } from "crypto";
 
 const LIMITE_REVELACIONES = 20;
 const LIMITE_POR_ANUNCIO = 10;
@@ -13,10 +14,29 @@ function jsonPrivado(body: Record<string, unknown>, status = 200) {
   });
 }
 
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+function esOrigenPermitido(request: Request) {
+  const origen = request.headers.get("origin");
+  if (!origen) return request.headers.get("sec-fetch-site") !== "cross-site";
+  try {
+    return new URL(origen).origin === new URL(request.url).origin;
+  } catch {
+    return false;
+  }
+}
+
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (!esOrigenPermitido(request)) {
+    return jsonPrivado({ error: "Origen no permitido." }, 403);
+  }
+
   const { id } = await params;
   if (!UUID.test(id)) {
     return jsonPrivado({ error: "Anuncio no válido." }, 400);
+  }
+
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceKey) {
+    return jsonPrivado({ error: "El servicio no está disponible." }, 503);
   }
 
   let admin;
@@ -26,19 +46,23 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     return jsonPrivado({ error: "El servicio no está disponible." }, 503);
   }
 
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "desconocida";
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip")?.trim() ||
+    "desconocida";
+  const ipAnonimizada = createHmac("sha256", serviceKey).update(ip).digest("hex");
   const desde = new Date(Date.now() - VENTANA_MS).toISOString();
 
   const [total, mismoAnuncio] = await Promise.all([
     admin
       .from("revelaciones_contacto")
       .select("id", { count: "exact", head: true })
-      .eq("ip", ip)
+      .eq("ip", ipAnonimizada)
       .gte("created_at", desde),
     admin
       .from("revelaciones_contacto")
       .select("id", { count: "exact", head: true })
-      .eq("ip", ip)
+      .eq("ip", ipAnonimizada)
       .eq("anuncio_id", id)
       .gte("created_at", desde),
   ]);
@@ -66,7 +90,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
   const { error: errorRegistro } = await admin
     .from("revelaciones_contacto")
-    .insert({ ip, anuncio_id: id });
+    .insert({ ip: ipAnonimizada, anuncio_id: id });
   if (errorRegistro) {
     return jsonPrivado({ error: "No se pudo registrar la petición de forma segura." }, 503);
   }

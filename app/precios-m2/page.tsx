@@ -2,7 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = {
-  title: "Precio del m² por zona - Particulares Directo",
+  title: "Precio del m² por zona",
   description: "Precio medio del metro cuadrado por provincia, calculado a partir de los anuncios publicados.",
 };
 

@@ -220,6 +220,7 @@ export default function FiltrosInmobiliaria({
   return (
     <div>
       <input
+        aria-label="Buscar anuncios inmobiliarios"
         className="mb-3 min-h-11 w-full rounded-lg border border-stone-300 px-3 py-2.5 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent"
         placeholder="Busca por título, palabra clave o ubicación"
         value={query}
@@ -228,19 +229,20 @@ export default function FiltrosInmobiliaria({
 
       <div className="border border-fuchsia-100 bg-gradient-to-br from-fuchsia-50/60 to-teal-50/40 rounded-xl p-3 mb-5 space-y-2.5">
         <div className="flex flex-wrap gap-2">
-          <select className={SELECT_CLASS} value={operacion} onChange={(e) => setOperacion(e.target.value)}>
+          <select aria-label="Operación" className={SELECT_CLASS} value={operacion} onChange={(e) => setOperacion(e.target.value)}>
             <option value="">Venta o alquiler</option>
             {OPERACIONES.map((o) => (
               <option key={o.valor} value={o.valor}>{o.label}</option>
             ))}
           </select>
-          <select className={SELECT_CLASS} value={tipoInmueble} onChange={(e) => setTipoInmueble(e.target.value)}>
+          <select aria-label="Tipo de inmueble" className={SELECT_CLASS} value={tipoInmueble} onChange={(e) => setTipoInmueble(e.target.value)}>
             <option value="">Tipo de inmueble</option>
             {TIPOS_INMUEBLE.map((t) => (
               <option key={t.valor} value={t.valor}>{t.label}</option>
             ))}
           </select>
           <select
+            aria-label="Provincia"
             className={SELECT_CLASS}
             value={provincia}
             onChange={(e) => {
@@ -254,7 +256,7 @@ export default function FiltrosInmobiliaria({
             ))}
           </select>
           {provincia && municipiosDisponibles.length > 0 && (
-            <select className={SELECT_CLASS} value={municipio} onChange={(e) => setMunicipio(e.target.value)}>
+            <select aria-label="Municipio" className={SELECT_CLASS} value={municipio} onChange={(e) => setMunicipio(e.target.value)}>
               <option value="">Municipio</option>
               {municipiosDisponibles.map((m) => (
                 <option key={m} value={m}>{m}</option>
@@ -265,6 +267,7 @@ export default function FiltrosInmobiliaria({
 
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           <input
+            aria-label="Precio mínimo"
             className={INPUT_CLASS}
             placeholder="Precio mínimo €"
             type="number"
@@ -273,6 +276,7 @@ export default function FiltrosInmobiliaria({
             onChange={(e) => setPrecioMin(e.target.value)}
           />
           <input
+            aria-label="Precio máximo"
             className={INPUT_CLASS}
             placeholder="Precio máximo €"
             type="number"
@@ -308,17 +312,18 @@ export default function FiltrosInmobiliaria({
         {masFiltrosAbierto && (
           <div className="space-y-2.5 pt-1 border-t border-stone-100">
             <div className="flex flex-wrap gap-2 pt-2">
-              <select className={SELECT_CLASS} value={tipo} onChange={(e) => setTipo(e.target.value)}>
+              <select aria-label="Ofertas o demandas" className={SELECT_CLASS} value={tipo} onChange={(e) => setTipo(e.target.value)}>
                 <option value="">Ofertas o demandas</option>
                 <option value="ofrezco">Ofertas</option>
                 <option value="busco">Demandas</option>
               </select>
-              <select className={SELECT_CLASS} value={amueblado} onChange={(e) => setAmueblado(e.target.value)}>
+              <select aria-label="Amueblado" className={SELECT_CLASS} value={amueblado} onChange={(e) => setAmueblado(e.target.value)}>
                 <option value="">Amueblado o sin amueblar</option>
                 <option value="si">Amueblado</option>
                 <option value="no">Sin amueblar</option>
               </select>
               <select
+                aria-label="Duración del alquiler"
                 className={SELECT_CLASS}
                 value={duracionAlquiler}
                 onChange={(e) => setDuracionAlquiler(e.target.value)}
@@ -332,6 +337,7 @@ export default function FiltrosInmobiliaria({
 
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               <input
+                aria-label="Tamaño mínimo"
                 className={INPUT_CLASS}
                 placeholder="Tamaño mínimo m²"
                 type="number"
@@ -340,6 +346,7 @@ export default function FiltrosInmobiliaria({
                 onChange={(e) => setTamanoMin(e.target.value)}
               />
               <input
+                aria-label="Tamaño máximo"
                 className={INPUT_CLASS}
                 placeholder="Tamaño máximo m²"
                 type="number"
@@ -350,13 +357,13 @@ export default function FiltrosInmobiliaria({
             </div>
 
             <div className="flex flex-wrap gap-2 items-start">
-              <select className={SELECT_CLASS} value={habitaciones} onChange={(e) => setHabitaciones(e.target.value)}>
+              <select aria-label="Número mínimo de habitaciones" className={SELECT_CLASS} value={habitaciones} onChange={(e) => setHabitaciones(e.target.value)}>
                 <option value="">Nº Habitaciones</option>
                 {[1, 2, 3, 4, 5].map((n) => (
                   <option key={n} value={n}>{n}+ hab.</option>
                 ))}
               </select>
-              <select className={SELECT_CLASS} value={banos} onChange={(e) => setBanos(e.target.value)}>
+              <select aria-label="Número mínimo de baños" className={SELECT_CLASS} value={banos} onChange={(e) => setBanos(e.target.value)}>
                 <option value="">Nº Baños</option>
                 {[1, 2, 3].map((n) => (
                   <option key={n} value={n}>{n}+ baños</option>
@@ -366,6 +373,7 @@ export default function FiltrosInmobiliaria({
               <div className="relative">
                 <button
                   type="button"
+                  aria-expanded={caracteristicasAbierto}
                   onClick={() => setCaracteristicasAbierto((v) => !v)}
                   className={
                     SELECT_CLASS +
@@ -397,8 +405,9 @@ export default function FiltrosInmobiliaria({
 
             <div className="pt-1 flex flex-wrap items-center gap-2">
               {currentUserId && (
-                <button
-                  type="button"
+                  <button
+                    type="button"
+                    aria-pressed={soloFavoritos}
                   onClick={() => setSoloFavoritos((v) => !v)}
                   className={
                     "text-sm px-3 py-2 rounded-lg border font-medium " +
@@ -414,12 +423,13 @@ export default function FiltrosInmobiliaria({
                 <button
                   key={e.valor}
                   type="button"
+                  aria-pressed={estado === e.valor}
                   onClick={() => setEstado((prev) => (prev === e.valor ? "" : e.valor))}
                   className={
                     "inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg border " +
                     (estado === e.valor
                       ? "border-stone-900 bg-stone-50 text-stone-900 font-medium"
-                      : "border-stone-300 text-stone-500")
+                      : "border-stone-300 text-stone-600")
                   }
                 >
                   <span className={"w-2.5 h-2.5 rounded-full shrink-0 " + e.color} aria-hidden="true" />
@@ -444,7 +454,7 @@ export default function FiltrosInmobiliaria({
       {favoritosError && <p role="alert" className="text-sm text-red-600 mb-3">{favoritosError}</p>}
 
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-        <p className="text-sm text-stone-500">
+        <p className="text-sm text-stone-600">
           {filtrados.length} {filtrados.length === 1 ? "inmueble encontrado" : "inmuebles encontrados"}
         </p>
         <div className="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:flex-row sm:items-center">
@@ -460,18 +470,20 @@ export default function FiltrosInmobiliaria({
               </option>
             ))}
           </select>
-          <div className="flex text-sm font-medium border-2 border-[#ec1178] rounded-lg overflow-hidden shrink-0">
+          <div className="flex text-sm font-medium border-2 border-[#b00859] rounded-lg overflow-hidden shrink-0">
             <button
               type="button"
+              aria-pressed={vista === "lista"}
               onClick={() => setVista("lista")}
-              className={"px-4 py-1.5 " + (vista === "lista" ? "bg-[#ec1178] text-white" : "text-[#ec1178] hover:bg-fuchsia-50")}
+              className={"px-4 py-1.5 " + (vista === "lista" ? "bg-[#b00859] text-white" : "text-[#a80754] hover:bg-fuchsia-50")}
             >
               Lista
             </button>
             <button
               type="button"
+              aria-pressed={vista === "mapa"}
               onClick={() => setVista("mapa")}
-              className={"px-4 py-1.5 " + (vista === "mapa" ? "bg-[#ec1178] text-white" : "text-[#ec1178] hover:bg-fuchsia-50")}
+              className={"px-4 py-1.5 " + (vista === "mapa" ? "bg-[#b00859] text-white" : "text-[#a80754] hover:bg-fuchsia-50")}
             >
               Mapa
             </button>
@@ -480,13 +492,13 @@ export default function FiltrosInmobiliaria({
       </div>
 
       {anuncios.length === 0 && (
-        <p className="text-sm text-stone-400 text-center py-10">
+        <p className="text-sm text-stone-600 text-center py-10">
           Todavía no hay anuncios publicados. Sé la primera persona en publicar uno.
         </p>
       )}
 
       {anuncios.length > 0 && filtrados.length === 0 && (
-        <p className="text-sm text-stone-400 text-center py-10">
+        <p className="text-sm text-stone-600 text-center py-10">
           No hay anuncios que coincidan con estos filtros.
         </p>
       )}
