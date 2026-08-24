@@ -163,7 +163,12 @@ export async function GET(request: Request) {
   const limiteRegistrosTecnicos = new Date(
     ahora - HORAS_RETENCION_REGISTROS_TECNICOS * 60 * 60 * 1000
   ).toISOString();
-  for (const tabla of ["envios_contacto", "revelaciones_contacto", "subidas_fotos"] as const) {
+  for (const tabla of [
+    "envios_contacto",
+    "revelaciones_contacto",
+    "subidas_fotos",
+    "publicaciones_anuncios",
+  ] as const) {
     const { count, error: limpiezaError } = await admin
       .from(tabla)
       .delete({ count: "exact" })
