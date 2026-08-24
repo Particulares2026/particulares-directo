@@ -127,6 +127,7 @@ test("la revelación de contacto sigue limitada y no se almacena en caché", () 
 test("las acciones sensibles rechazan peticiones iniciadas desde otras webs", () => {
   for (const relativePath of [
     "app/api/anuncios/[id]/contacto/route.ts",
+    "app/api/anuncios/[id]/estado/route.ts",
     "app/api/contacto/route.ts",
     "app/api/destacar/route.ts",
   ]) {
@@ -134,6 +135,20 @@ test("las acciones sensibles rechazan peticiones iniciadas desde otras webs", ()
     assert.match(source, /esOrigenPermitido\(request\)/, `${relativePath} no valida el origen`);
     assert.match(source, /Origen no permitido/, `${relativePath} no rechaza otros orígenes`);
   }
+});
+
+test("la renovación y los cambios de estado se autorizan solo en el servidor", () => {
+  const card = read("components/AnuncioCard.tsx");
+  const route = read("app/api/anuncios/[id]/estado/route.ts");
+  const migration = read("supabase/migrations/0038_blindar_renovacion_anuncios.sql");
+
+  assert.doesNotMatch(card, /from\("anuncios"\)[\s\S]{0,160}\.update\(/);
+  assert.match(card, /\/api\/anuncios\/\$\{anuncio\.id\}\/estado/);
+  assert.match(route, /auth\.getUser\(\)/);
+  assert.match(route, /\.eq\("user_id", user\.id\)/);
+  assert.match(route, /DIAS_ANTES_RENOVACION\s*=\s*5/);
+  assert.match(route, /accion === "renovar" && !yaRenovable/);
+  assert.match(migration, /revoke update \(activo, fecha_activacion, aviso_5_enviado, aviso_3_enviado\)/);
 });
 
 test("los registros técnicos antiabuso tienen una retención máxima", () => {
@@ -158,3 +173,4 @@ test("la base temporal de CI nunca se conecta a producción", () => {
   assert.match(config, /project_id\s*=\s*"particulares_directo_ci"/);
   assert.match(config, /major_version\s*=\s*17/);
 });
+

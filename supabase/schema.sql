@@ -107,15 +107,13 @@ create policy "Los usuarios eliminan solo sus propios anuncios"
   to authenticated
   using (auth.uid() = user_id);
 
--- El visitante anónimo solo puede leer campos públicos. Crear y editar contenido
--- pasa por el servidor; el usuario conserva DELETE sobre sus filas y UPDATE solo
--- para los botones "Actualizar" y "Desactivar", todo ello limitado por RLS.
+-- El visitante anónimo solo puede leer campos públicos. Crear, editar, renovar,
+-- activar y desactivar pasan por el servidor; el usuario conserva únicamente
+-- DELETE directo sobre sus propias filas, limitado por RLS.
 revoke all privileges on table public.anuncios from anon;
 revoke select, insert, update, references, trigger, truncate
   on table public.anuncios from authenticated;
 grant delete on table public.anuncios to authenticated;
-grant update (activo, fecha_activacion, aviso_5_enviado, aviso_3_enviado)
-  on public.anuncios to authenticated;
 
 -- Teléfono y email nunca se leen con la clave pública. El servidor los entrega solo
 -- al propietario o a través del endpoint limitado de "Mostrar contacto".
@@ -696,3 +694,4 @@ revoke all on function public.aplicar_destacado_gratuito(uuid, uuid, integer, in
   from public, anon, authenticated;
 grant execute on function public.aplicar_destacado_gratuito(uuid, uuid, integer, integer)
   to service_role;
+

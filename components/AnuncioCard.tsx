@@ -56,6 +56,7 @@ export type Anuncio = {
   fotos?: string[];
   estado?: string | null;
   activo?: boolean;
+  fecha_activacion?: string;
   destacado_hasta?: string | null;
   sector_trabajo?: string | null;
   modalidad_trabajo?: string | null;
@@ -144,41 +145,31 @@ export default function AnuncioCard({
     router.refresh();
   };
 
-  const actualizar = async () => {
+  const cambiarEstado = async (accion: "renovar" | "activar" | "desactivar") => {
     setGestionando(true);
     setGestionError(null);
-    const { error } = await supabase
-      .from("anuncios")
-      .update({
-        activo: true,
-        fecha_activacion: new Date().toISOString(),
-        aviso_5_enviado: false,
-        aviso_3_enviado: false,
-      })
-      .eq("id", anuncio.id);
-    setGestionando(false);
-    if (error) {
-      console.error(error);
-      setGestionError("No se pudo actualizar el anuncio. Inténtalo de nuevo.");
-      return;
+    try {
+      const res = await fetch(`/api/anuncios/${anuncio.id}/estado`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accion }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setGestionError(data?.error || "No se pudo cambiar el estado del anuncio.");
+        return;
+      }
+      router.refresh();
+    } catch {
+      setGestionError("No se pudo conectar con el servidor. Inténtalo de nuevo.");
+    } finally {
+      setGestionando(false);
     }
-    router.refresh();
   };
 
-  const activar = actualizar;
-
-  const desactivar = async () => {
-    setGestionando(true);
-    setGestionError(null);
-    const { error } = await supabase.from("anuncios").update({ activo: false }).eq("id", anuncio.id);
-    setGestionando(false);
-    if (error) {
-      console.error(error);
-      setGestionError("No se pudo desactivar el anuncio. Inténtalo de nuevo.");
-      return;
-    }
-    router.refresh();
-  };
+  const renovar = () => cambiarEstado("renovar");
+  const activar = () => cambiarEstado("activar");
+  const desactivar = () => cambiarEstado("desactivar");
 
   const destacar = async () => {
     setDestacando(true);
@@ -223,6 +214,10 @@ export default function AnuncioCard({
   const destacado = estaDestacado(anuncio.destacado_hasta);
   const esEmpresa = anuncio.es_empresa === true;
   const colorCat = colorCategoria(anuncio.categoria);
+  const fechaRenovable = anuncio.fecha_activacion
+    ? new Date(new Date(anuncio.fecha_activacion).getTime() + 25 * 24 * 60 * 60 * 1000)
+    : null;
+  const puedeRenovar = Boolean(fechaRenovable && fechaRenovable.getTime() <= Date.now());
 
   const claseColor = esEmpresa
     ? "border-violet-400 bg-violet-50/80"
@@ -561,14 +556,19 @@ export default function AnuncioCard({
 
       {isOwner && (
         <div className="flex flex-wrap gap-3 mt-2 pt-2 border-t border-stone-100">
-          {anuncio.activo !== false && (
+          {anuncio.activo !== false && puedeRenovar && (
             <button
-              onClick={actualizar}
+              onClick={renovar}
               disabled={gestionando}
               className="text-xs text-teal-700 hover:underline disabled:opacity-40"
             >
-              Actualizar
+              {gestionando ? "Renovando…" : "Renovar 30 días"}
             </button>
+          )}
+          {anuncio.activo !== false && fechaRenovable && !puedeRenovar && (
+            <span className="text-xs text-stone-500">
+              Renovable desde {fechaRenovable.toLocaleDateString("es-ES")}
+            </span>
           )}
           {anuncio.activo === false ? (
             <button
@@ -576,7 +576,7 @@ export default function AnuncioCard({
               disabled={gestionando}
               className="text-xs text-teal-700 hover:underline disabled:opacity-40"
             >
-              Activar
+              {gestionando ? "Activando…" : "Activar"}
             </button>
           ) : (
             <button
@@ -584,7 +584,7 @@ export default function AnuncioCard({
               disabled={gestionando}
               className="text-xs text-stone-500 hover:underline disabled:opacity-40"
             >
-              Desactivar
+              {gestionando ? "Desactivando…" : "Desactivar"}
             </button>
           )}
           {destacado ? (
@@ -614,4 +614,5 @@ export default function AnuncioCard({
     </div>
   );
 }
+
 
