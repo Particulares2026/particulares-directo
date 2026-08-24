@@ -136,6 +136,16 @@ test("las acciones sensibles rechazan peticiones iniciadas desde otras webs", ()
   }
 });
 
+test("los registros técnicos antiabuso tienen una retención máxima", () => {
+  const source = read("app/api/cron/mantenimiento-anuncios/route.ts");
+  assert.match(source, /HORAS_RETENCION_REGISTROS_TECNICOS\s*=\s*24/);
+  for (const table of ["envios_contacto", "revelaciones_contacto", "subidas_fotos"]) {
+    assert.match(source, new RegExp(`"${table}"`));
+  }
+  assert.match(source, /\.delete\(\{ count: "exact" \}\)/);
+  assert.match(source, /\.lt\("created_at", limiteRegistrosTecnicos\)/);
+});
+
 test("la base temporal de CI nunca se conecta a producción", () => {
   const workflow = read(".github/workflows/database-ci.yml");
   const config = read("supabase/config.toml");

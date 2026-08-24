@@ -16,8 +16,7 @@ export default function AvisoLegalPage() {
           <h2 className="font-medium text-stone-900 mb-1">¿Qué es Particulares Directo?</h2>
           <p>
             Particulares Directo es una plataforma de anuncios clasificados entre particulares,
-            sin intermediarios, en distintas categorías (inmobiliaria, trabajo, coches, moda,
-            muebles y hogar, mascotas, tecnología y deporte).
+            sin intermediarios, centrada actualmente en vivienda y empleo.
           </p>
         </section>
 
@@ -38,9 +37,11 @@ export default function AvisoLegalPage() {
           <h2 className="font-medium text-stone-900 mb-1">Qué datos recogemos</h2>
           <p>
             Al crear una cuenta pedimos tu nombre, correo electrónico y número de teléfono. Al
-            publicar un anuncio, los datos de contacto que decidas incluir (nombre y teléfono) se
+            publicar un anuncio, los datos de contacto que decidas incluir (nombre, teléfono o correo) se
             muestran junto al anuncio para que otras personas puedan ponerse en contacto contigo.
-            Si subes fotos a un anuncio, se almacenan para mostrarlas en ese anuncio.
+            Si subes fotos a un anuncio, se almacenan para mostrarlas en ese anuncio. Para limitar
+            el spam y los abusos se generan identificadores técnicos seudonimizados, sin guardar la
+            dirección IP en claro en los nuevos registros de contacto.
           </p>
         </section>
 
@@ -77,9 +78,13 @@ export default function AvisoLegalPage() {
         <section>
           <h2 className="font-medium text-stone-900 mb-1">Cuánto tiempo se conservan</h2>
           <p>
-            Mientras tu cuenta esté activa. Si la eliminas, tus datos personales se borran de
-            inmediato, salvo la información que debamos conservar temporalmente para cumplir
-            obligaciones legales o atender posibles responsabilidades.
+            Los datos operativos se conservan mientras tu cuenta esté activa. Si la eliminas, se
+            retiran de la base de datos activa junto con tus anuncios y fotografías. Las copias de
+            seguridad privadas pueden conservar esos datos durante un máximo de 14 días, solo para
+            recuperar el servicio ante una incidencia, y después se eliminan automáticamente. Los
+            registros técnicos usados para limitar abusos se eliminan como máximo en 24 horas. Esto
+            se entiende sin perjuicio de la información que deba bloquearse o conservarse durante
+            los plazos exigidos por una obligación legal o para atender posibles responsabilidades.
           </p>
         </section>
 
@@ -111,9 +116,10 @@ export default function AvisoLegalPage() {
           <h2 className="font-medium text-stone-900 mb-1">Buzón de sugerencias</h2>
           <p>
             El formulario de contacto/sugerencias es anónimo: no se solicita ni se guarda tu
-            nombre ni tu correo al enviarlo. No lo uses para ejercer tus derechos sobre tus datos,
-            ya que al ser anónimo no podemos identificarte para atenderlo — escríbenos por email
-            para eso.
+            nombre ni tu correo al enviarlo. Para impedir envíos automatizados repetidos se conserva
+            durante un máximo de 24 horas un identificador irreversible generado a partir de la IP.
+            No lo uses para ejercer tus derechos sobre tus datos, ya que al ser anónimo no podemos
+            identificarte para atenderlo — escríbenos por email para eso.
           </p>
         </section>
 

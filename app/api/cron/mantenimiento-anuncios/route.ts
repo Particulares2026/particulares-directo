@@ -3,6 +3,7 @@ import { createClient as createAdminSupabase } from "@supabase/supabase-js";
 import { Resend } from "resend";
 
 const DIAS_CADUCIDAD = 30;
+const HORAS_RETENCION_REGISTROS_TECNICOS = 24;
 const DIA_MS = 24 * 60 * 60 * 1000;
 const URL_SITIO = "https://particularesdirecto.com";
 const REMITENTE = "Particulares Directo <noreply@particularesdirecto.com>";
@@ -157,6 +158,23 @@ export async function GET(request: Request) {
   let avisos5 = 0;
   let avisos3 = 0;
   let errores = 0;
+  let registrosTecnicosEliminados = 0;
+
+  const limiteRegistrosTecnicos = new Date(
+    ahora - HORAS_RETENCION_REGISTROS_TECNICOS * 60 * 60 * 1000
+  ).toISOString();
+  for (const tabla of ["envios_contacto", "revelaciones_contacto", "subidas_fotos"] as const) {
+    const { count, error: limpiezaError } = await admin
+      .from(tabla)
+      .delete({ count: "exact" })
+      .lt("created_at", limiteRegistrosTecnicos);
+    if (limpiezaError) {
+      console.error(`Error al limpiar registros técnicos de ${tabla}:`, limpiezaError.message);
+      errores++;
+    } else {
+      registrosTecnicosEliminados += count || 0;
+    }
+  }
 
   for (const anuncio of anuncios || []) {
     const diasTranscurridos = (ahora - new Date(anuncio.fecha_activacion).getTime()) / DIA_MS;
@@ -307,6 +325,7 @@ export async function GET(request: Request) {
     avisos3,
     alertasRevisadas,
     alertasAvisadas,
+    registrosTecnicosEliminados,
     errores,
   });
 }
