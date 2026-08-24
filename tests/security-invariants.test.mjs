@@ -194,6 +194,7 @@ test("las altas simultáneas y el borrado directo de anuncios quedan bloqueados"
   const route = read("app/api/anuncios/route.ts");
   const cron = read("app/api/cron/mantenimiento-anuncios/route.ts");
   const migration = read("supabase/migrations/0039_limitar_publicacion_y_borrado.sql");
+  const schema = read("supabase/schema.sql");
 
   assert.equal((route.match(/esOrigenPermitido\(request\)/g) || []).length, 2);
   assert.match(route, /rpc\([\s\S]*"reservar_publicacion_anuncio"/);
@@ -203,6 +204,7 @@ test("las altas simultáneas y el borrado directo de anuncios quedan bloqueados"
   assert.match(migration, /pg_advisory_xact_lock/);
   assert.match(migration, /publicaciones_anuncios_user_fecha_idx/);
   assert.match(migration, /grant execute[\s\S]*to service_role/);
+  assert.match(schema, /reservar_publicacion_anuncio[\s\S]*as \$\$/);
   assert.match(cron, /"publicaciones_anuncios"/);
 });
 
