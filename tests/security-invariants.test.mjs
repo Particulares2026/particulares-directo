@@ -131,14 +131,37 @@ test("las acciones sensibles rechazan peticiones iniciadas desde otras webs", ()
     "app/api/anuncios/fotos/route.ts",
     "app/api/admin/aceptar-anuncio/route.ts",
     "app/api/admin/eliminar-anuncio/route.ts",
+    "app/api/auth/restablecer-password/route.ts",
     "app/api/eliminar-cuenta/route.ts",
     "app/api/contacto/route.ts",
     "app/api/destacar/route.ts",
+    "app/api/perfil/route.ts",
   ]) {
     const source = read(relativePath);
     assert.match(source, /esOrigenPermitido\(request\)/, `${relativePath} no valida el origen`);
     assert.match(source, /Origen no permitido/, `${relativePath} no rechaza otros orígenes`);
   }
+});
+
+test("la contraseña solo se cambia desde un enlace de recuperación válido", () => {
+  const callback = read("app/auth/callback/route.ts");
+  const page = read("app/restablecer-password/page.tsx");
+  const form = read("components/RestablecerPasswordForm.tsx");
+  const route = read("app/api/auth/restablecer-password/route.ts");
+  const marker = read("lib/recuperacion-password.ts");
+
+  assert.match(callback, /crearMarcaRecuperacion\(data\.user\.id\)/);
+  assert.match(callback, /httpOnly:\s*true/);
+  assert.match(callback, /sameSite:\s*"lax"/);
+  assert.match(page, /validarMarcaRecuperacion\(marca, user\.id\)/);
+  assert.match(form, /\/api\/auth\/restablecer-password/);
+  assert.doesNotMatch(form, /auth\.updateUser/);
+  assert.match(route, /validarMarcaRecuperacion\(marca, user\.id\)/);
+  assert.match(route, /auth\.updateUser\(\{ password \}\)/);
+  assert.match(route, /signOut\(\{ scope: "others" \}\)/);
+  assert.match(route, /maxAge:\s*0/);
+  assert.match(marker, /createHmac\("sha256"/);
+  assert.match(marker, /timingSafeEqual/);
 });
 
 test("eliminar una cuenta borra también las fotos sueltas antes que el usuario", () => {
