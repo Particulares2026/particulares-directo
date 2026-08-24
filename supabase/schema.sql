@@ -107,13 +107,10 @@ create policy "Los usuarios eliminan solo sus propios anuncios"
   to authenticated
   using (auth.uid() = user_id);
 
--- El visitante anónimo solo puede leer campos públicos. Crear, editar, renovar,
--- activar y desactivar pasan por el servidor; el usuario conserva únicamente
--- DELETE directo sobre sus propias filas, limitado por RLS.
+-- El visitante anónimo solo puede leer campos públicos. Todas las escrituras
+-- de anuncios pasan por el servidor.
 revoke all privileges on table public.anuncios from anon;
-revoke select, insert, update, references, trigger, truncate
-  on table public.anuncios from authenticated;
-grant delete on table public.anuncios to authenticated;
+revoke all privileges on table public.anuncios from authenticated;
 
 -- Teléfono y email nunca se leen con la clave pública. El servidor los entrega solo
 -- al propietario o a través del endpoint limitado de "Mostrar contacto".
@@ -316,6 +313,56 @@ create index if not exists subidas_fotos_user_fecha_idx
 
 alter table public.subidas_fotos enable row level security;
 revoke all privileges on table public.subidas_fotos from anon, authenticated;
+
+-- Registro interno y reserva atómica para impedir que varias altas simultáneas
+-- superen el límite por usuario.
+create table if not exists public.publicaciones_anuncios (
+  id bigint generated always as identity primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz not null default statement_timestamp()
+);
+
+create index if not exists publicaciones_anuncios_user_fecha_idx
+  on public.publicaciones_anuncios (user_id, created_at desc);
+
+alter table public.publicaciones_anuncios enable row level security;
+revoke all privileges on table public.publicaciones_anuncios from anon, authenticated;
+grant select, insert, delete on table public.publicaciones_anuncios to service_role;
+
+create or replace function public.reservar_publicacion_anuncio(
+  p_user_id uuid,
+  p_limite integer
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if p_user_id is null or p_limite < 1 then
+    return false;
+  end if;
+
+  perform pg_advisory_xact_lock(hashtextextended(p_user_id::text, 0));
+
+  if (
+    select count(*)
+    from public.publicaciones_anuncios
+    where user_id = p_user_id
+      and created_at >= statement_timestamp() - interval '1 hour'
+  ) >= p_limite then
+    return false;
+  end if;
+
+  insert into public.publicaciones_anuncios (user_id) values (p_user_id);
+  return true;
+end;
+$$;
+
+revoke all on function public.reservar_publicacion_anuncio(uuid, integer)
+  from public, anon, authenticated;
+grant execute on function public.reservar_publicacion_anuncio(uuid, integer)
+  to service_role;
 
 -- Crear anuncios y gestionar archivos se hace exclusivamente desde el servidor.
 drop policy if exists "Los usuarios crean sus propios anuncios" on public.anuncios;
