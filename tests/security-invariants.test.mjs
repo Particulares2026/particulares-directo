@@ -144,10 +144,10 @@ test("las acciones sensibles rechazan peticiones iniciadas desde otras webs", ()
 test("eliminar una cuenta borra también las fotos sueltas antes que el usuario", () => {
   const source = read("app/api/eliminar-cuenta/route.ts");
 
-  assert.match(source, /\.list\(user\.id/);
-  assert.match(source, /limit:\s*TAMANO_PAGINA/);
+  assert.match(source, /\\.list\\(user\\.id/);
+  assert.match(source, /limit:\\s*TAMANO_PAGINA/);
   assert.match(source, /offset/);
-  assert.match(source, /bucket\.remove/);
+  assert.match(source, /bucket\\.remove/);
   assert.match(source, /errorBorrado/);
   assert.ok(source.indexOf("bucket.remove") < source.indexOf("deleteUser"));
 });
