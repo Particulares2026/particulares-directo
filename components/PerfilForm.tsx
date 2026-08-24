@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import { PREFIJOS_TELEFONO, parseTelefono } from "@/lib/telefono";
 
 export default function PerfilForm({
@@ -22,6 +23,23 @@ export default function PerfilForm({
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (telefonoInicial.trim()) return;
+
+    let cancelado = false;
+    void (async () => {
+      const { data } = await createClient().auth.refreshSession();
+      const telefonoActualizado = data.user?.user_metadata?.telefono;
+      if (!cancelado && typeof telefonoActualizado === "string" && telefonoActualizado.trim()) {
+        router.refresh();
+      }
+    })();
+
+    return () => {
+      cancelado = true;
+    };
+  }, [router, telefonoInicial]);
+
   const guardar = async (event: FormEvent) => {
     event.preventDefault();
     setGuardando(true);
@@ -34,10 +52,17 @@ export default function PerfilForm({
       body: JSON.stringify({ nombre, prefijoTelefono, numeroTelefono }),
     }).catch(() => null);
     const data = await response?.json().catch(() => null);
-    setGuardando(false);
 
     if (!response?.ok) {
+      setGuardando(false);
       setError(data?.error || "No se pudo guardar el perfil. Inténtalo de nuevo.");
+      return;
+    }
+
+    const { error: errorSesion } = await createClient().auth.refreshSession();
+    setGuardando(false);
+    if (errorSesion) {
+      setError("El perfil se guardó, pero necesitas salir y volver a entrar para actualizar la sesión.");
       return;
     }
 
