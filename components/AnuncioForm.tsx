@@ -579,6 +579,7 @@ export default function AnuncioForm({
               placeholder="Precio (€) *"
               type="number"
               min="0"
+              max="1000000000"
               value={precio}
               onChange={(e) => setPrecio(e.target.value)}
               required
@@ -588,6 +589,8 @@ export default function AnuncioForm({
               placeholder="Habitaciones"
               type="number"
               min="0"
+              max="100"
+              step="1"
               value={habitaciones}
               onChange={(e) => setHabitaciones(e.target.value)}
             />
@@ -596,6 +599,8 @@ export default function AnuncioForm({
               placeholder="Nº Baños"
               type="number"
               min="0"
+              max="100"
+              step="1"
               value={banos}
               onChange={(e) => setBanos(e.target.value)}
             />
@@ -604,7 +609,8 @@ export default function AnuncioForm({
             className="w-full border border-stone-300 rounded-lg px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
             placeholder="Tamaño (m²)"
             type="number"
-            min="0"
+            min="1"
+            max="10000000"
             value={tamano}
             onChange={(e) => setTamano(e.target.value)}
           />
@@ -774,6 +780,7 @@ export default function AnuncioForm({
               placeholder="Salario mín. (€)"
               type="number"
               min="0"
+              max="10000000"
               value={salarioMin}
               onChange={(e) => setSalarioMin(e.target.value)}
             />
@@ -782,6 +789,7 @@ export default function AnuncioForm({
               placeholder="Salario máx. (€)"
               type="number"
               min="0"
+              max="10000000"
               value={salarioMax}
               onChange={(e) => setSalarioMax(e.target.value)}
             />
@@ -1154,4 +1162,5 @@ export default function AnuncioForm({
     </div>
   );
 }
+
 
