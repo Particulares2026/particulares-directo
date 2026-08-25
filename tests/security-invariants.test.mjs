@@ -208,6 +208,44 @@ test("las altas simultáneas y el borrado directo de anuncios quedan bloqueados"
   assert.match(cron, /"publicaciones_anuncios"/);
 });
 
+test("los anuncios se validan y normalizan también en el servidor y la base de datos", () => {
+  const route = read("app/api/anuncios/route.ts");
+  const form = read("components/AnuncioForm.tsx");
+  const migration = read("supabase/migrations/20260825082248_validar_datos_anuncios.sql");
+  const schema = read("supabase/schema.sql");
+
+  assert.match(route, /Number\.isFinite\(valor\)/);
+  assert.match(route, /numeroEnRango\(payload\.precio, 0, PRECIO_MAXIMO\)/);
+  assert.match(route, /numeroEnRango\(payload\.lat, -90, 90\)/);
+  assert.match(route, /PROVINCIAS_VALIDAS\.has\(payload\.provincia\)/);
+  assert.match(route, /listaIncluida\(payload\.caracteristicas, CARACTERISTICAS_INMUEBLE_VALIDAS\)/);
+  assert.match(route, /listaIncluida\(payload\.idiomas_trabajo, IDIOMAS_TRABAJO_VALIDOS\)/);
+  assert.match(route, /normalizarCamposPermitidos\(payload\)/);
+  assert.match(route, /limpio\.sector_trabajo === "oficios"/);
+  assert.match(route, /valor !== "incorporacion_inmediata"/);
+  assert.match(route, /contieneContenidoProhibido\([\s\S]*camposLimpios\.titulo/);
+  assert.match(route, /huellaDuplicado\(camposLimpios\)/);
+
+  for (const limite of ['max="1000000000"', 'max="100"', 'max="10000000"']) {
+    assert.match(form, new RegExp(limite));
+  }
+
+  for (const constraint of [
+    "anuncios_numeros_en_rango",
+    "anuncios_salario_coherente",
+    "anuncios_coordenadas_completas",
+    "anuncios_campos_inmobiliaria_coherentes",
+    "anuncios_campos_trabajo_coherentes",
+    "anuncios_ubicacion_categoria_coherente",
+    "anuncios_caracteristicas_categoria_coherentes",
+    "anuncios_listas_limitadas",
+  ]) {
+    assert.match(migration, new RegExp(`add constraint ${constraint}`));
+    assert.match(migration, new RegExp(`validate constraint ${constraint}`));
+    assert.match(schema, new RegExp(`add constraint ${constraint}`));
+  }
+});
+
 test("los registros técnicos antiabuso tienen una retención máxima", () => {
   const source = read("app/api/cron/mantenimiento-anuncios/route.ts");
   assert.match(source, /HORAS_RETENCION_REGISTROS_TECNICOS\s*=\s*24/);
@@ -230,4 +268,5 @@ test("la base temporal de CI nunca se conecta a producción", () => {
   assert.match(config, /project_id\s*=\s*"particulares_directo_ci"/);
   assert.match(config, /major_version\s*=\s*17/);
 });
+
 
