@@ -282,7 +282,7 @@ test("las cuotas simultáneas y las fotos huérfanas se gestionan sin tocar anun
   assert.match(migration, /grant execute[\s\S]*to service_role/);
   assert.match(schema, /reservar_subida_foto[\s\S]*pg_advisory_xact_lock/);
 
-  assert.match(cron, /HORAS_GRACIA_FOTOS_HUERFANAS\s*=\s*24/);
+  assert.match(cron, /DIAS_GRACIA_FOTOS_HUERFANAS\s*=\s*7/);
   assert.match(cron, /extraerPathStorageSeguro/);
   assert.match(cron, /!referenciasFotos\.has\(subida\.storage_path\)/);
   assert.match(cron, /\.from\(FOTOS_BUCKET\)[\s\S]*\.remove\(/);
