@@ -77,7 +77,8 @@ export default function GoogleAnalyticsConsent() {
     setReady(true);
 
     const openSettings = () => {
-      setAnalyticsEnabled(initialChoice === "granted");
+      const currentChoice = window.localStorage.getItem(CONSENT_STORAGE_KEY);
+      setAnalyticsEnabled(currentChoice === "granted");
       setShowDetails(true);
       setShowSettings(true);
     };
