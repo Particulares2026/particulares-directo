@@ -8,7 +8,6 @@ import CampoPassword from "@/components/CampoPassword";
 import Turnstile from "@/components/Turnstile";
 import { traducirErrorAuth } from "@/lib/errores-auth";
 import { CONSENTIMIENTO_LEGAL_REGISTRO } from "@/lib/legal";
-
 export default function RegistroPage() {
   const supabase = createClient();
   const [nombre, setNombre] = useState("");
