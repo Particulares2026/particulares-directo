@@ -61,6 +61,27 @@ test("ningún componente de navegador contiene secretos de servidor", () => {
   }
 });
 
+test("el alta registra de forma privada las versiones legales aceptadas", () => {
+  const registro = read("app/registro/page.tsx");
+  const versiones = read("lib/legal.ts");
+  const migration = read(
+    "supabase/migrations/20260827110134_registrar_consentimientos_legales.sql"
+  );
+  const schema = read("supabase/schema.sql");
+
+  assert.match(registro, /consentimiento_legal:\s*CONSENTIMIENTO_LEGAL_REGISTRO/);
+  assert.match(versiones, /VERSION_AVISO_LEGAL\s*=\s*"2026-08-27"/);
+  assert.match(versiones, /VERSION_TERMINOS\s*=\s*"2026-08-27"/);
+  assert.match(migration, /create table if not exists private\.consentimientos_legales/);
+  assert.match(migration, /user_id uuid primary key references auth\.users\(id\) on delete cascade/);
+  assert.match(migration, /alter table private\.consentimientos_legales enable row level security/);
+  assert.match(migration, /revoke all on table private\.consentimientos_legales/);
+  assert.match(migration, /security definer[\s\S]*set search_path = ''/);
+  assert.match(migration, /statement_timestamp\(\)/);
+  assert.doesNotMatch(migration, /ip_address|user_agent/);
+  assert.match(schema, /registrar_consentimiento_legal_alta[\s\S]*auth\.users/);
+});
+
 test("la sesión de servidor usa las API asíncronas y el proxy de Next.js 16", () => {
   const source = read("lib/supabase/server.ts");
   const proxy = read("proxy.ts");
