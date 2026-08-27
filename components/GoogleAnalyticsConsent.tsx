@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 const GA_ID = "G-M2F8SWTL4B";
 const CONSENT_STORAGE_KEY = "particulares-directo-cookie-consent";
-const OPEN_SETTINGS_EVENT = "particulares-directo:open-cookie-settings";
+const OPEN_SETTINGS_STORAGE_KEY = "particulares-directo-open-cookie-settings";
 
 type ConsentChoice = "granted" | "denied" | null;
 
@@ -67,24 +67,19 @@ export default function GoogleAnalyticsConsent() {
     const initialChoice: ConsentChoice =
       savedChoice === "granted" || savedChoice === "denied" ? savedChoice : null;
 
-    if (initialChoice === "granted") {
+    const openSavedSettings =
+      window.sessionStorage.getItem(OPEN_SETTINGS_STORAGE_KEY) === "true";
+    window.sessionStorage.removeItem(OPEN_SETTINGS_STORAGE_KEY);
+
+    if (initialChoice === "granted" && !openSavedSettings) {
       prepareGoogleConsent();
-      setAnalyticsEnabled(true);
     }
 
+    setAnalyticsEnabled(initialChoice === "granted");
     setChoice(initialChoice);
-    setShowSettings(initialChoice === null);
+    setShowDetails(openSavedSettings);
+    setShowSettings(initialChoice === null || openSavedSettings);
     setReady(true);
-
-    const openSettings = () => {
-      const currentChoice = window.localStorage.getItem(CONSENT_STORAGE_KEY);
-      setAnalyticsEnabled(currentChoice === "granted");
-      setShowDetails(true);
-      setShowSettings(true);
-    };
-
-    window.addEventListener(OPEN_SETTINGS_EVENT, openSettings);
-    return () => window.removeEventListener(OPEN_SETTINGS_EVENT, openSettings);
   }, []);
 
   function saveChoice(nextChoice: Exclude<ConsentChoice, null>) {
