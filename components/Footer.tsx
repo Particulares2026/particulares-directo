@@ -12,6 +12,7 @@ export default function Footer() {
         <Link href="/terminos" className="hover:text-stone-900">
           Términos y condiciones
         </Link>
+        <CookieSettingsButton />
       </div>
     </footer>
   );
