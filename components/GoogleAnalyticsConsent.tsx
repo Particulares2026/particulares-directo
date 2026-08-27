@@ -1,7 +1,7 @@
 "use client";
 
 import { GoogleAnalytics } from "@next/third-parties/google";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const GA_ID = "G-M2F8SWTL4B";
 const CONSENT_STORAGE_KEY = "particulares-directo-cookie-consent";
@@ -56,6 +56,7 @@ function removeGoogleAnalyticsCookies() {
 }
 
 export default function GoogleAnalyticsConsent() {
+  const initialized = useRef(false);
   const [choice, setChoice] = useState<ConsentChoice>(null);
   const [ready, setReady] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -63,6 +64,11 @@ export default function GoogleAnalyticsConsent() {
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
 
   useEffect(() => {
+    if (initialized.current) {
+      return;
+    }
+    initialized.current = true;
+
     const savedChoice = window.localStorage.getItem(CONSENT_STORAGE_KEY);
     const initialChoice: ConsentChoice =
       savedChoice === "granted" || savedChoice === "denied" ? savedChoice : null;
