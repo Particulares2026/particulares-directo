@@ -67,8 +67,7 @@ export default function GuiaPrimerAcceso() {
           </h2>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-stone-700">
             Recibirás un mensaje para confirmar tu cuenta. Si no lo encuentras,
-            revisa también las carpetas de <strong>Spam</strong>, <strong>Correo no deseado</strong> o{" "}
-            <strong>Promociones</strong>.
+            revisa también la carpeta de <strong>Correo no deseado</strong>.
           </p>
         </div>
         <div className="mt-4 flex shrink-0 flex-wrap gap-3 sm:mt-0 sm:justify-end">
@@ -145,8 +144,8 @@ export default function GuiaPrimerAcceso() {
                 <div>
                   <p className="font-semibold text-amber-950">¿No encuentras el correo?</p>
                   <p className="mt-1 text-sm leading-6 text-amber-900">
-                    Espera unos minutos y revisa <strong>Spam</strong>, <strong>Correo no deseado</strong> y{" "}
-                    <strong>Promociones</strong>. El mensaje puede llegar a una de esas carpetas.
+                    Espera unos minutos y revisa la carpeta de <strong>Correo no deseado</strong>.
+                    El mensaje puede llegar allí.
                   </p>
                 </div>
               </li>
