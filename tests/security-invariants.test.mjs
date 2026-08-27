@@ -115,13 +115,22 @@ test("las rutas privadas verifican al usuario antes de mostrar datos", () => {
 
 test("la revelación de contacto sigue limitada y no se almacena en caché", () => {
   const source = read("app/api/anuncios/[id]/contacto/route.ts");
+  const migration = read("supabase/migrations/20260827082845_limitar_revelaciones_contacto.sql");
+  const schema = read("supabase/schema.sql");
   assert.match(source, /Cache-Control[^\n]*private, no-store/);
   assert.match(source, /LIMITE_REVELACIONES\s*=\s*20/);
   assert.match(source, /LIMITE_POR_ANUNCIO\s*=\s*10/);
   assert.match(source, /UUID\.test\(id\)/);
   assert.match(source, /export async function POST/);
   assert.match(source, /createHmac\("sha256"/);
+  assert.match(source, /rpc\("registrar_revelacion_contacto"/);
+  assert.doesNotMatch(source, /\.from\("revelaciones_contacto"\)/);
   assert.doesNotMatch(source, /export async function GET/);
+  assert.match(migration, /pg_advisory_xact_lock/);
+  assert.match(migration, /v_total >= p_limite_total/);
+  assert.match(migration, /v_mismo_anuncio >= p_limite_anuncio/);
+  assert.match(migration, /grant execute[\s\S]*to service_role/);
+  assert.match(schema, /registrar_revelacion_contacto[\s\S]*pg_advisory_xact_lock/);
 });
 
 test("las acciones sensibles rechazan peticiones iniciadas desde otras webs", () => {
@@ -268,5 +277,6 @@ test("la base temporal de CI nunca se conecta a producción", () => {
   assert.match(config, /project_id\s*=\s*"particulares_directo_ci"/);
   assert.match(config, /major_version\s*=\s*17/);
 });
+
 
 
