@@ -126,13 +126,39 @@ export default function AvisoLegalPage() {
           </p>
         </section>
 
-        <section>
+        <section id="cookies-analitica" className="scroll-mt-24">
           <h2 className="font-medium text-stone-900 mb-1">Cookies y analítica</h2>
           <p>
-            Usamos únicamente cookies técnicas necesarias para mantener tu sesión iniciada. No
-            utilizamos cookies de publicidad ni de seguimiento. Para saber qué páginas se visitan
-            más y mejorar la web, usamos Vercel Analytics, que mide visitas de forma agregada y
-            anónima sin usar cookies ni identificarte a ti individualmente.
+            Usamos almacenamiento técnico necesario para mantener tu sesión iniciada, proteger el
+            servicio y recordar tus preferencias de privacidad. También usamos Vercel Analytics
+            para obtener estadísticas agregadas de uso sin cookies de terceros ni identificadores
+            persistentes.
+          </p>
+          <p className="mt-2">
+            Solo si das tu consentimiento, activamos Google Analytics 4, prestado por Google
+            Ireland Limited, para conocer de forma estadística qué páginas se visitan, desde qué
+            tipo de dispositivo o navegador y el país aproximado de acceso. Google Analytics puede
+            crear las cookies <strong>_ga</strong> y <strong>_ga_*</strong>, con una duración
+            máxima habitual de dos años. No activamos mediante este aviso finalidades publicitarias
+            ni personalización de anuncios.
+          </p>
+          <p className="mt-2">
+            Puedes aceptar, rechazar o configurar la analítica desde el aviso inicial y cambiar tu
+            decisión en cualquier momento mediante “Configurar cookies”, en el pie de página. Al
+            retirar el consentimiento dejamos de cargar Google Analytics y eliminamos las cookies
+            de analítica accesibles desde esta web.
+          </p>
+          <p className="mt-2">
+            Puedes consultar más información sobre el tratamiento realizado por Google en su{" "}
+            <a
+              href="https://policies.google.com/privacy?hl=es"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-stone-900"
+            >
+              política de privacidad
+            </a>
+            .
           </p>
         </section>
       </div>
