@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { VERSION_AVISO_LEGAL } from "@/lib/legal";
-
 export const metadata: Metadata = {
   title: "Aviso legal y privacidad",
   description: "Información legal, privacidad y tratamiento de datos de Particulares Directo.",
