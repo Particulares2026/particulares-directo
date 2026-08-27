@@ -5,7 +5,7 @@ import { FOTOS_BUCKET, extraerPathStorage } from "@/lib/inmobiliaria";
 
 const DIAS_CADUCIDAD = 30;
 const HORAS_RETENCION_REGISTROS_TECNICOS = 24;
-const HORAS_GRACIA_FOTOS_HUERFANAS = 24;
+const DIAS_GRACIA_FOTOS_HUERFANAS = 7;
 const TAMANO_LOTE_FOTOS = 100;
 const DIA_MS = 24 * 60 * 60 * 1000;
 const URL_SITIO = "https://particularesdirecto.com";
@@ -242,7 +242,7 @@ export async function GET(request: Request) {
 
   if (lecturaFotosCompleta) {
     const limiteFotosHuerfanas = new Date(
-      ahora - HORAS_GRACIA_FOTOS_HUERFANAS * 60 * 60 * 1000
+      ahora - DIAS_GRACIA_FOTOS_HUERFANAS * DIA_MS
     ).toISOString();
     const candidatas: SubidaFotoFila[] = [];
     let offsetSubidas = 0;
