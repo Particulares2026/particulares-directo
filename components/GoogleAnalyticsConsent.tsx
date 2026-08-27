@@ -86,7 +86,7 @@ export default function GoogleAnalyticsConsent() {
     }
 
     setAnalyticsEnabled(initialChoice === "granted");
-    setChoice(initialChoice);
+    setChoice(openSavedSettings ? null : initialChoice);
     setShowDetails(openSavedSettings);
     setShowSettings(initialChoice === null || openSavedSettings);
     setReady(true);
