@@ -88,7 +88,7 @@ export default function GoogleAnalyticsConsent() {
   }, []);
 
   function saveChoice(nextChoice: Exclude<ConsentChoice, null>) {
-    const wasGranted = choice === "granted";
+    const wasGranted = window.localStorage.getItem(CONSENT_STORAGE_KEY) === "granted";
     window.localStorage.setItem(CONSENT_STORAGE_KEY, nextChoice);
 
     if (nextChoice === "granted") {
