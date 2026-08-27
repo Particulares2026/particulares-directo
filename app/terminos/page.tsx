@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { VERSION_TERMINOS } from "@/lib/legal";
 
 export const metadata: Metadata = {
   title: "Términos y condiciones",
@@ -10,6 +11,9 @@ export default function TerminosPage() {
   return (
     <main className="max-w-2xl mx-auto px-4 md:px-8 py-10">
       <h1 className="font-serif text-2xl mb-6">Términos y condiciones de uso</h1>
+      <p className="-mt-4 mb-6 text-xs text-stone-500">
+        Versión vigente: {VERSION_TERMINOS.split("-").reverse().join("/")}
+      </p>
 
       <div className="space-y-5 text-sm text-stone-600 leading-relaxed">
         <section>
