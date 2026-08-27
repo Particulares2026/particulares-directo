@@ -499,36 +499,27 @@ export default function AnuncioCard({
 
       <p className="text-xs text-stone-600 mt-2">
         Contacto: {anuncio.nombre_contacto}
-        {(contactoRevelado?.telefono ?? (anuncio.mostrar_telefono !== false ? anuncio.telefono_contacto : null)) && (
+        {contactoRevelado?.telefono && (
           <>
             {" · "}
-            {(() => {
-              const telefono = contactoRevelado?.telefono ?? anuncio.telefono_contacto!;
-              return (
-                <a href={`tel:${telefono.replace(/\s+/g, "")}`} className="hover:underline">
-                  {telefono}
-                </a>
-              );
-            })()}
+            <a
+              href={`tel:${contactoRevelado.telefono.replace(/\s+/g, "")}`}
+              className="hover:underline"
+            >
+              {contactoRevelado.telefono}
+            </a>
           </>
         )}
-        {(contactoRevelado?.email ?? (anuncio.mostrar_email ? anuncio.email_contacto : null)) && (
+        {contactoRevelado?.email && (
           <>
             {" · "}
-            {(() => {
-              const email = contactoRevelado?.email ?? anuncio.email_contacto!;
-              return (
-                <a href={`mailto:${email}`} className="hover:underline">
-                  {email}
-                </a>
-              );
-            })()}
+            <a href={`mailto:${contactoRevelado.email}`} className="hover:underline">
+              {contactoRevelado.email}
+            </a>
           </>
         )}
-        {!isOwner &&
-          !contactoRevelado &&
-          !anuncio.telefono_contacto &&
-          !anuncio.email_contacto &&
+        {!contactoRevelado &&
+          anuncio.id !== "preview" &&
           (anuncio.mostrar_telefono !== false || anuncio.mostrar_email) && (
             <>
               {" · "}

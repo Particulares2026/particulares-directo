@@ -33,14 +33,38 @@ type ResumenEmpresa = {
   anuncios: number;
 };
 
+type DenunciaModeracion = {
+  id: number;
+  anuncio_id: string | null;
+  anuncio_titulo: string;
+  anuncio_categoria: string;
+  motivo: string;
+  detalles: string;
+  email_reportante: string | null;
+  created_at: string;
+};
+
+const ETIQUETAS_DENUNCIA: Record<string, string> = {
+  estafa: "Posible estafa",
+  ilegal: "Contenido o actividad ilegal",
+  ofensivo: "Contenido ofensivo",
+  datos_personales: "Expone datos personales",
+  duplicado: "Anuncio duplicado",
+  categoria_incorrecta: "Categoría incorrecta",
+  otro: "Otro motivo",
+};
+
 export default function PanelModeracion({
   anunciosIniciales,
   resumenEmpresas,
+  denunciasIniciales,
 }: {
   anunciosIniciales: AnuncioModeracion[];
   resumenEmpresas: ResumenEmpresa[];
+  denunciasIniciales: DenunciaModeracion[];
 }) {
   const [anuncios, setAnuncios] = useState(anunciosIniciales);
+  const [denuncias, setDenuncias] = useState(denunciasIniciales);
   const [procesando, setProcesando] = useState<string | null>(null);
 
   const aceptar = async (id: string) => {
@@ -76,6 +100,49 @@ export default function PanelModeracion({
     }
   };
 
+  const resolverDenuncia = async (id: number) => {
+    const clave = `denuncia-${id}`;
+    setProcesando(clave);
+    const res = await fetch("/api/admin/resolver-denuncia", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    const data = await res.json().catch(() => null);
+    setProcesando(null);
+    if (res.ok) {
+      setDenuncias((prev) => prev.filter((denuncia) => denuncia.id !== id));
+    } else {
+      alert(data?.error || "No se pudo cerrar la denuncia.");
+    }
+  };
+
+  const eliminarAnuncioDenunciado = async (denuncia: DenunciaModeracion) => {
+    if (!denuncia.anuncio_id) {
+      await resolverDenuncia(denuncia.id);
+      return;
+    }
+    if (!confirm(`¿Eliminar "${denuncia.anuncio_titulo}"? No se puede deshacer.`)) return;
+
+    const clave = `denuncia-${denuncia.id}`;
+    setProcesando(clave);
+    const res = await fetch("/api/admin/eliminar-anuncio", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: denuncia.anuncio_id }),
+    });
+    const data = await res.json().catch(() => null);
+    setProcesando(null);
+    if (res.ok) {
+      setDenuncias((prev) =>
+        prev.filter((item) => item.anuncio_id !== denuncia.anuncio_id)
+      );
+      setAnuncios((prev) => prev.filter((anuncio) => anuncio.id !== denuncia.anuncio_id));
+    } else {
+      alert(data?.error || "No se pudo eliminar el anuncio denunciado.");
+    }
+  };
+
   return (
     <div className="space-y-6">
       <section className="rounded-2xl border border-violet-200 bg-violet-50/60 p-4" aria-labelledby="resumen-empresas">
@@ -95,6 +162,97 @@ export default function PanelModeracion({
                 </p>
               </div>
             ))}
+          </div>
+        )}
+      </section>
+
+      <section
+        className="rounded-2xl border border-red-200 bg-red-50/50 p-4"
+        aria-labelledby="denuncias-pendientes"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 id="denuncias-pendientes" className="font-medium text-red-950">
+              🚩 Denuncias pendientes
+            </h2>
+            <p className="mt-1 text-xs text-red-900/70">
+              Revisa el anuncio y cierra la denuncia o elimina el anuncio si incumple las normas.
+            </p>
+          </div>
+          <span className="rounded-full border border-red-200 bg-white px-2.5 py-1 text-xs font-medium text-red-700">
+            {denuncias.length} pendientes
+          </span>
+        </div>
+
+        {denuncias.length === 0 ? (
+          <p className="py-6 text-center text-sm text-red-800/60">
+            No hay denuncias pendientes.
+          </p>
+        ) : (
+          <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
+            {denuncias.map((denuncia) => {
+              const clave = `denuncia-${denuncia.id}`;
+              return (
+                <article key={denuncia.id} className="rounded-xl border border-red-200 bg-white p-4">
+                  <div className="flex flex-wrap gap-1.5">
+                    <span className="rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-xs text-red-700">
+                      {ETIQUETAS_DENUNCIA[denuncia.motivo] || denuncia.motivo}
+                    </span>
+                    <span className="rounded-full border border-stone-200 bg-stone-50 px-2 py-0.5 text-xs text-stone-600">
+                      {nombreCategoria(denuncia.anuncio_categoria)}
+                    </span>
+                  </div>
+                  <h3 className="mt-2 break-words font-medium text-stone-900">
+                    {denuncia.anuncio_titulo}
+                  </h3>
+                  <p className="mt-2 whitespace-pre-wrap break-words text-sm text-stone-700">
+                    {denuncia.detalles}
+                  </p>
+                  <p className="mt-2 text-xs text-stone-400">
+                    Recibida: {FORMATO_FECHA.format(new Date(denuncia.created_at))}
+                  </p>
+                  {denuncia.email_reportante && (
+                    <p className="mt-1 break-all text-xs text-stone-400">
+                      Contacto de quien denuncia: {denuncia.email_reportante}
+                    </p>
+                  )}
+                  {!denuncia.anuncio_id && (
+                    <p className="mt-2 text-xs font-medium text-amber-700">
+                      El anuncio ya no está disponible.
+                    </p>
+                  )}
+                  <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
+                    {denuncia.anuncio_id && (
+                      <Link
+                        href={`/anuncio/${denuncia.anuncio_id}`}
+                        target="_blank"
+                        className="inline-flex min-h-10 items-center rounded-lg px-3 text-xs text-teal-700 hover:bg-teal-50 hover:underline"
+                      >
+                        Ver anuncio
+                      </Link>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => resolverDenuncia(denuncia.id)}
+                      disabled={procesando === clave}
+                      className="inline-flex min-h-10 items-center rounded-lg border border-stone-300 px-3 text-xs font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-40"
+                    >
+                      {procesando === clave ? "Procesando…" : "Marcar revisada"}
+                    </button>
+                    {denuncia.anuncio_id && (
+                      <button
+                        type="button"
+                        onClick={() => eliminarAnuncioDenunciado(denuncia)}
+                        disabled={procesando === clave}
+                        className="inline-flex min-h-10 items-center rounded-lg bg-red-600 px-3 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-40"
+                      >
+                        Eliminar anuncio
+                      </button>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
           </div>
         )}
       </section>

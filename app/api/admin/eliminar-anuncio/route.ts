@@ -36,7 +36,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "El servicio no está disponible." }, { status: 503 });
   }
 
-  const { data: anuncio } = await admin.from("anuncios").select("fotos").eq("id", id).single();
+  const [{ data: anuncio }, { data: denunciasPendientes }] = await Promise.all([
+    admin.from("anuncios").select("fotos").eq("id", id).single(),
+    admin
+      .from("denuncias_anuncios")
+      .select("id")
+      .eq("anuncio_id", id)
+      .eq("estado", "pendiente"),
+  ]);
 
   const { error } = await admin.from("anuncios").delete().eq("id", id);
   if (error) {
@@ -46,6 +53,24 @@ export async function POST(request: Request) {
   if (anuncio?.fotos && anuncio.fotos.length > 0) {
     const paths = anuncio.fotos.map(extraerPathStorage).filter((p: string | null): p is string => Boolean(p));
     if (paths.length > 0) await admin.storage.from(FOTOS_BUCKET).remove(paths);
+  }
+
+  const idsDenuncias = (denunciasPendientes || []).map((denuncia) => denuncia.id);
+  if (idsDenuncias.length > 0) {
+    const { error: denunciasError } = await admin
+      .from("denuncias_anuncios")
+      .update({
+        estado: "resuelta",
+        accion: "anuncio_eliminado",
+        resuelta_at: new Date().toISOString(),
+        resuelta_por: user.id,
+        email_reportante: null,
+        ip_hash: null,
+      })
+      .in("id", idsDenuncias);
+    if (denunciasError) {
+      console.error("No se pudieron cerrar las denuncias del anuncio eliminado:", denunciasError.message);
+    }
   }
 
   return NextResponse.json({ ok: true });
