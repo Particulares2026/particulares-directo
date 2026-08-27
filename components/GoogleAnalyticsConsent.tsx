@@ -11,7 +11,7 @@ type ConsentChoice = "granted" | "denied" | null;
 
 declare global {
   interface Window {
-    dataLayer?: unknown[];
+    dataLayer?: Object[];
     gtag?: (...args: unknown[]) => void;
   }
 }
