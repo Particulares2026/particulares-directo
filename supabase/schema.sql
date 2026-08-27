@@ -305,14 +305,107 @@ insert into storage.buckets (id, name, public)
 create table if not exists public.subidas_fotos (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
+  storage_path text,
+  completada boolean not null default false,
   created_at timestamptz not null default now()
 );
 
 create index if not exists subidas_fotos_user_fecha_idx
   on public.subidas_fotos (user_id, created_at);
 
+create unique index if not exists subidas_fotos_storage_path_idx
+  on public.subidas_fotos (storage_path)
+  where storage_path is not null;
+
+create index if not exists subidas_fotos_limpieza_idx
+  on public.subidas_fotos (created_at)
+  where storage_path is not null;
+
 alter table public.subidas_fotos enable row level security;
 revoke all privileges on table public.subidas_fotos from anon, authenticated;
+grant select, insert, update, delete on table public.subidas_fotos to service_role;
+
+create or replace function public.reservar_subida_foto(
+  p_user_id uuid,
+  p_storage_path text,
+  p_limite_hora integer,
+  p_limite_total integer
+)
+returns jsonb
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_subidas_hora integer;
+  v_objetos integer;
+  v_reservas_pendientes integer;
+  v_reserva_id uuid;
+begin
+  if p_user_id is null
+    or p_storage_path is null
+    or p_limite_hora < 1
+    or p_limite_total < 1
+    or p_limite_hora > 1000
+    or p_limite_total > 10000
+    or p_storage_path !~ (
+      '^' || p_user_id::text ||
+      '/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}[.](jpg|png|webp|gif)$'
+    )
+  then
+    return jsonb_build_object('estado', 'invalida');
+  end if;
+
+  perform pg_catalog.pg_advisory_xact_lock(
+    pg_catalog.hashtextextended('subida_foto:' || p_user_id::text, 0)
+  );
+
+  select count(*)::integer
+  into v_subidas_hora
+  from public.subidas_fotos
+  where user_id = p_user_id
+    and created_at >= statement_timestamp() - interval '1 hour';
+
+  if v_subidas_hora >= p_limite_hora then
+    return jsonb_build_object('estado', 'limite_hora');
+  end if;
+
+  select count(*)::integer
+  into v_objetos
+  from storage.objects
+  where bucket_id = 'inmuebles'
+    and name like p_user_id::text || '/%';
+
+  select count(*)::integer
+  into v_reservas_pendientes
+  from public.subidas_fotos reserva
+  where reserva.user_id = p_user_id
+    and reserva.storage_path is not null
+    and not reserva.completada
+    and reserva.created_at >= statement_timestamp() - interval '24 hours'
+    and not exists (
+      select 1
+      from storage.objects objeto
+      where objeto.bucket_id = 'inmuebles'
+        and objeto.name = reserva.storage_path
+    );
+
+  if v_objetos + v_reservas_pendientes >= p_limite_total then
+    return jsonb_build_object('estado', 'limite_total');
+  end if;
+
+  insert into public.subidas_fotos (user_id, storage_path, completada)
+  values (p_user_id, p_storage_path, false)
+  returning id into v_reserva_id;
+
+  return jsonb_build_object('estado', 'reservada', 'id', v_reserva_id);
+end;
+$$;
+
+revoke all on function public.reservar_subida_foto(uuid, text, integer, integer)
+  from public, anon, authenticated;
+grant execute on function public.reservar_subida_foto(uuid, text, integer, integer)
+  to service_role;
 
 -- Registro interno y reserva atómica para impedir que varias altas simultáneas
 -- superen el límite por usuario.
