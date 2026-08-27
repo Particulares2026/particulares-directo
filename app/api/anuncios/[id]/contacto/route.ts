@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createHmac } from "crypto";
+import { esOrigenPermitido } from "@/lib/seguridad-request";
 
 const LIMITE_REVELACIONES = 20;
 const LIMITE_POR_ANUNCIO = 10;
@@ -12,16 +13,6 @@ function jsonPrivado(body: Record<string, unknown>, status = 200) {
     status,
     headers: { "Cache-Control": "private, no-store, max-age=0" },
   });
-}
-
-function esOrigenPermitido(request: Request) {
-  const origen = request.headers.get("origin");
-  if (!origen) return request.headers.get("sec-fetch-site") !== "cross-site";
-  try {
-    return new URL(origen).origin === new URL(request.url).origin;
-  } catch {
-    return false;
-  }
 }
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -53,50 +44,36 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const ipAnonimizada = createHmac("sha256", serviceKey).update(ip).digest("hex");
   const desde = new Date(Date.now() - VENTANA_MS).toISOString();
 
-  const [total, mismoAnuncio] = await Promise.all([
-    admin
-      .from("revelaciones_contacto")
-      .select("id", { count: "exact", head: true })
-      .eq("ip", ipAnonimizada)
-      .gte("created_at", desde),
-    admin
-      .from("revelaciones_contacto")
-      .select("id", { count: "exact", head: true })
-      .eq("ip", ipAnonimizada)
-      .eq("anuncio_id", id)
-      .gte("created_at", desde),
-  ]);
+  const { data, error } = await admin.rpc("registrar_revelacion_contacto", {
+    p_ip: ipAnonimizada,
+    p_anuncio_id: id,
+    p_desde: desde,
+    p_limite_total: LIMITE_REVELACIONES,
+    p_limite_anuncio: LIMITE_POR_ANUNCIO,
+  });
 
-  if (total.error || mismoAnuncio.error) {
+  if (error || !data || typeof data !== "object" || Array.isArray(data)) {
     return jsonPrivado({ error: "No se pudo comprobar el límite de seguridad." }, 503);
   }
-  if ((total.count || 0) >= LIMITE_REVELACIONES || (mismoAnuncio.count || 0) >= LIMITE_POR_ANUNCIO) {
+  const resultado = data as Record<string, unknown>;
+  if (resultado.estado === "limite") {
     return jsonPrivado(
       { error: "Demasiadas peticiones seguidas. Inténtalo de nuevo más tarde." },
       429
     );
   }
-
-  const { data: anuncio } = await admin
-    .from("anuncios")
-    .select("telefono_contacto, email_contacto, mostrar_telefono, mostrar_email")
-    .eq("id", id)
-    .eq("activo", true)
-    .single();
-
-  if (!anuncio) {
+  if (resultado.estado === "no_encontrado") {
     return jsonPrivado({ error: "Anuncio no encontrado." }, 404);
   }
-
-  const { error: errorRegistro } = await admin
-    .from("revelaciones_contacto")
-    .insert({ ip: ipAnonimizada, anuncio_id: id });
-  if (errorRegistro) {
-    return jsonPrivado({ error: "No se pudo registrar la petición de forma segura." }, 503);
+  if (resultado.estado !== "permitido") {
+    return jsonPrivado({ error: "No se pudo comprobar el límite de seguridad." }, 503);
   }
 
   return jsonPrivado({
-    telefono_contacto: anuncio.mostrar_telefono !== false ? anuncio.telefono_contacto : null,
-    email_contacto: anuncio.mostrar_email ? anuncio.email_contacto : null,
+    telefono_contacto:
+      typeof resultado.telefono_contacto === "string" ? resultado.telefono_contacto : null,
+    email_contacto:
+      typeof resultado.email_contacto === "string" ? resultado.email_contacto : null,
   });
 }
+
