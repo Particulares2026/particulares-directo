@@ -703,9 +703,17 @@ export async function DELETE(request: Request) {
     .map(extraerPathStorage)
     .filter((path: string | null): path is string => Boolean(path && path.startsWith(`${user.id}/`)));
   if (paths.length > 0) {
-    await admin.storage.from(FOTOS_BUCKET).remove(paths);
+    const { error: errorFotos } = await admin.storage.from(FOTOS_BUCKET).remove(paths);
+    if (!errorFotos) {
+      await admin
+        .from("subidas_fotos")
+        .update({ storage_path: null, completada: false })
+        .eq("user_id", user.id)
+        .in("storage_path", paths);
+    }
   }
 
   return NextResponse.json({ ok: true });
 }
+
 

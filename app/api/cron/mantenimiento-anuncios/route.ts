@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { createClient as createAdminSupabase } from "@supabase/supabase-js";
 import { Resend } from "resend";
+import { FOTOS_BUCKET, extraerPathStorage } from "@/lib/inmobiliaria";
 
 const DIAS_CADUCIDAD = 30;
 const HORAS_RETENCION_REGISTROS_TECNICOS = 24;
+const DIAS_GRACIA_FOTOS_HUERFANAS = 7;
+const TAMANO_LOTE_FOTOS = 100;
 const DIA_MS = 24 * 60 * 60 * 1000;
 const URL_SITIO = "https://particularesdirecto.com";
 const REMITENTE = "Particulares Directo <noreply@particularesdirecto.com>";
@@ -57,6 +60,23 @@ type AlertaFila = {
   caracteristicas: string[] | null;
   ultima_revision: string;
 };
+
+type AnuncioFotosFila = {
+  fotos: string[] | null;
+};
+
+type SubidaFotoFila = {
+  id: string;
+  storage_path: string | null;
+};
+
+function extraerPathStorageSeguro(url: string) {
+  try {
+    return extraerPathStorage(url);
+  } catch {
+    return null;
+  }
+}
 
 function anuncioCoincideConAlerta(a: AnuncioParaAlerta, alerta: AlertaFila): boolean {
   if (alerta.operacion && a.operacion !== alerta.operacion) return false;
@@ -159,6 +179,7 @@ export async function GET(request: Request) {
   let avisos3 = 0;
   let errores = 0;
   let registrosTecnicosEliminados = 0;
+  let fotosHuerfanasEliminadas = 0;
 
   const limiteRegistrosTecnicos = new Date(
     ahora - HORAS_RETENCION_REGISTROS_TECNICOS * 60 * 60 * 1000
@@ -166,7 +187,6 @@ export async function GET(request: Request) {
   for (const tabla of [
     "envios_contacto",
     "revelaciones_contacto",
-    "subidas_fotos",
     "publicaciones_anuncios",
   ] as const) {
     const { count, error: limpiezaError } = await admin
@@ -178,6 +198,99 @@ export async function GET(request: Request) {
       errores++;
     } else {
       registrosTecnicosEliminados += count || 0;
+    }
+  }
+
+  const { count: registrosFotosEliminados, error: limpiezaRegistrosFotosError } = await admin
+    .from("subidas_fotos")
+    .delete({ count: "exact" })
+    .is("storage_path", null)
+    .lt("created_at", limiteRegistrosTecnicos);
+  if (limpiezaRegistrosFotosError) {
+    console.error("Error al limpiar registros antiguos de fotos:", limpiezaRegistrosFotosError.message);
+    errores++;
+  } else {
+    registrosTecnicosEliminados += registrosFotosEliminados || 0;
+  }
+
+  const referenciasFotos = new Set<string>();
+  let offsetAnuncios = 0;
+  let lecturaFotosCompleta = true;
+  while (true) {
+    const { data: anunciosConFotos, error: fotosAnunciosError } = await admin
+      .from("anuncios")
+      .select("fotos")
+      .order("id", { ascending: true })
+      .range(offsetAnuncios, offsetAnuncios + TAMANO_LOTE_FOTOS - 1)
+      .returns<AnuncioFotosFila[]>();
+    if (fotosAnunciosError) {
+      console.error("Error al comprobar las fotos usadas por anuncios:", fotosAnunciosError.message);
+      errores++;
+      lecturaFotosCompleta = false;
+      break;
+    }
+
+    for (const anuncio of anunciosConFotos || []) {
+      for (const urlFoto of anuncio.fotos || []) {
+        const path = extraerPathStorageSeguro(urlFoto);
+        if (path) referenciasFotos.add(path);
+      }
+    }
+    if ((anunciosConFotos || []).length < TAMANO_LOTE_FOTOS) break;
+    offsetAnuncios += (anunciosConFotos || []).length;
+  }
+
+  if (lecturaFotosCompleta) {
+    const limiteFotosHuerfanas = new Date(
+      ahora - DIAS_GRACIA_FOTOS_HUERFANAS * DIA_MS
+    ).toISOString();
+    const candidatas: SubidaFotoFila[] = [];
+    let offsetSubidas = 0;
+
+    while (true) {
+      const { data: subidas, error: subidasError } = await admin
+        .from("subidas_fotos")
+        .select("id, storage_path")
+        .not("storage_path", "is", null)
+        .lt("created_at", limiteFotosHuerfanas)
+        .order("id", { ascending: true })
+        .range(offsetSubidas, offsetSubidas + TAMANO_LOTE_FOTOS - 1)
+        .returns<SubidaFotoFila[]>();
+      if (subidasError) {
+        console.error("Error al localizar fotos sin anuncio:", subidasError.message);
+        errores++;
+        break;
+      }
+      candidatas.push(...(subidas || []));
+      if ((subidas || []).length < TAMANO_LOTE_FOTOS) break;
+      offsetSubidas += (subidas || []).length;
+    }
+
+    const huerfanas = candidatas.filter(
+      (subida): subida is SubidaFotoFila & { storage_path: string } =>
+        Boolean(subida.storage_path && !referenciasFotos.has(subida.storage_path))
+    );
+    for (let inicio = 0; inicio < huerfanas.length; inicio += TAMANO_LOTE_FOTOS) {
+      const lote = huerfanas.slice(inicio, inicio + TAMANO_LOTE_FOTOS);
+      const { error: borradoFotosError } = await admin.storage
+        .from(FOTOS_BUCKET)
+        .remove(lote.map((subida) => subida.storage_path));
+      if (borradoFotosError) {
+        console.error("Error al eliminar fotos sin anuncio:", borradoFotosError.message);
+        errores++;
+        continue;
+      }
+
+      const { count, error: borradoRegistrosError } = await admin
+        .from("subidas_fotos")
+        .delete({ count: "exact" })
+        .in("id", lote.map((subida) => subida.id));
+      if (borradoRegistrosError) {
+        console.error("Error al cerrar registros de fotos eliminadas:", borradoRegistrosError.message);
+        errores++;
+      } else {
+        fotosHuerfanasEliminadas += count || 0;
+      }
     }
   }
 
@@ -331,7 +444,9 @@ export async function GET(request: Request) {
     alertasRevisadas,
     alertasAvisadas,
     registrosTecnicosEliminados,
+    fotosHuerfanasEliminadas,
     errores,
   });
 }
+
 

@@ -58,45 +58,55 @@ export async function POST(request: Request) {
   }
 
   const admin = createAdminClient();
-  const desde = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-  const [{ count, error: errorLimite }, { data: objetos, error: errorListado }] = await Promise.all([
-    admin
-      .from("subidas_fotos")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .gte("created_at", desde),
-    admin.storage.from(FOTOS_BUCKET).list(user.id, { limit: LIMITE_TOTAL + 1 }),
-  ]);
+  const path = `${user.id}/${crypto.randomUUID()}.${extensionPara(tipo)}`;
+  const { data: reserva, error: errorLimite } = await admin.rpc("reservar_subida_foto", {
+    p_user_id: user.id,
+    p_storage_path: path,
+    p_limite_hora: LIMITE_POR_HORA,
+    p_limite_total: LIMITE_TOTAL,
+  });
 
-  if (errorLimite || errorListado) {
+  if (errorLimite || !reserva || typeof reserva !== "object" || Array.isArray(reserva)) {
     return NextResponse.json({ error: "No se pudo comprobar el límite de seguridad." }, { status: 503 });
   }
-  if ((count || 0) >= LIMITE_POR_HORA) {
+  const estado = (reserva as Record<string, unknown>).estado;
+  const reservaId = (reserva as Record<string, unknown>).id;
+  if (estado === "limite_hora") {
     return NextResponse.json(
       { error: "Has subido demasiadas fotos seguidas. Espera una hora antes de continuar." },
       { status: 429 }
     );
   }
-  if ((objetos?.length || 0) >= LIMITE_TOTAL) {
+  if (estado === "limite_total") {
     return NextResponse.json(
       { error: "Has alcanzado el límite de fotos guardadas. Elimina fotos antiguas antes de subir más." },
       { status: 409 }
     );
   }
+  if (estado !== "reservada" || typeof reservaId !== "string") {
+    return NextResponse.json({ error: "No se pudo reservar la subida de forma segura." }, { status: 503 });
+  }
 
-  const path = `${user.id}/${crypto.randomUUID()}.${extensionPara(tipo)}`;
   const { error } = await admin.storage.from(FOTOS_BUCKET).upload(path, buffer, {
     contentType: tipo,
     cacheControl: "31536000",
     upsert: false,
   });
   if (error) {
+    await admin.from("subidas_fotos").delete().eq("id", reservaId).eq("user_id", user.id);
     return NextResponse.json({ error: "No se pudo guardar la foto." }, { status: 502 });
   }
 
-  const { error: errorRegistro } = await admin.from("subidas_fotos").insert({ user_id: user.id });
+  const { error: errorRegistro } = await admin
+    .from("subidas_fotos")
+    .update({ completada: true })
+    .eq("id", reservaId)
+    .eq("user_id", user.id);
   if (errorRegistro) {
-    await admin.storage.from(FOTOS_BUCKET).remove([path]);
+    const { error: errorReversion } = await admin.storage.from(FOTOS_BUCKET).remove([path]);
+    if (!errorReversion) {
+      await admin.from("subidas_fotos").delete().eq("id", reservaId).eq("user_id", user.id);
+    }
     return NextResponse.json({ error: "No se pudo registrar la subida de forma segura." }, { status: 503 });
   }
   const { data } = admin.storage.from(FOTOS_BUCKET).getPublicUrl(path);
@@ -139,6 +149,16 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "No se pudo eliminar la foto." }, { status: 502 });
   }
 
+  const { error: errorRegistro } = await admin
+    .from("subidas_fotos")
+    .update({ storage_path: null, completada: false })
+    .eq("user_id", user.id)
+    .eq("storage_path", path);
+  if (errorRegistro) {
+    console.error("No se pudo cerrar el registro de la foto eliminada:", errorRegistro.message);
+  }
+
   return NextResponse.json({ ok: true });
 }
+
 

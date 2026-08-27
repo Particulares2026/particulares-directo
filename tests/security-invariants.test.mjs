@@ -258,11 +258,35 @@ test("los anuncios se validan y normalizan también en el servidor y la base de 
 test("los registros técnicos antiabuso tienen una retención máxima", () => {
   const source = read("app/api/cron/mantenimiento-anuncios/route.ts");
   assert.match(source, /HORAS_RETENCION_REGISTROS_TECNICOS\s*=\s*24/);
-  for (const table of ["envios_contacto", "revelaciones_contacto", "subidas_fotos"]) {
+  for (const table of ["envios_contacto", "revelaciones_contacto"]) {
     assert.match(source, new RegExp(`"${table}"`));
   }
   assert.match(source, /\.delete\(\{ count: "exact" \}\)/);
   assert.match(source, /\.lt\("created_at", limiteRegistrosTecnicos\)/);
+});
+
+test("las cuotas simultáneas y las fotos huérfanas se gestionan sin tocar anuncios", () => {
+  const route = read("app/api/anuncios/fotos/route.ts");
+  const cron = read("app/api/cron/mantenimiento-anuncios/route.ts");
+  const migration = read("supabase/migrations/20260827123000_reservar_y_limpiar_fotos.sql");
+  const schema = read("supabase/schema.sql");
+
+  assert.match(route, /rpc\("reservar_subida_foto"/);
+  assert.match(route, /p_limite_hora:\s*LIMITE_POR_HORA/);
+  assert.match(route, /p_limite_total:\s*LIMITE_TOTAL/);
+  assert.doesNotMatch(route, /\.storage\.from\(FOTOS_BUCKET\)\.list/);
+  assert.match(route, /update\(\{ completada: true \}\)/);
+  assert.match(migration, /pg_advisory_xact_lock/);
+  assert.match(migration, /from storage\.objects/);
+  assert.match(migration, /security invoker/);
+  assert.match(migration, /grant execute[\s\S]*to service_role/);
+  assert.match(schema, /reservar_subida_foto[\s\S]*pg_advisory_xact_lock/);
+
+  assert.match(cron, /DIAS_GRACIA_FOTOS_HUERFANAS\s*=\s*7/);
+  assert.match(cron, /extraerPathStorageSeguro/);
+  assert.match(cron, /!referenciasFotos\.has\(subida\.storage_path\)/);
+  assert.match(cron, /\.from\(FOTOS_BUCKET\)[\s\S]*\.remove\(/);
+  assert.match(cron, /\.not\("storage_path", "is", null\)/);
 });
 
 test("la base temporal de CI nunca se conecta a producción", () => {
