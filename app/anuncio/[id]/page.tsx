@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import AnuncioCard from "@/components/AnuncioCard";
+import DenunciarAnuncio from "@/components/DenunciarAnuncio";
 import { CAMPOS_PUBLICOS_ANUNCIO } from "@/lib/anuncios";
 import { nombreCategoria } from "@/lib/categorias";
 import { createClient } from "@/lib/supabase/server";
@@ -120,8 +121,11 @@ export default async function AnuncioPage({ params }: { params: Promise<{ id: st
         <ul className="mt-2 list-disc pl-5 text-sm text-amber-900/80 space-y-1">
           <li>No envíes dinero ni documentación sensible antes de verificar a la otra persona.</li>
           <li>Desconfía de ofertas demasiado buenas y utiliza lugares públicos cuando sea posible.</li>
-          <li>Si detectas algo sospechoso, utiliza el buzón de contacto indicando el enlace de este anuncio.</li>
+          <li>Si detectas algo sospechoso, denúncialo para que podamos revisarlo cuanto antes.</li>
         </ul>
+        <div className="mt-4 border-t border-amber-200 pt-3">
+          <DenunciarAnuncio anuncioId={anuncio.id} titulo={anuncio.titulo} />
+        </div>
       </section>
 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />

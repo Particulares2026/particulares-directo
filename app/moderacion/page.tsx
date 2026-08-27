@@ -18,7 +18,7 @@ export default async function ModeracionPage() {
   if (!user || !esAdmin(user.email)) redirect("/");
 
   const admin = createAdminClient();
-  const [{ data: anuncios }, { data: anunciosActivos }] = await Promise.all([
+  const [{ data: anuncios }, { data: anunciosActivos }, { data: denuncias }] = await Promise.all([
     admin
       .from("anuncios")
       .select("id, user_id, titulo, descripcion, categoria, tipo, nombre_contacto, telefono_contacto, email_contacto, activo, created_at, fotos")
@@ -30,6 +30,14 @@ export default async function ModeracionPage() {
       .from("anuncios")
       .select("id, user_id, categoria, activo")
       .eq("activo", true),
+    admin
+      .from("denuncias_anuncios")
+      .select(
+        "id, anuncio_id, anuncio_titulo, anuncio_categoria, motivo, detalles, email_reportante, created_at"
+      )
+      .eq("estado", "pendiente")
+      .order("created_at", { ascending: false })
+      .limit(100),
   ]);
 
   const cuentasPorCategoria = contarActivosPorCuentaYCategoria(anunciosActivos || []);
@@ -68,6 +76,7 @@ export default async function ModeracionPage() {
       <PanelModeracion
         anunciosIniciales={anunciosConTipo}
         resumenEmpresas={resumenEmpresas}
+        denunciasIniciales={denuncias || []}
       />
     </main>
   );

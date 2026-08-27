@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select extensions.plan(16);
+select extensions.plan(22);
 
 select extensions.ok(
   to_regclass('public.anuncios') is not null,
@@ -95,6 +95,40 @@ select extensions.ok(
 select extensions.ok(
   not has_table_privilege('authenticated', 'private.consentimientos_legales', 'SELECT'),
   'Los usuarios no pueden leer ni enumerar consentimientos legales'
+);
+
+select extensions.ok(
+  to_regclass('public.denuncias_anuncios') is not null,
+  'Existe el registro confidencial de denuncias'
+);
+
+select extensions.ok(
+  (select relrowsecurity from pg_class where oid = 'public.denuncias_anuncios'::regclass),
+  'Las denuncias tienen RLS activado'
+);
+
+select extensions.ok(
+  not has_table_privilege('anon', 'public.denuncias_anuncios', 'SELECT'),
+  'Los visitantes no pueden leer denuncias'
+);
+
+select extensions.ok(
+  not has_table_privilege('authenticated', 'public.denuncias_anuncios', 'SELECT'),
+  'Los usuarios no pueden leer denuncias'
+);
+
+select extensions.ok(
+  not has_table_privilege('anon', 'public.denuncias_anuncios', 'INSERT'),
+  'Los visitantes no pueden insertar denuncias saltándose el servidor'
+);
+
+select extensions.ok(
+  not has_function_privilege(
+    'authenticated',
+    'public.registrar_denuncia_anuncio(uuid,text,text,text,text,timestamp with time zone,integer)',
+    'EXECUTE'
+  ),
+  'El navegador no puede ejecutar el registro interno de denuncias'
 );
 
 select * from extensions.finish();

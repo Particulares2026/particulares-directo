@@ -179,6 +179,7 @@ export async function GET(request: Request) {
   let avisos3 = 0;
   let errores = 0;
   let registrosTecnicosEliminados = 0;
+  let denunciasAnonimizadas = 0;
   let fotosHuerfanasEliminadas = 0;
 
   const limiteRegistrosTecnicos = new Date(
@@ -199,6 +200,18 @@ export async function GET(request: Request) {
     } else {
       registrosTecnicosEliminados += count || 0;
     }
+  }
+
+  const { count: denunciasActualizadas, error: denunciasAnonimasError } = await admin
+    .from("denuncias_anuncios")
+    .update({ ip_hash: null }, { count: "exact" })
+    .not("ip_hash", "is", null)
+    .lt("created_at", limiteRegistrosTecnicos);
+  if (denunciasAnonimasError) {
+    console.error("Error al anonimizar denuncias antiguas:", denunciasAnonimasError.message);
+    errores++;
+  } else {
+    denunciasAnonimizadas = denunciasActualizadas || 0;
   }
 
   const { count: registrosFotosEliminados, error: limpiezaRegistrosFotosError } = await admin
@@ -444,6 +457,7 @@ export async function GET(request: Request) {
     alertasRevisadas,
     alertasAvisadas,
     registrosTecnicosEliminados,
+    denunciasAnonimizadas,
     fotosHuerfanasEliminadas,
     errores,
   });

@@ -154,14 +154,53 @@ test("la revelación de contacto sigue limitada y no se almacena en caché", () 
   assert.match(schema, /registrar_revelacion_contacto[\s\S]*pg_advisory_xact_lock/);
 });
 
+test("los datos de contacto solo se muestran después de pulsar el botón", () => {
+  const card = read("components/AnuncioCard.tsx");
+  const publicFields = read("lib/anuncios.ts");
+
+  assert.match(card, /contactoRevelado\?\.telefono/);
+  assert.match(card, /Mostrar contacto/);
+  assert.doesNotMatch(card, /\?\? anuncio\.telefono_contacto/);
+  assert.doesNotMatch(card, /\? anuncio\.telefono_contacto : null/);
+  assert.doesNotMatch(publicFields, /telefono_contacto|email_contacto/);
+});
+
+test("las denuncias se validan, limitan y quedan reservadas a moderación", () => {
+  const route = read("app/api/anuncios/[id]/denunciar/route.ts");
+  const resolver = read("app/api/admin/resolver-denuncia/route.ts");
+  const panel = read("components/PanelModeracion.tsx");
+  const migration = read("supabase/migrations/20260827125514_denunciar_anuncios.sql");
+  const schema = read("supabase/schema.sql");
+
+  assert.match(route, /esOrigenPermitido\(request\)/);
+  assert.match(route, /createHmac\("sha256"/);
+  assert.match(route, /LIMITE_DENUNCIAS\s*=\s*5/);
+  assert.match(route, /rpc\([\s\S]*"registrar_denuncia_anuncio"/);
+  assert.match(route, /Cache-Control[^\n]*private, no-store/);
+  assert.match(resolver, /esAdmin\(user\.email\)/);
+  assert.match(panel, /Denuncias pendientes/);
+  assert.match(migration, /alter table public\.denuncias_anuncios enable row level security/);
+  assert.match(migration, /revoke all on table public\.denuncias_anuncios from public, anon, authenticated/);
+  assert.match(migration, /pg_advisory_xact_lock/);
+  assert.match(migration, /where estado = 'pendiente'/);
+  assert.match(migration, /grant execute[\s\S]*to service_role/);
+  assert.match(schema, /registrar_denuncia_anuncio[\s\S]*pg_advisory_xact_lock/);
+
+  const mantenimiento = read("app/api/cron/mantenimiento-anuncios/route.ts");
+  assert.match(mantenimiento, /from\("denuncias_anuncios"\)/);
+  assert.match(mantenimiento, /update\(\{ ip_hash: null \}/);
+});
+
 test("las acciones sensibles rechazan peticiones iniciadas desde otras webs", () => {
   for (const relativePath of [
     "app/api/anuncios/[id]/contacto/route.ts",
+    "app/api/anuncios/[id]/denunciar/route.ts",
     "app/api/anuncios/[id]/estado/route.ts",
     "app/api/anuncios/route.ts",
     "app/api/anuncios/fotos/route.ts",
     "app/api/admin/aceptar-anuncio/route.ts",
     "app/api/admin/eliminar-anuncio/route.ts",
+    "app/api/admin/resolver-denuncia/route.ts",
     "app/api/auth/restablecer-password/route.ts",
     "app/api/eliminar-cuenta/route.ts",
     "app/api/contacto/route.ts",
