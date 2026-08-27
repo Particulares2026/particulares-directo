@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select extensions.plan(12);
+select extensions.plan(16);
 
 select extensions.ok(
   to_regclass('public.anuncios') is not null,
@@ -75,6 +75,26 @@ select extensions.ok(
     where id = 'inmuebles' and lower(mime) = 'image/svg+xml'
   ),
   'El almacenamiento no permite imágenes SVG ejecutables'
+);
+
+select extensions.ok(
+  to_regclass('private.consentimientos_legales') is not null,
+  'Existe el registro privado de consentimientos legales'
+);
+
+select extensions.ok(
+  (select relrowsecurity from pg_class where oid = 'private.consentimientos_legales'::regclass),
+  'El registro de consentimientos tiene RLS activado'
+);
+
+select extensions.ok(
+  not has_table_privilege('anon', 'private.consentimientos_legales', 'SELECT'),
+  'Los visitantes no pueden leer los consentimientos legales'
+);
+
+select extensions.ok(
+  not has_table_privilege('authenticated', 'private.consentimientos_legales', 'SELECT'),
+  'Los usuarios no pueden leer ni enumerar consentimientos legales'
 );
 
 select * from extensions.finish();
