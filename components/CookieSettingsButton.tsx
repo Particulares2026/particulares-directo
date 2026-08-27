@@ -1,11 +1,12 @@
 "use client";
 
-const OPEN_SETTINGS_STORAGE_KEY = "particulares-directo-open-cookie-settings";
+const OPEN_SETTINGS_QUERY = "cookie-settings";
 
 export default function CookieSettingsButton() {
   function openSettings() {
-    window.sessionStorage.setItem(OPEN_SETTINGS_STORAGE_KEY, "true");
-    window.location.reload();
+    const url = new URL(window.location.href);
+    url.searchParams.set(OPEN_SETTINGS_QUERY, "1");
+    window.location.assign(url.toString());
   }
 
   return (
