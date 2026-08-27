@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { VERSION_TERMINOS } from "@/lib/legal";
-
 export const metadata: Metadata = {
   title: "Términos y condiciones",
   description: "Condiciones de uso de Particulares Directo.",
