@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CATEGORIAS_DESTACADAS, colorCategoria } from "@/lib/categorias";
+import GuiaPrimerAcceso from "@/components/GuiaPrimerAcceso";
 
 export const metadata: Metadata = {
   title: "Particulares Directo | Anuncios de vivienda y empleo",
@@ -21,6 +22,8 @@ export default function HomePage() {
       <p className="text-stone-600 mb-8 max-w-2xl">
         Encuentra vivienda y oportunidades de empleo, o publica tu anuncio gratis para contactar directamente y sin intermediarios.
       </p>
+
+      <GuiaPrimerAcceso />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         {CATEGORIAS_DESTACADAS.map((c) => {
