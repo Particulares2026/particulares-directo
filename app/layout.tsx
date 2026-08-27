@@ -4,6 +4,7 @@ import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import GoogleAnalyticsConsent from "@/components/GoogleAnalyticsConsent";
 import BannerPublicidad from "@/components/BannerPublicidad";
 
 const SITE_URL = "https://www.particularesdirecto.com";
@@ -75,6 +76,7 @@ export default function RootLayout({
         <div className="flex-1">{children}</div>
         <Footer />
         <Analytics />
+        <GoogleAnalyticsConsent />
       </body>
     </html>
   );

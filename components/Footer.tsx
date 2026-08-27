@@ -1,4 +1,5 @@
 import Link from "next/link";
+import CookieSettingsButton from "@/components/CookieSettingsButton";
 
 export default function Footer() {
   return (
@@ -11,6 +12,7 @@ export default function Footer() {
         <Link href="/terminos" className="hover:text-stone-900">
           Términos y condiciones
         </Link>
+        <CookieSettingsButton />
       </div>
     </footer>
   );
