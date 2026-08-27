@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 const GA_ID = "G-M2F8SWTL4B";
 const CONSENT_STORAGE_KEY = "particulares-directo-cookie-consent";
-const OPEN_SETTINGS_STORAGE_KEY = "particulares-directo-open-cookie-settings";
+const OPEN_SETTINGS_QUERY = "cookie-settings";
 
 type ConsentChoice = "granted" | "denied" | null;
 
@@ -67,9 +67,13 @@ export default function GoogleAnalyticsConsent() {
     const initialChoice: ConsentChoice =
       savedChoice === "granted" || savedChoice === "denied" ? savedChoice : null;
 
-    const openSavedSettings =
-      window.sessionStorage.getItem(OPEN_SETTINGS_STORAGE_KEY) === "true";
-    window.sessionStorage.removeItem(OPEN_SETTINGS_STORAGE_KEY);
+    const currentUrl = new URL(window.location.href);
+    const openSavedSettings = currentUrl.searchParams.get(OPEN_SETTINGS_QUERY) === "1";
+
+    if (openSavedSettings) {
+      currentUrl.searchParams.delete(OPEN_SETTINGS_QUERY);
+      window.history.replaceState({}, "", currentUrl);
+    }
 
     if (initialChoice === "granted" && !openSavedSettings) {
       prepareGoogleConsent();
