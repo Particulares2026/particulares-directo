@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { PREFIJOS_TELEFONO } from "@/lib/telefono";
@@ -8,8 +8,10 @@ import CampoPassword from "@/components/CampoPassword";
 import Turnstile from "@/components/Turnstile";
 import { traducirErrorAuth } from "@/lib/errores-auth";
 import { CONSENTIMIENTO_LEGAL_REGISTRO } from "@/lib/legal";
+import { trackGoogleAnalyticsEvent } from "@/lib/analytics";
 export default function RegistroPage() {
   const supabase = createClient();
+  const registroIniciado = useRef(false);
   const [nombre, setNombre] = useState("");
   const [prefijoTelefono, setPrefijoTelefono] = useState("+34");
   const [numeroTelefono, setNumeroTelefono] = useState("");
@@ -22,6 +24,12 @@ export default function RegistroPage() {
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const registrarInicio = () => {
+    if (registroIniciado.current) return;
+    registroIniciado.current = true;
+    trackGoogleAnalyticsEvent("registration_start");
+  };
+
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -29,18 +37,31 @@ export default function RegistroPage() {
 
     const numeroLimpio = numeroTelefono.trim();
     if (!/^\d{6,12}$/.test(numeroLimpio)) {
+      trackGoogleAnalyticsEvent("registration_error", {
+        stage: "validation",
+        reason: "invalid_phone",
+      });
       setError("Introduce un número de teléfono completo (solo dígitos, 6 a 12 números).");
       return;
     }
     if (!aceptaPrivacidad) {
+      trackGoogleAnalyticsEvent("registration_error", {
+        stage: "validation",
+        reason: "legal_consent_missing",
+      });
       setError("Tienes que aceptar el aviso legal y los términos y condiciones para crear una cuenta.");
       return;
     }
     if (!captchaToken) {
+      trackGoogleAnalyticsEvent("registration_error", {
+        stage: "validation",
+        reason: "security_check_missing",
+      });
       setError("Completa la verificación de seguridad antes de continuar.");
       return;
     }
 
+    trackGoogleAnalyticsEvent("registration_submit");
     setLoading(true);
 
     const { error } = await supabase.auth.signUp({
@@ -61,9 +82,14 @@ export default function RegistroPage() {
     setCaptchaToken(null);
     setCaptchaResetKey((k) => k + 1);
     if (error) {
+      trackGoogleAnalyticsEvent("registration_error", {
+        stage: "provider",
+        reason: "signup_rejected",
+      });
       setError(traducirErrorAuth(error.message));
       return;
     }
+    trackGoogleAnalyticsEvent("sign_up", { method: "email" });
     setMensaje("Cuenta creada. Revisa tu correo para confirmar la cuenta antes de entrar.");
   };
 
@@ -75,7 +101,7 @@ export default function RegistroPage() {
       <p className="text-sm text-stone-500 mb-6">
         El correo y el teléfono son obligatorios para proteger la confianza entre anunciantes.
       </p>
-      <form onSubmit={submit} className="space-y-3">
+      <form onSubmit={submit} onFocusCapture={registrarInicio} className="space-y-3">
         <label className="block text-sm text-stone-700">
           <span className="block mb-1 font-medium">Nombre <span className="text-red-600">*</span></span>
           <input

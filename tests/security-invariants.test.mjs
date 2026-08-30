@@ -56,6 +56,28 @@ test("la política de seguridad permite GA4 sin abrir otros orígenes", () => {
   );
 });
 
+test("el registro mide el embudo sin enviar datos personales a GA4", () => {
+  const registro = read("app/registro/page.tsx");
+  const analytics = read("lib/analytics.ts");
+
+  for (const eventName of [
+    "registration_start",
+    "registration_submit",
+    "registration_error",
+    "sign_up",
+  ]) {
+    assert.match(registro, new RegExp(`trackGoogleAnalyticsEvent\\(\\"${eventName}\\"`));
+  }
+
+  assert.match(registro, /sign_up[\s\S]{0,80}method:\s*"email"/);
+  const analyticsCalls = registro.match(/trackGoogleAnalyticsEvent\([\s\S]*?\);/g) || [];
+  const analyticsPayloads = analyticsCalls.join("\n");
+  assert.doesNotMatch(analyticsPayloads, /\bemail\s*[,}]/);
+  assert.doesNotMatch(analyticsPayloads, /\bnombre\s*[,}]/);
+  assert.doesNotMatch(analyticsPayloads, /\btelefono\s*:/);
+  assert.match(analytics, /typeof window\.gtag !== "function"/);
+});
+
 test("ningún componente de navegador contiene secretos de servidor", () => {
   const secretNames = [
     "SUPABASE_SERVICE_ROLE_KEY",
