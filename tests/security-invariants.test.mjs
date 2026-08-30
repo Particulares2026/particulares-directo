@@ -43,6 +43,19 @@ test("Next.js mantiene las cabeceras defensivas esenciales", () => {
   assert.match(config, /poweredByHeader:\s*false/);
 });
 
+test("la política de seguridad permite GA4 sin abrir otros orígenes", () => {
+  const config = read("next.config.js");
+
+  assert.match(
+    config,
+    /script-src[^\n]*https:\/\/www\.googletagmanager\.com/,
+  );
+  assert.match(
+    config,
+    /connect-src[^\n]*https:\/\/www\.google-analytics\.com[^\n]*https:\/\/\*\.google-analytics\.com/,
+  );
+});
+
 test("ningún componente de navegador contiene secretos de servidor", () => {
   const secretNames = [
     "SUPABASE_SERVICE_ROLE_KEY",
