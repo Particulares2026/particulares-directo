@@ -1,5 +1,6 @@
 "use client";
 
+import { GoogleAnalytics } from "@next/third-parties/google";
 import { useEffect, useRef, useState } from "react";
 
 const GA_ID = "G-M2F8SWTL4B";
@@ -15,17 +16,13 @@ declare global {
   }
 }
 
-function activateGoogleAnalytics() {
-  if (document.getElementById("google-analytics-gtag")) {
-    return;
-  }
-
+function prepareGoogleConsent() {
   window.dataLayer = window.dataLayer || [];
   window.gtag =
     window.gtag ||
-    function gtag() {
-      window.dataLayer?.push(arguments);
-    };
+    ((...args: unknown[]) => {
+      window.dataLayer?.push(args);
+    });
 
   window.gtag("consent", "default", {
     analytics_storage: "granted",
@@ -33,16 +30,6 @@ function activateGoogleAnalytics() {
     ad_user_data: "denied",
     ad_personalization: "denied",
   });
-  window.gtag("js", new Date());
-  window.gtag("config", GA_ID, {
-    send_page_view: true,
-  });
-
-  const script = document.createElement("script");
-  script.id = "google-analytics-gtag";
-  script.async = true;
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
-  document.head.appendChild(script);
 }
 
 function removeGoogleAnalyticsCookies() {
@@ -70,7 +57,7 @@ function removeGoogleAnalyticsCookies() {
 
 export default function GoogleAnalyticsConsent() {
   const initialized = useRef(false);
-  const [, setChoice] = useState<ConsentChoice>(null);
+  const [choice, setChoice] = useState<ConsentChoice>(null);
   const [ready, setReady] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
@@ -95,7 +82,7 @@ export default function GoogleAnalyticsConsent() {
     }
 
     if (initialChoice === "granted" && !openSavedSettings) {
-      activateGoogleAnalytics();
+      prepareGoogleConsent();
     }
 
     setAnalyticsEnabled(initialChoice === "granted");
@@ -110,7 +97,7 @@ export default function GoogleAnalyticsConsent() {
     window.localStorage.setItem(CONSENT_STORAGE_KEY, nextChoice);
 
     if (nextChoice === "granted") {
-      activateGoogleAnalytics();
+      prepareGoogleConsent();
     } else if (wasGranted) {
       window.gtag?.("consent", "update", {
         analytics_storage: "denied",
@@ -136,6 +123,8 @@ export default function GoogleAnalyticsConsent() {
 
   return (
     <>
+      {choice === "granted" ? <GoogleAnalytics gaId={GA_ID} /> : null}
+
       {showSettings ? (
         <div
           className="fixed inset-0 z-[100] flex items-end justify-center bg-stone-950/30 p-3 sm:items-center"
