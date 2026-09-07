@@ -22,6 +22,7 @@ import {
 } from "@/lib/trabajo";
 import GraficoPrecios from "./GraficoPrecios";
 import GaleriaFotos from "./GaleriaFotos";
+import { trackGoogleAnalyticsEvent } from "@/lib/analytics";
 
 const ETIQUETAS_CARACTERISTICAS_LEGACY: Record<string, string> = {
   incorporacion_inmediata: "Incorporación inmediata",
@@ -193,17 +194,29 @@ export default function AnuncioCard({
   };
 
   const compartirWhatsApp = () => {
-    const urlAnuncio =
+    const urlBase =
       anuncio.id === "preview"
         ? `https://www.particularesdirecto.com/categoria/${anuncio.categoria}`
         : `https://www.particularesdirecto.com/anuncio/${anuncio.id}`;
+    const urlAnuncio = new URL(urlBase);
+    urlAnuncio.searchParams.set("utm_source", "whatsapp");
+    urlAnuncio.searchParams.set("utm_medium", "share");
+    urlAnuncio.searchParams.set("utm_campaign", "anuncio");
+    if (anuncio.id !== "preview") {
+      urlAnuncio.searchParams.set("utm_content", anuncio.id);
+    }
     const partes = [
       anuncio.titulo,
       [anuncio.provincia, anuncio.municipio, anuncio.ubicacion].filter(Boolean).join(", "),
       anuncio.precio != null ? `${anuncio.precio.toLocaleString("es-ES")} €` : null,
-      `Ver anuncio: ${urlAnuncio}`,
+      `Ver anuncio: ${urlAnuncio.toString()}`,
     ].filter(Boolean);
     const texto = partes.join("\n");
+    trackGoogleAnalyticsEvent("share", {
+      method: "WhatsApp",
+      content_type: "anuncio",
+      item_id: anuncio.id,
+    });
     window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, "_blank", "noopener,noreferrer");
   };
 
