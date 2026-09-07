@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { trackGoogleAnalyticsEvent } from "@/lib/analytics";
 
 const CLAVE_AVISO = "pd_guia_registro_correo_v1";
 
@@ -52,6 +53,12 @@ export default function GuiaPrimerAcceso() {
     setAbierto(false);
   };
 
+  const registrarClicCrearCuenta = (ubicacion: string) => {
+    trackGoogleAnalyticsEvent("registration_cta_click", {
+      cta_location: ubicacion,
+    });
+  };
+
   return (
     <>
       <section
@@ -80,6 +87,7 @@ export default function GuiaPrimerAcceso() {
           </button>
           <Link
             href="/registro"
+            onClick={() => registrarClicCrearCuenta("home_registration_banner")}
             className="rounded-full bg-[#ec1178] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#d50f6c] focus:outline-none focus:ring-2 focus:ring-[#ec1178] focus:ring-offset-2"
           >
             Crear cuenta
@@ -163,7 +171,10 @@ export default function GuiaPrimerAcceso() {
             <div className="mt-7 grid gap-3 sm:grid-cols-2">
               <Link
                 href="/registro"
-                onClick={cerrar}
+                onClick={() => {
+                  registrarClicCrearCuenta("first_visit_guide");
+                  cerrar();
+                }}
                 className="rounded-xl bg-[#ec1178] px-5 py-3 text-center font-semibold text-white shadow-sm hover:bg-[#d50f6c] focus:outline-none focus:ring-2 focus:ring-[#ec1178] focus:ring-offset-2"
               >
                 Crear mi cuenta

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import BuzonSugerencias from "./BuzonSugerencias";
 import LogoutButton from "./LogoutButton";
+import { trackGoogleAnalyticsEvent } from "@/lib/analytics";
 
 type HeaderNavProps = {
   authenticated: boolean;
@@ -19,6 +20,12 @@ const PRIMARY_LINK_CLASS =
 export default function HeaderNav({ authenticated, email, admin }: HeaderNavProps) {
   const [abierto, setAbierto] = useState(false);
   const cerrar = () => setAbierto(false);
+  const registrarClicCrearCuenta = () => {
+    trackGoogleAnalyticsEvent("registration_cta_click", {
+      cta_location: "main_navigation",
+    });
+    cerrar();
+  };
 
   return (
     <>
@@ -74,7 +81,7 @@ export default function HeaderNav({ authenticated, email, admin }: HeaderNavProp
             <Link href="/login" onClick={cerrar} className={LINK_CLASS}>
               Entrar
             </Link>
-            <Link href="/registro" onClick={cerrar} className={PRIMARY_LINK_CLASS}>
+            <Link href="/registro" onClick={registrarClicCrearCuenta} className={PRIMARY_LINK_CLASS}>
               Crear cuenta
             </Link>
           </>
