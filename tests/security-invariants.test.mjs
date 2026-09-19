@@ -65,12 +65,26 @@ test("el registro mide el embudo sin enviar datos personales a GA4", () => {
   }
 
   assert.match(registro, /sign_up[\s\S]{0,80}method:\s*"email"/);
+  assert.match(registro, /registration_start[\s\S]{0,100}role:\s*rolUsuario/);
+  assert.match(registro, /registration_submit[\s\S]{0,100}role:\s*rolUsuario/);
+  assert.match(registro, /sign_up[\s\S]{0,100}role:\s*rolUsuario/);
   const analyticsCalls = registro.match(/trackGoogleAnalyticsEvent\([\s\S]*?\);/g) || [];
   const analyticsPayloads = analyticsCalls.join("\n");
   assert.doesNotMatch(analyticsPayloads, /\bemail\s*[,}]/);
   assert.doesNotMatch(analyticsPayloads, /\bnombre\s*[,}]/);
   assert.doesNotMatch(analyticsPayloads, /\btelefono\s*:/);
   assert.match(analytics, /typeof window\.gtag !== "function"/);
+});
+
+test("la pagina de registro puede indexarse y aparece en el sitemap", () => {
+  const robots = read("app/robots.ts");
+  const sitemap = read("app/sitemap.ts");
+  const layout = read("app/registro/layout.tsx");
+
+  assert.doesNotMatch(robots, /["']\/registro["']/);
+  assert.match(sitemap, /\$\{SITE_URL\}\/registro/);
+  assert.match(layout, /index:\s*true/);
+  assert.match(layout, /canonical:\s*"https:\/\/www\.particularesdirecto\.com\/registro"/);
 });
 
 test("ningún componente de navegador contiene secretos de servidor", () => {

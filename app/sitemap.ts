@@ -9,6 +9,7 @@ export const revalidate = 3600;
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const paginasFijas: MetadataRoute.Sitemap = [
     { url: SITE_URL, changeFrequency: "daily", priority: 1 },
+    { url: `${SITE_URL}/registro`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${SITE_URL}/calculadora-hipoteca`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${SITE_URL}/precios-m2`, changeFrequency: "weekly", priority: 0.6 },
     { url: `${SITE_URL}/aviso-legal`, changeFrequency: "yearly", priority: 0.2 },

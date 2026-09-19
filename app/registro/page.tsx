@@ -9,6 +9,9 @@ import Turnstile from "@/components/Turnstile";
 import { traducirErrorAuth } from "@/lib/errores-auth";
 import { CONSENTIMIENTO_LEGAL_REGISTRO } from "@/lib/legal";
 import { trackGoogleAnalyticsEvent } from "@/lib/analytics";
+
+type RolUsuario = "particular" | "profesional";
+
 export default function RegistroPage() {
   const supabase = createClient();
   const registroIniciado = useRef(false);
@@ -17,6 +20,7 @@ export default function RegistroPage() {
   const [numeroTelefono, setNumeroTelefono] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rolUsuario, setRolUsuario] = useState<RolUsuario>("particular");
   const [aceptaPrivacidad, setAceptaPrivacidad] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [captchaResetKey, setCaptchaResetKey] = useState(0);
@@ -27,7 +31,7 @@ export default function RegistroPage() {
   const registrarInicio = () => {
     if (registroIniciado.current) return;
     registroIniciado.current = true;
-    trackGoogleAnalyticsEvent("registration_start");
+    trackGoogleAnalyticsEvent("registration_start", { role: rolUsuario });
   };
 
   const submit = async (e: FormEvent) => {
@@ -61,7 +65,7 @@ export default function RegistroPage() {
       return;
     }
 
-    trackGoogleAnalyticsEvent("registration_submit");
+    trackGoogleAnalyticsEvent("registration_submit", { role: rolUsuario });
     setLoading(true);
 
     const { error } = await supabase.auth.signUp({
@@ -72,6 +76,7 @@ export default function RegistroPage() {
           nombre,
           telefono: `${prefijoTelefono} ${numeroLimpio}`,
           consentimiento_legal: CONSENTIMIENTO_LEGAL_REGISTRO,
+          role: rolUsuario,
         },
         emailRedirectTo: `${window.location.origin}/auth/callback`,
         captchaToken,
@@ -89,7 +94,7 @@ export default function RegistroPage() {
       setError(traducirErrorAuth(error.message));
       return;
     }
-    trackGoogleAnalyticsEvent("sign_up", { method: "email" });
+    trackGoogleAnalyticsEvent("sign_up", { method: "email", role: rolUsuario });
     setMensaje("Cuenta creada. Revisa tu correo para confirmar la cuenta antes de entrar.");
   };
 
@@ -99,9 +104,38 @@ export default function RegistroPage() {
       <span className="text-3xl">✨</span>
       <h1 className="font-serif text-xl mt-2 mb-1">Crear cuenta</h1>
       <p className="text-sm text-stone-500 mb-6">
-        El correo y el teléfono son obligatorios para proteger la confianza entre anunciantes.
+        Crea tu cuenta gratis para publicar anuncios y contactar directamente, sin intermediarios.
       </p>
       <form onSubmit={submit} onFocusCapture={registrarInicio} className="space-y-3">
+        <fieldset>
+          <legend className="mb-2 text-sm font-medium text-stone-700">Quiero usar la cuenta como</legend>
+          <div className="grid grid-cols-2 gap-2">
+            {([
+              ["particular", "Particular"],
+              ["profesional", "Profesional"],
+            ] as const).map(([valor, etiqueta]) => (
+              <label
+                key={valor}
+                className={`cursor-pointer rounded-lg border px-3 py-2.5 text-center text-sm font-medium ${
+                  rolUsuario === valor
+                    ? "border-fuchsia-500 bg-fuchsia-50 text-fuchsia-800"
+                    : "border-stone-300 bg-white text-stone-700"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="rolUsuario"
+                  value={valor}
+                  checked={rolUsuario === valor}
+                  onChange={() => setRolUsuario(valor)}
+                  className="sr-only"
+                />
+                {etiqueta}
+              </label>
+            ))}
+          </div>
+          <p className="mt-1 text-xs text-stone-500">Podrás publicar gratis en ambos casos.</p>
+        </fieldset>
         <label className="block text-sm text-stone-700">
           <span className="block mb-1 font-medium">Nombre <span className="text-red-600">*</span></span>
           <input

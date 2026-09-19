@@ -18,7 +18,6 @@ export default function robots(): MetadataRoute.Robots {
         "/moderacion",
         "/olvide-password",
         "/publicar",
-        "/registro",
         "/restablecer-password",
       ],
     },
