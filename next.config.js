@@ -25,7 +25,6 @@ const PRIVATE_NO_INDEX_ROUTES = [
   "/moderacion/:path*",
   "/olvide-password/:path*",
   "/publicar/:path*",
-  "/registro/:path*",
   "/restablecer-password/:path*",
 ];
 

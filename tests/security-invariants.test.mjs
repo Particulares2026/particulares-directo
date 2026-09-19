@@ -80,8 +80,10 @@ test("la pagina de registro puede indexarse y aparece en el sitemap", () => {
   const robots = read("app/robots.ts");
   const sitemap = read("app/sitemap.ts");
   const layout = read("app/registro/layout.tsx");
+  const nextConfig = read("next.config.js");
 
   assert.doesNotMatch(robots, /["']\/registro["']/);
+  assert.doesNotMatch(nextConfig, /["']\/registro\/:path\*["']/);
   assert.match(sitemap, /\$\{SITE_URL\}\/registro/);
   assert.match(layout, /index:\s*true/);
   assert.match(layout, /canonical:\s*"https:\/\/www\.particularesdirecto\.com\/registro"/);
