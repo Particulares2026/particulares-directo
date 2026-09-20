@@ -20,7 +20,8 @@ test("el entorno principal usa versiones mantenidas y reproducibles", () => {
   const packageJson = JSON.parse(read("package.json"));
 
   assert.equal(packageJson.engines.node, "22.x");
-  assert.equal(packageJson.dependencies.next, "16.3.2");
+  assert.equal(packageJson.dependencies.next, "16.3.5");
+  assert.equal(packageJson.dependencies["@next/third-parties"], "16.3.5");
   assert.equal(packageJson.dependencies.react, "19.2.7");
   assert.equal(packageJson.dependencies["react-dom"], "19.2.7");
   assert.equal(packageJson.dependencies["react-leaflet"], "5.0.0");
