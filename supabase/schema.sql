@@ -50,7 +50,7 @@ create table if not exists public.anuncios (
   experiencia_trabajo text,
   idiomas_trabajo text[] not null default '{}',
   incorporacion text,
-  -- Caducidad: un anuncio se desactiva 30 días después de fecha_activacion si no se renueva.
+  -- Los anuncios permanecen activos hasta que su propietario o un moderador los desactiva.
   activo boolean not null default true,
   fecha_activacion timestamptz not null default now(),
   aviso_5_enviado boolean not null default false,

@@ -146,7 +146,7 @@ export default function AnuncioCard({
     router.refresh();
   };
 
-  const cambiarEstado = async (accion: "renovar" | "activar" | "desactivar") => {
+  const cambiarEstado = async (accion: "activar" | "desactivar") => {
     setGestionando(true);
     setGestionError(null);
     try {
@@ -168,7 +168,6 @@ export default function AnuncioCard({
     }
   };
 
-  const renovar = () => cambiarEstado("renovar");
   const activar = () => cambiarEstado("activar");
   const desactivar = () => cambiarEstado("desactivar");
 
@@ -227,11 +226,6 @@ export default function AnuncioCard({
   const destacado = estaDestacado(anuncio.destacado_hasta);
   const esEmpresa = anuncio.es_empresa === true;
   const colorCat = colorCategoria(anuncio.categoria);
-  const fechaRenovable = anuncio.fecha_activacion
-    ? new Date(new Date(anuncio.fecha_activacion).getTime() + 25 * 24 * 60 * 60 * 1000)
-    : null;
-  const puedeRenovar = Boolean(fechaRenovable && fechaRenovable.getTime() <= Date.now());
-
   const claseColor = esEmpresa
     ? "border-violet-400 bg-violet-50/80"
     : esTrabajo
@@ -241,6 +235,109 @@ export default function AnuncioCard({
     : destacado
     ? "border-amber-300 bg-amber-50/40"
     : `${colorCat.border} ${colorCat.bg}`;
+
+  if (!modoDetalle) {
+    const hrefAnuncio = anuncio.id === "preview" ? null : `/anuncio/${anuncio.id}`;
+    const ubicacion = [anuncio.municipio, anuncio.provincia, anuncio.ubicacion]
+      .filter(Boolean)
+      .join(" · ");
+    const telefonoLimpio = contactoRevelado?.telefono?.replace(/[^+\d]/g, "") || null;
+    const whatsappHref = telefonoLimpio
+      ? `https://wa.me/${telefonoLimpio.replace(/^\+/, "")}?text=${encodeURIComponent(`Hola, me interesa el anuncio: ${anuncio.titulo}`)}`
+      : null;
+    const precioPrincipal = esInmobiliaria && anuncio.precio != null
+      ? `${anuncio.precio.toLocaleString("es-ES")} €`
+      : esTrabajo
+      ? textoSalario(anuncio.salario_min, anuncio.salario_max, anuncio.salario_periodo)
+      : null;
+
+    return (
+      <article className={`overflow-hidden rounded-2xl border bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${destacado ? "border-amber-300 ring-1 ring-amber-200" : "border-stone-200"}`}>
+        <div className="grid sm:grid-cols-[minmax(230px,36%)_1fr]">
+          <div className="relative min-h-56 bg-stone-100 sm:min-h-64">
+            {hrefAnuncio ? (
+              <Link href={hrefAnuncio} aria-label={`Ver anuncio: ${anuncio.titulo}`} className="absolute inset-0">
+                {anuncio.fotos?.[0] ? (
+                  <img src={anuncio.fotos[0]} alt={anuncio.titulo} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                ) : (
+                  <span className="flex h-full items-center justify-center px-6 text-center text-sm text-stone-500">Anuncio sin fotografía</span>
+                )}
+              </Link>
+            ) : anuncio.fotos?.[0] ? (
+              <img src={anuncio.fotos[0]} alt={anuncio.titulo} className="absolute inset-0 h-full w-full object-cover" />
+            ) : (
+              <span className="flex h-full items-center justify-center px-6 text-center text-sm text-stone-500">Vista previa sin fotografía</span>
+            )}
+            <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+              {destacado && <span className="rounded-full bg-amber-400 px-3 py-1 text-xs font-semibold text-stone-900 shadow">★ Destacado</span>}
+              {anuncio.activo === false && <span className="rounded-full bg-red-600 px-3 py-1 text-xs font-semibold text-white shadow">Inactivo</span>}
+            </div>
+            {onToggleFavorito && (
+              <button type="button" onClick={onToggleFavorito} aria-label={esFavorito ? "Quitar de favoritos" : "Añadir a favoritos"} className={`absolute right-3 top-3 inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/95 text-2xl shadow ${esFavorito ? "text-red-600" : "text-stone-600 hover:text-red-600"}`}>
+                <span aria-hidden="true">{esFavorito ? "♥" : "♡"}</span>
+              </button>
+            )}
+          </div>
+
+          <div className="flex min-w-0 flex-col p-4 sm:p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                {precioPrincipal && <p className="text-2xl font-bold text-stone-950">{precioPrincipal}</p>}
+                {hrefAnuncio ? (
+                  <Link href={hrefAnuncio} className="mt-1 block text-lg font-semibold leading-snug text-stone-900 hover:text-teal-700">{anuncio.titulo}</Link>
+                ) : (
+                  <p className="mt-1 text-lg font-semibold leading-snug text-stone-900">{anuncio.titulo}</p>
+                )}
+                {ubicacion && <p className="mt-1 text-sm text-stone-600">{ubicacion}</p>}
+              </div>
+              <button type="button" onClick={compartirWhatsApp} aria-label="Compartir anuncio" className="shrink-0 rounded-full p-2 text-green-700 hover:bg-green-50">Compartir</button>
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 border-y border-stone-100 py-3 text-sm font-medium text-stone-700">
+              {esInmobiliaria && anuncio.habitaciones != null && <span>{anuncio.habitaciones} hab.</span>}
+              {esInmobiliaria && anuncio.banos != null && <span>{anuncio.banos} baños</span>}
+              {esInmobiliaria && anuncio.tamano != null && <span>{anuncio.tamano} m²</span>}
+              {esTrabajo && anuncio.sector_trabajo && <span>{nombreSector(anuncio.sector_trabajo)}</span>}
+              {esTrabajo && anuncio.modalidad_trabajo && <span>{nombreModalidad(anuncio.modalidad_trabajo)}</span>}
+              {esTrabajo && anuncio.experiencia_trabajo && <span>{nombreExperiencia(anuncio.experiencia_trabajo)}</span>}
+            </div>
+
+            <div className="mt-auto flex flex-wrap items-center gap-2 pt-4">
+              {!contactoRevelado && anuncio.id !== "preview" && (anuncio.mostrar_telefono !== false || anuncio.mostrar_email) && (
+                <button type="button" onClick={revelarContacto} disabled={revelando} className="inline-flex min-h-11 items-center rounded-lg bg-teal-700 px-4 text-sm font-semibold text-white hover:bg-teal-800 disabled:opacity-50">
+                  {revelando ? "Cargando…" : "Ver contacto"}
+                </button>
+              )}
+              {telefonoLimpio && (
+                <a href={`tel:${telefonoLimpio}`} className="inline-flex min-h-11 items-center rounded-lg border border-stone-300 px-4 text-sm font-semibold text-stone-800 hover:bg-stone-50">Llamar</a>
+              )}
+              {whatsappHref && (
+                <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center rounded-lg bg-green-600 px-4 text-sm font-semibold text-white hover:bg-green-700">WhatsApp</a>
+              )}
+              {contactoRevelado?.email && (
+                <a href={`mailto:${contactoRevelado.email}`} className="inline-flex min-h-11 items-center rounded-lg border border-stone-300 px-4 text-sm font-semibold text-stone-800 hover:bg-stone-50">Email</a>
+              )}
+              {hrefAnuncio && <Link href={hrefAnuncio} className="ml-auto inline-flex min-h-11 items-center px-2 text-sm font-semibold text-teal-700 hover:underline">Ver detalles →</Link>}
+            </div>
+
+            {isOwner && (
+              <div className="mt-3 flex flex-wrap gap-3 border-t border-stone-100 pt-3 text-xs">
+                <Link href={`/editar/${anuncio.id}`} className="text-teal-700 hover:underline">Editar</Link>
+                <button type="button" onClick={eliminar} disabled={deleting} className="text-red-600 hover:underline disabled:opacity-50">{deleting ? "Eliminando…" : "Eliminar"}</button>
+                {anuncio.activo === false ? (
+                  <button type="button" onClick={activar} disabled={gestionando} className="text-teal-700 hover:underline disabled:opacity-50">{gestionando ? "Activando…" : "Activar"}</button>
+                ) : (
+                  <button type="button" onClick={desactivar} disabled={gestionando} className="text-stone-600 hover:underline disabled:opacity-50">{gestionando ? "Desactivando…" : "Desactivar"}</button>
+                )}
+                {!destacado && <button type="button" onClick={destacar} disabled={destacando} className="text-amber-700 hover:underline disabled:opacity-50">{destacando ? "Redirigiendo…" : `★ Destacar (${precioDestacarTexto(anuncio.categoria)})`}</button>}
+                {gestionError && <p role="alert" className="basis-full text-red-600">{gestionError}</p>}
+              </div>
+            )}
+          </div>
+        </div>
+      </article>
+    );
+  }
 
   return (
     <div
@@ -560,20 +657,6 @@ export default function AnuncioCard({
 
       {isOwner && (
         <div className="flex flex-wrap gap-3 mt-2 pt-2 border-t border-stone-100">
-          {anuncio.activo !== false && puedeRenovar && (
-            <button
-              onClick={renovar}
-              disabled={gestionando}
-              className="text-xs text-teal-700 hover:underline disabled:opacity-40"
-            >
-              {gestionando ? "Renovando…" : "Renovar 30 días"}
-            </button>
-          )}
-          {anuncio.activo !== false && fechaRenovable && !puedeRenovar && (
-            <span className="text-xs text-stone-500">
-              Renovable desde {fechaRenovable.toLocaleDateString("es-ES")}
-            </span>
-          )}
           {anuncio.activo === false ? (
             <button
               onClick={activar}

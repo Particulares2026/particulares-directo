@@ -65,16 +65,17 @@ export default function TerminosPage() {
         <section>
           <h2 className="font-medium text-stone-900 mb-1">5. Publicación y anuncios destacados</h2>
           <p>
-            Actualmente, publicar, renovar y destacar anuncios es gratuito, sujeto a los límites
+            Actualmente, publicar y destacar anuncios es gratuito, sujeto a los límites
             de uso indicados en la propia web. No se realizará ningún cargo por estas acciones.
           </p>
         </section>
 
         <section>
-          <h2 className="font-medium text-stone-900 mb-1">6. Caducidad de los anuncios</h2>
+          <h2 className="font-medium text-stone-900 mb-1">6. Duración de los anuncios</h2>
           <p>
-            Los anuncios se desactivan automáticamente a los 30 días de su publicación si no se
-            renuevan. Puedes reactivarlos cuando quieras desde "Mis anuncios".
+            Los anuncios permanecen publicados hasta que su propietario los desactive o elimine,
+            salvo que tengamos que retirarlos por incumplir estas normas o la ley. El propietario
+            debe actualizar o retirar el anuncio cuando deje de estar disponible.
           </p>
         </section>
 

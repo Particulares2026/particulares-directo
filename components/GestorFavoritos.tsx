@@ -188,7 +188,7 @@ export default function GestorFavoritos({
         <p className="text-sm text-stone-400 text-center py-10">No hay favoritos en esta lista.</p>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 gap-4">
         {visibles.map((f) => (
           <div key={f.anuncio_id}>
             <AnuncioCard

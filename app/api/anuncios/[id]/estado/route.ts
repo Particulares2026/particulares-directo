@@ -3,9 +3,6 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const DIA_MS = 24 * 60 * 60 * 1000;
-const DIAS_DURACION = 30;
-const DIAS_ANTES_RENOVACION = 5;
 
 function jsonPrivado(body: Record<string, unknown>, status = 200) {
   return NextResponse.json(body, {
@@ -38,7 +35,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const accion = body && typeof body === "object" && !Array.isArray(body)
     ? (body as Record<string, unknown>).accion
     : null;
-  if (accion !== "renovar" && accion !== "activar" && accion !== "desactivar") {
+  if (accion !== "activar" && accion !== "desactivar") {
     return jsonPrivado({ error: "Acción no válida." }, 400);
   }
 
@@ -59,7 +56,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   const { data: anuncio, error: errorLectura } = await admin
     .from("anuncios")
-    .select("id, activo, fecha_activacion")
+    .select("id, activo")
     .eq("id", id)
     .eq("user_id", user.id)
     .maybeSingle();
@@ -81,50 +78,18 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return jsonPrivado({ ok: true, activo: false });
   }
 
-  const ahora = Date.now();
-  const activadoEn = new Date(anuncio.fecha_activacion).getTime();
-  if (!Number.isFinite(activadoEn)) {
-    return jsonPrivado({ error: "La fecha del anuncio no es válida." }, 409);
-  }
-  const renovableDesde = activadoEn + (DIAS_DURACION - DIAS_ANTES_RENOVACION) * DIA_MS;
-  const yaRenovable = ahora >= renovableDesde;
-
-  if (accion === "renovar" && !yaRenovable) {
-    return jsonPrivado(
-      {
-        error: `Podrás renovar este anuncio desde el ${new Date(renovableDesde).toLocaleDateString("es-ES")}.`,
-        renovable_desde: new Date(renovableDesde).toISOString(),
-      },
-      409
-    );
-  }
-
-  const cambios = yaRenovable
-    ? {
-        activo: true,
-        fecha_activacion: new Date(ahora).toISOString(),
-        aviso_5_enviado: false,
-        aviso_3_enviado: false,
-      }
-    : { activo: true };
-
   const { error } = await admin
     .from("anuncios")
-    .update(cambios)
+    .update({ activo: true })
     .eq("id", id)
     .eq("user_id", user.id);
   if (error) {
     return jsonPrivado(
-      { error: accion === "renovar" ? "No se pudo renovar el anuncio." : "No se pudo activar el anuncio." },
+      { error: "No se pudo activar el anuncio." },
       500
     );
   }
 
-  return jsonPrivado({
-    ok: true,
-    activo: true,
-    renovado: yaRenovable,
-    fecha_activacion: yaRenovable ? cambios.fecha_activacion : anuncio.fecha_activacion,
-  });
+  return jsonPrivado({ ok: true, activo: true });
 }
 

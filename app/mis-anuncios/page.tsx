@@ -71,7 +71,7 @@ export default async function MisAnunciosPage({
         </p>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 gap-4">
         {anunciosConTipo.map((a) => (
           <AnuncioCard key={a.id} anuncio={a} isOwner={true} />
         ))}

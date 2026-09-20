@@ -291,7 +291,7 @@ test("eliminar una cuenta borra también las fotos sueltas antes que el usuario"
   assert.ok(source.indexOf("bucket.remove") < source.indexOf("deleteUser"));
 });
 
-test("la renovación y los cambios de estado se autorizan solo en el servidor", () => {
+test("los cambios manuales de estado se autorizan solo en el servidor y los anuncios no caducan", () => {
   const card = read("components/AnuncioCard.tsx");
   const route = read("app/api/anuncios/[id]/estado/route.ts");
   const migration = read("supabase/migrations/0038_blindar_renovacion_anuncios.sql");
@@ -300,9 +300,29 @@ test("la renovación y los cambios de estado se autorizan solo en el servidor", 
   assert.match(card, /\/api\/anuncios\/\$\{anuncio\.id\}\/estado/);
   assert.match(route, /auth\.getUser\(\)/);
   assert.match(route, /\.eq\("user_id", user\.id\)/);
-  assert.match(route, /DIAS_ANTES_RENOVACION\s*=\s*5/);
-  assert.match(route, /accion === "renovar" && !yaRenovable/);
+  assert.match(route, /accion !== "activar" && accion !== "desactivar"/);
+  assert.doesNotMatch(route, /renovar|DIAS_DURACION|DIAS_ANTES_RENOVACION/);
+  const cron = read("app/api/cron/mantenimiento-anuncios/route.ts");
+  assert.doesNotMatch(cron, /DIAS_CADUCIDAD|textoAviso|anuncio caducado/);
   assert.match(migration, /revoke update \(activo, fecha_activacion, aviso_5_enviado, aviso_3_enviado\)/);
+});
+
+test("la lista de anuncios prioriza foto, datos clave, favoritos y contacto", () => {
+  const card = read("components/AnuncioCard.tsx");
+  assert.match(card, /if \(!modoDetalle\)/);
+  assert.match(card, /object-cover/);
+  assert.match(card, /Ver contacto/);
+  assert.match(card, /WhatsApp/);
+  assert.match(card, /Añadir a favoritos/);
+  for (const listado of [
+    "components/FiltrosInmobiliaria.tsx",
+    "components/FiltrosTrabajo.tsx",
+    "components/Buscador.tsx",
+    "components/GestorFavoritos.tsx",
+    "app/mis-anuncios/page.tsx",
+  ]) {
+    assert.doesNotMatch(read(listado), /md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4/);
+  }
 });
 
 test("las altas simultáneas y el borrado directo de anuncios quedan bloqueados", () => {

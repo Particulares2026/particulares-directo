@@ -387,7 +387,7 @@ export default function FiltrosTrabajo({
         </p>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 gap-4">
         {ordenados.slice(0, visibles).map((a) => (
           <AnuncioCard
             key={a.id}

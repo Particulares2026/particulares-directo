@@ -3,23 +3,12 @@ import { createClient as createAdminSupabase } from "@supabase/supabase-js";
 import { Resend } from "resend";
 import { FOTOS_BUCKET, extraerPathStorage } from "@/lib/inmobiliaria";
 
-const DIAS_CADUCIDAD = 30;
 const HORAS_RETENCION_REGISTROS_TECNICOS = 24;
 const DIAS_GRACIA_FOTOS_HUERFANAS = 7;
 const TAMANO_LOTE_FOTOS = 100;
 const DIA_MS = 24 * 60 * 60 * 1000;
 const URL_SITIO = "https://particularesdirecto.com";
 const REMITENTE = "Particulares Directo <noreply@particularesdirecto.com>";
-
-type AnuncioFila = {
-  id: string;
-  titulo: string;
-  email_contacto: string;
-  nombre_contacto: string;
-  fecha_activacion: string;
-  aviso_5_enviado: boolean;
-  aviso_3_enviado: boolean;
-};
 
 type AnuncioParaAlerta = {
   id: string;
@@ -131,18 +120,6 @@ function textoAlerta(anuncios: AnuncioParaAlerta[]) {
   };
 }
 
-function textoAviso(nombre: string, titulo: string, dias: number) {
-  return {
-    subject: `Tu anuncio caduca en ${dias} días`,
-    text:
-      `Hola ${nombre},\n\n` +
-      `Tu anuncio "${titulo}" en Particulares Directo caducará en ${dias} días y se desactivará automáticamente si no haces nada.\n\n` +
-      `Si quieres que siga visible, entra en tu cuenta y pulsa "Actualizar" en ese anuncio para renovarlo por 30 días más:\n${URL_SITIO}/mis-anuncios\n\n` +
-      `Si no lo actualizas, el anuncio se desactivará (no se borrará, podrás reactivarlo cuando quieras desde "Mis anuncios").\n\n` +
-      `— Particulares Directo`,
-  };
-}
-
 export async function GET(request: Request) {
   const cronSecret = process.env.CRON_SECRET?.trim();
   if (!cronSecret) {
@@ -163,20 +140,7 @@ export async function GET(request: Request) {
   const admin = createAdminSupabase(url, serviceKey);
   const resend = resendKey ? new Resend(resendKey) : null;
 
-  const { data: anuncios, error } = await admin
-    .from("anuncios")
-    .select("id, titulo, email_contacto, nombre_contacto, fecha_activacion, aviso_5_enviado, aviso_3_enviado")
-    .eq("activo", true)
-    .returns<AnuncioFila[]>();
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
   const ahora = Date.now();
-  let desactivados = 0;
-  let avisos5 = 0;
-  let avisos3 = 0;
   let errores = 0;
   let registrosTecnicosEliminados = 0;
   let denunciasAnonimizadas = 0;
@@ -307,81 +271,6 @@ export async function GET(request: Request) {
     }
   }
 
-  for (const anuncio of anuncios || []) {
-    const diasTranscurridos = (ahora - new Date(anuncio.fecha_activacion).getTime()) / DIA_MS;
-    const diasRestantes = DIAS_CADUCIDAD - diasTranscurridos;
-
-    if (diasRestantes <= 0) {
-      const { error: desactivarError } = await admin
-        .from("anuncios")
-        .update({ activo: false })
-        .eq("id", anuncio.id);
-      if (desactivarError) {
-        console.error("Error al desactivar anuncio caducado:", anuncio.id, desactivarError);
-        errores++;
-      } else {
-        desactivados++;
-      }
-      continue;
-    }
-
-    if (diasRestantes <= 3 && !anuncio.aviso_3_enviado) {
-      const { subject, text } = textoAviso(anuncio.nombre_contacto, anuncio.titulo, 3);
-      if (!resend) {
-        errores++;
-        continue;
-      }
-      const { error: envioError } = await resend.emails.send({
-        from: REMITENTE,
-        to: anuncio.email_contacto,
-        subject,
-        text,
-      });
-      if (envioError) {
-        console.error("Error al enviar aviso de 3 días:", anuncio.id, envioError);
-        errores++;
-        continue;
-      }
-      const { error: marcarError } = await admin
-        .from("anuncios")
-        .update({ aviso_3_enviado: true })
-        .eq("id", anuncio.id);
-      if (marcarError) {
-        console.error("Error al registrar aviso de 3 días:", anuncio.id, marcarError);
-        errores++;
-      } else {
-        avisos3++;
-      }
-    } else if (diasRestantes <= 5 && !anuncio.aviso_5_enviado) {
-      const { subject, text } = textoAviso(anuncio.nombre_contacto, anuncio.titulo, 5);
-      if (!resend) {
-        errores++;
-        continue;
-      }
-      const { error: envioError } = await resend.emails.send({
-        from: REMITENTE,
-        to: anuncio.email_contacto,
-        subject,
-        text,
-      });
-      if (envioError) {
-        console.error("Error al enviar aviso de 5 días:", anuncio.id, envioError);
-        errores++;
-        continue;
-      }
-      const { error: marcarError } = await admin
-        .from("anuncios")
-        .update({ aviso_5_enviado: true })
-        .eq("id", anuncio.id);
-      if (marcarError) {
-        console.error("Error al registrar aviso de 5 días:", anuncio.id, marcarError);
-        errores++;
-      } else {
-        avisos5++;
-      }
-    }
-  }
-
   const ahoraIso = new Date().toISOString();
   let alertasRevisadas = 0;
   let alertasAvisadas = 0;
@@ -450,10 +339,6 @@ export async function GET(request: Request) {
   }
 
   return NextResponse.json({
-    revisados: anuncios?.length || 0,
-    desactivados,
-    avisos5,
-    avisos3,
     alertasRevisadas,
     alertasAvisadas,
     registrosTecnicosEliminados,
