@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -89,12 +89,17 @@ export default function AnuncioCard({
   const [deleting, setDeleting] = useState(false);
   const [gestionando, setGestionando] = useState(false);
   const [gestionError, setGestionError] = useState<string | null>(null);
+  const [activo, setActivo] = useState(anuncio.activo !== false);
   const [destacando, setDestacando] = useState(false);
   const [contactoRevelado, setContactoRevelado] = useState<{ telefono: string | null; email: string | null } | null>(null);
   const [revelando, setRevelando] = useState(false);
   const [historialAbierto, setHistorialAbierto] = useState(false);
   const [historialPrecios, setHistorialPrecios] = useState<{ precio: number; created_at: string }[] | null>(null);
   const [cargandoHistorial, setCargandoHistorial] = useState(false);
+
+  useEffect(() => {
+    setActivo(anuncio.activo !== false);
+  }, [anuncio.activo]);
 
   const verHistorial = async () => {
     setHistorialAbierto((v) => !v);
@@ -160,6 +165,11 @@ export default function AnuncioCard({
         setGestionError(data?.error || "No se pudo cambiar el estado del anuncio.");
         return;
       }
+      if (typeof data?.activo !== "boolean") {
+        setGestionError("El servidor no confirmó el nuevo estado del anuncio.");
+        return;
+      }
+      setActivo(data.activo);
       router.refresh();
     } catch {
       setGestionError("No se pudo conectar con el servidor. Inténtalo de nuevo.");
@@ -247,9 +257,11 @@ export default function AnuncioCard({
       : null;
     const precioPrincipal = esInmobiliaria && anuncio.precio != null
       ? `${anuncio.precio.toLocaleString("es-ES")} €`
-      : esTrabajo
+      : null;
+    const salarioSecundario = esTrabajo
       ? textoSalario(anuncio.salario_min, anuncio.salario_max, anuncio.salario_periodo)
       : null;
+    const claseImagen = esTrabajo ? "object-contain bg-white" : "object-cover";
 
     return (
       <article className={`overflow-hidden rounded-2xl border bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${destacado ? "border-amber-300 ring-1 ring-amber-200" : "border-stone-200"}`}>
@@ -258,19 +270,19 @@ export default function AnuncioCard({
             {hrefAnuncio ? (
               <Link href={hrefAnuncio} aria-label={`Ver anuncio: ${anuncio.titulo}`} className="absolute inset-0">
                 {anuncio.fotos?.[0] ? (
-                  <img src={anuncio.fotos[0]} alt={anuncio.titulo} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                  <img src={anuncio.fotos[0]} alt={anuncio.titulo} loading="lazy" decoding="async" className={`h-full w-full ${claseImagen}`} />
                 ) : (
                   <span className="flex h-full items-center justify-center px-6 text-center text-sm text-stone-500">Anuncio sin fotografía</span>
                 )}
               </Link>
             ) : anuncio.fotos?.[0] ? (
-              <img src={anuncio.fotos[0]} alt={anuncio.titulo} className="absolute inset-0 h-full w-full object-cover" />
+              <img src={anuncio.fotos[0]} alt={anuncio.titulo} className={`absolute inset-0 h-full w-full ${claseImagen}`} />
             ) : (
               <span className="flex h-full items-center justify-center px-6 text-center text-sm text-stone-500">Vista previa sin fotografía</span>
             )}
             <div className="absolute left-3 top-3 flex flex-wrap gap-2">
               {destacado && <span className="rounded-full bg-amber-400 px-3 py-1 text-xs font-semibold text-stone-900 shadow">★ Destacado</span>}
-              {anuncio.activo === false && <span className="rounded-full bg-red-600 px-3 py-1 text-xs font-semibold text-white shadow">Inactivo</span>}
+              {!activo && <span className="rounded-full bg-red-600 px-3 py-1 text-xs font-semibold text-white shadow">Inactivo</span>}
             </div>
             {onToggleFavorito && (
               <button type="button" onClick={onToggleFavorito} aria-label={esFavorito ? "Quitar de favoritos" : "Añadir a favoritos"} className={`absolute right-3 top-3 inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/95 text-2xl shadow ${esFavorito ? "text-red-600" : "text-stone-600 hover:text-red-600"}`}>
@@ -284,10 +296,11 @@ export default function AnuncioCard({
               <div className="min-w-0">
                 {precioPrincipal && <p className="text-2xl font-bold text-stone-950">{precioPrincipal}</p>}
                 {hrefAnuncio ? (
-                  <Link href={hrefAnuncio} className="mt-1 block text-lg font-semibold leading-snug text-stone-900 hover:text-teal-700">{anuncio.titulo}</Link>
+                  <Link href={hrefAnuncio} className="block text-xl font-bold leading-snug text-stone-900 hover:text-teal-700">{anuncio.titulo}</Link>
                 ) : (
-                  <p className="mt-1 text-lg font-semibold leading-snug text-stone-900">{anuncio.titulo}</p>
+                  <p className="text-xl font-bold leading-snug text-stone-900">{anuncio.titulo}</p>
                 )}
+                {salarioSecundario && <p className="mt-2 text-sm text-stone-700"><span className="font-semibold">Salario:</span> {salarioSecundario}</p>}
                 {ubicacion && <p className="mt-1 text-sm text-stone-600">{ubicacion}</p>}
               </div>
               <button type="button" onClick={compartirWhatsApp} aria-label="Compartir anuncio" className="shrink-0 rounded-full p-2 text-green-700 hover:bg-green-50">Compartir</button>
@@ -324,7 +337,7 @@ export default function AnuncioCard({
               <div className="mt-3 flex flex-wrap gap-3 border-t border-stone-100 pt-3 text-xs">
                 <Link href={`/editar/${anuncio.id}`} className="text-teal-700 hover:underline">Editar</Link>
                 <button type="button" onClick={eliminar} disabled={deleting} className="text-red-600 hover:underline disabled:opacity-50">{deleting ? "Eliminando…" : "Eliminar"}</button>
-                {anuncio.activo === false ? (
+                {!activo ? (
                   <button type="button" onClick={activar} disabled={gestionando} className="text-teal-700 hover:underline disabled:opacity-50">{gestionando ? "Activando…" : "Activar"}</button>
                 ) : (
                   <button type="button" onClick={desactivar} disabled={gestionando} className="text-stone-600 hover:underline disabled:opacity-50">{gestionando ? "Desactivando…" : "Desactivar"}</button>
@@ -396,7 +409,7 @@ export default function AnuncioCard({
                 {nombreModalidad(anuncio.modalidad_trabajo)}
               </span>
             )}
-            {anuncio.activo === false && (
+            {!activo && (
               <span className="text-xs font-medium px-2 py-0.5 rounded-full border bg-red-50 text-red-600 border-red-200">
                 Inactivo
               </span>
@@ -479,7 +492,7 @@ export default function AnuncioCard({
       </div>
 
       {anuncio.fotos && anuncio.fotos.length > 0 && (
-        <GaleriaFotos fotos={anuncio.fotos} titulo={anuncio.titulo} modoDetalle={modoDetalle} />
+        <GaleriaFotos fotos={anuncio.fotos} titulo={anuncio.titulo} modoDetalle={modoDetalle} mostrarCompleta={esTrabajo} />
       )}
 
       {esInmobiliaria && (
@@ -657,7 +670,7 @@ export default function AnuncioCard({
 
       {isOwner && (
         <div className="flex flex-wrap gap-3 mt-2 pt-2 border-t border-stone-100">
-          {anuncio.activo === false ? (
+          {!activo ? (
             <button
               onClick={activar}
               disabled={gestionando}
