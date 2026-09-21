@@ -302,6 +302,8 @@ test("los cambios manuales de estado se autorizan solo en el servidor y los anun
   assert.match(route, /auth\.getUser\(\)/);
   assert.match(route, /\.eq\("user_id", user\.id\)/);
   assert.match(route, /accion !== "activar" && accion !== "desactivar"/);
+  assert.match(route, /\.update\(\{ activo: true \}\)[\s\S]{0,180}\.select\("activo"\)[\s\S]{0,80}\.single\(\)/);
+  assert.match(card, /setActivo\(data\.activo\)/);
   assert.doesNotMatch(route, /renovar|DIAS_DURACION|DIAS_ANTES_RENOVACION/);
   const cron = read("app/api/cron/mantenimiento-anuncios/route.ts");
   assert.doesNotMatch(cron, /DIAS_CADUCIDAD|textoAviso|anuncio caducado/);
@@ -324,6 +326,17 @@ test("la lista de anuncios prioriza foto, datos clave, favoritos y contacto", ()
   ]) {
     assert.doesNotMatch(read(listado), /md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4/);
   }
+});
+
+test("las tarjetas de trabajo priorizan el título y muestran el currículum completo", () => {
+  const card = read("components/AnuncioCard.tsx");
+  const gallery = read("components/GaleriaFotos.tsx");
+
+  assert.match(card, /const salarioSecundario = esTrabajo/);
+  assert.match(card, /<span className="font-semibold">Salario:<\/span> \{salarioSecundario\}/);
+  assert.match(card, /const claseImagen = esTrabajo \? "object-contain bg-white" : "object-cover"/);
+  assert.match(card, /mostrarCompleta=\{esTrabajo\}/);
+  assert.match(gallery, /mostrarCompleta \? "object-contain" : "object-cover"/);
 });
 
 test("las altas simultáneas y el borrado directo de anuncios quedan bloqueados", () => {
