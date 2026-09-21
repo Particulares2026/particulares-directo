@@ -12,13 +12,19 @@ type GaleriaFotosProps = {
   fotos: string[];
   titulo: string;
   modoDetalle?: boolean;
+  mostrarCompleta?: boolean;
 };
 
 function normalizarIndice(indice: number, total: number) {
   return (indice + total) % total;
 }
 
-export default function GaleriaFotos({ fotos, titulo, modoDetalle = false }: GaleriaFotosProps) {
+export default function GaleriaFotos({
+  fotos,
+  titulo,
+  modoDetalle = false,
+  mostrarCompleta = false,
+}: GaleriaFotosProps) {
   const [indice, setIndice] = useState(0);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [imagenesConError, setImagenesConError] = useState<Set<string>>(() => new Set());
@@ -129,7 +135,7 @@ export default function GaleriaFotos({ fotos, titulo, modoDetalle = false }: Gal
             inicioDeslizamientoRef.current = null;
           }}
           aria-label={`Ampliar foto ${indiceSeguro + 1} de ${total}: ${titulo}`}
-          className="relative h-full w-full cursor-zoom-in touch-pan-y overflow-hidden bg-stone-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#c10b61]/70 focus-visible:ring-inset"
+          className={`relative h-full w-full cursor-zoom-in touch-pan-y overflow-hidden focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#c10b61]/70 focus-visible:ring-inset ${mostrarCompleta ? "bg-white" : "bg-stone-100"}`}
         >
           <img
             key={imagenActual}
@@ -139,7 +145,7 @@ export default function GaleriaFotos({ fotos, titulo, modoDetalle = false }: Gal
             decoding="async"
             draggable={false}
             onError={() => registrarError(imagenActual)}
-            className="h-full w-full select-none object-cover"
+            className={`h-full w-full select-none ${mostrarCompleta ? "object-contain" : "object-cover"}`}
           />
         </button>
 
