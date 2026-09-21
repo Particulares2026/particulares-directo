@@ -362,6 +362,18 @@ test("los anuncios de trabajo distinguen ofertas y personas que buscan empleo", 
   assert.doesNotMatch(filtros, /<select aria-label="Busco u ofrezco empleo"/);
 });
 
+test("los anuncios inmobiliarios distinguen quien busca y quien ofrece vivienda", () => {
+  const card = read("components/AnuncioCard.tsx");
+  const filtros = read("components/FiltrosInmobiliaria.tsx");
+
+  assert.match(card, /OFRECE VIVIENDA/);
+  assert.match(card, /BUSCA VIVIENDA/);
+  assert.match(filtros, /Busco vivienda/);
+  assert.match(filtros, /Ofrezco vivienda/);
+  assert.match(filtros, /aria-pressed=\{tipo === opcion\.valor\}/);
+  assert.doesNotMatch(filtros, /<select aria-label="Ofertas o demandas"/);
+});
+
 test("las altas simultáneas y el borrado directo de anuncios quedan bloqueados", () => {
   const route = read("app/api/anuncios/route.ts");
   const cron = read("app/api/cron/mantenimiento-anuncios/route.ts");
