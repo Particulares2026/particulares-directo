@@ -65,7 +65,7 @@ export default function FiltrosTrabajo({
   const [orden, setOrden] = useState("relevancia");
 
   const filtrosSecundariosActivos = [
-    tipo, modalidad, salarioMin, salarioMax, experiencia,
+    modalidad, salarioMin, salarioMax, experiencia,
   ].filter(Boolean).length + idiomas.length + caracteristicas.length;
 
   useEffect(() => {
@@ -195,6 +195,35 @@ export default function FiltrosTrabajo({
         onChange={(e) => setQuery(e.target.value)}
       />
 
+      <div className="mb-4" aria-label="Filtrar por tipo de anuncio">
+        <p className="mb-2 text-sm font-semibold text-stone-800">¿Qué quieres ver?</p>
+        <div className="flex flex-wrap gap-2">
+          {[
+            { valor: "", label: "Todos" },
+            { valor: "ofrezco", label: "💼 Ofertas de empleo" },
+            { valor: "busco", label: "🙋 Personas que buscan empleo" },
+          ].map((opcion) => (
+            <button
+              key={opcion.valor || "todos"}
+              type="button"
+              aria-pressed={tipo === opcion.valor}
+              onClick={() => setTipo(opcion.valor)}
+              className={`min-h-11 rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                tipo === opcion.valor
+                  ? opcion.valor === "ofrezco"
+                    ? "border-green-600 bg-green-600 text-white"
+                    : opcion.valor === "busco"
+                    ? "border-blue-600 bg-blue-600 text-white"
+                    : "border-stone-800 bg-stone-800 text-white"
+                  : "border-stone-300 bg-white text-stone-700 hover:border-stone-500"
+              }`}
+            >
+              {opcion.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="border border-fuchsia-100 bg-gradient-to-br from-fuchsia-50/60 to-teal-50/40 rounded-xl p-3 mb-5 space-y-2.5">
         <div className="flex flex-wrap gap-2">
           <select
@@ -264,11 +293,6 @@ export default function FiltrosTrabajo({
         {masFiltrosAbierto && (
           <div className="space-y-2.5 pt-1 border-t border-stone-100">
             <div className="flex flex-wrap gap-2 pt-2">
-              <select aria-label="Busco u ofrezco empleo" className={SELECT_CLASS} value={tipo} onChange={(e) => setTipo(e.target.value)}>
-                <option value="">Busco o ofrezco</option>
-                <option value="busco">Busco empleo</option>
-                <option value="ofrezco">Ofrezco empleo</option>
-              </select>
               <select aria-label="Experiencia" className={SELECT_CLASS} value={experiencia} onChange={(e) => setExperiencia(e.target.value)}>
                 <option value="">Experiencia</option>
                 {EXPERIENCIA_TRABAJO.map((ex) => (

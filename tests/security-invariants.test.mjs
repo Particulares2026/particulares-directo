@@ -348,6 +348,20 @@ test("las tarjetas compactas muestran el icono de WhatsApp para compartir", () =
   assert.doesNotMatch(compacta, />Compartir<\/button>/);
 });
 
+test("los anuncios de trabajo distinguen ofertas y personas que buscan empleo", () => {
+  const card = read("components/AnuncioCard.tsx");
+  const filtros = read("components/FiltrosTrabajo.tsx");
+
+  assert.match(card, /OFRECE EMPLEO/);
+  assert.match(card, /BUSCA EMPLEO/);
+  assert.match(card, /border-green-300 bg-green-100 text-green-800/);
+  assert.match(card, /border-blue-300 bg-blue-100 text-blue-800/);
+  assert.match(filtros, /Ofertas de empleo/);
+  assert.match(filtros, /Personas que buscan empleo/);
+  assert.match(filtros, /aria-pressed=\{tipo === opcion\.valor\}/);
+  assert.doesNotMatch(filtros, /<select aria-label="Busco u ofrezco empleo"/);
+});
+
 test("las altas simultáneas y el borrado directo de anuncios quedan bloqueados", () => {
   const route = read("app/api/anuncios/route.ts");
   const cron = read("app/api/cron/mantenimiento-anuncios/route.ts");
