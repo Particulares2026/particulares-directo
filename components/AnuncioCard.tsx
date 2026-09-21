@@ -303,7 +303,17 @@ export default function AnuncioCard({
                 {salarioSecundario && <p className="mt-2 text-sm text-stone-700"><span className="font-semibold">Salario:</span> {salarioSecundario}</p>}
                 {ubicacion && <p className="mt-1 text-sm text-stone-600">{ubicacion}</p>}
               </div>
-              <button type="button" onClick={compartirWhatsApp} aria-label="Compartir anuncio" className="shrink-0 rounded-full p-2 text-green-700 hover:bg-green-50">Compartir</button>
+              <button
+                type="button"
+                onClick={compartirWhatsApp}
+                aria-label="Compartir por WhatsApp"
+                title="Compartir por WhatsApp"
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-green-600 hover:bg-green-50 hover:text-green-700"
+              >
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true">
+                  <path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.36 5.07L2 22l5.06-1.33A9.94 9.94 0 0 0 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2Zm0 18.15c-1.6 0-3.1-.43-4.4-1.19l-.32-.19-3 .79.8-2.93-.2-.3A8.13 8.13 0 0 1 3.85 12c0-4.5 3.66-8.15 8.15-8.15S20.15 7.5 20.15 12 16.5 20.15 12 20.15Zm4.5-6.1c-.25-.12-1.47-.72-1.7-.8-.23-.08-.4-.12-.56.13-.17.25-.65.8-.8.96-.15.17-.29.19-.54.06-.25-.12-1.06-.39-2.02-1.24-.75-.66-1.25-1.48-1.4-1.73-.15-.25-.02-.38.11-.5.11-.11.25-.29.37-.44.12-.15.16-.25.25-.42.08-.17.04-.31-.02-.44-.06-.12-.56-1.36-.77-1.86-.2-.49-.4-.42-.56-.43h-.48c-.17 0-.44.06-.67.31-.23.25-.87.85-.87 2.08s.89 2.41 1.01 2.58c.12.17 1.76 2.68 4.25 3.76.6.26 1.06.41 1.42.53.6.19 1.14.16 1.57.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.15-1.18-.06-.1-.23-.17-.48-.29Z" />
+                </svg>
+              </button>
             </div>
 
             <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 border-y border-stone-100 py-3 text-sm font-medium text-stone-700">

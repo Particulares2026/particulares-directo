@@ -339,6 +339,15 @@ test("las tarjetas de trabajo priorizan el título y muestran el currículum com
   assert.match(gallery, /mostrarCompleta \? "object-contain" : "object-cover"/);
 });
 
+test("las tarjetas compactas muestran el icono de WhatsApp para compartir", () => {
+  const card = read("components/AnuncioCard.tsx");
+  const compacta = card.slice(card.indexOf("if (!modoDetalle)"), card.indexOf("return (", card.indexOf("if (!modoDetalle)")) + 8000);
+
+  assert.match(compacta, /aria-label="Compartir por WhatsApp"/);
+  assert.match(compacta, /<svg viewBox="0 0 24 24" width="24" height="24"/);
+  assert.doesNotMatch(compacta, />Compartir<\/button>/);
+});
+
 test("las altas simultáneas y el borrado directo de anuncios quedan bloqueados", () => {
   const route = read("app/api/anuncios/route.ts");
   const cron = read("app/api/cron/mantenimiento-anuncios/route.ts");
