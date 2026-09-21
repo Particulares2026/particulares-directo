@@ -262,9 +262,14 @@ export default function AnuncioCard({
       ? textoSalario(anuncio.salario_min, anuncio.salario_max, anuncio.salario_periodo)
       : null;
     const claseImagen = esTrabajo ? "object-contain bg-white" : "object-cover";
+    const claseBordeTarjeta = esTrabajo
+      ? esOferta
+        ? "border-green-300"
+        : "border-blue-300"
+      : "border-stone-200";
 
     return (
-      <article className={`overflow-hidden rounded-2xl border bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${destacado ? "border-amber-300 ring-1 ring-amber-200" : "border-stone-200"}`}>
+      <article className={`overflow-hidden rounded-2xl border bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${claseBordeTarjeta} ${destacado ? "ring-2 ring-amber-300" : ""}`}>
         <div className="grid sm:grid-cols-[minmax(230px,36%)_1fr]">
           <div className="relative min-h-56 bg-stone-100 sm:min-h-64">
             {hrefAnuncio ? (
@@ -294,6 +299,17 @@ export default function AnuncioCard({
           <div className="flex min-w-0 flex-col p-4 sm:p-5">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
+                {esTrabajo && (
+                  <span
+                    className={`mb-2 inline-flex rounded-full border px-3 py-1 text-xs font-bold tracking-wide ${
+                      esOferta
+                        ? "border-green-300 bg-green-100 text-green-800"
+                        : "border-blue-300 bg-blue-100 text-blue-800"
+                    }`}
+                  >
+                    {esOferta ? "💼 OFRECE EMPLEO" : "🙋 BUSCA EMPLEO"}
+                  </span>
+                )}
                 {precioPrincipal && <p className="text-2xl font-bold text-stone-950">{precioPrincipal}</p>}
                 {hrefAnuncio ? (
                   <Link href={hrefAnuncio} className="block text-xl font-bold leading-snug text-stone-900 hover:text-teal-700">{anuncio.titulo}</Link>
