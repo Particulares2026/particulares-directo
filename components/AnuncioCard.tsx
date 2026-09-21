@@ -262,7 +262,7 @@ export default function AnuncioCard({
       ? textoSalario(anuncio.salario_min, anuncio.salario_max, anuncio.salario_periodo)
       : null;
     const claseImagen = esTrabajo ? "object-contain bg-white" : "object-cover";
-    const claseBordeTarjeta = esTrabajo
+    const claseBordeTarjeta = esTrabajo || esInmobiliaria
       ? esOferta
         ? "border-green-300"
         : "border-blue-300"
@@ -299,7 +299,7 @@ export default function AnuncioCard({
           <div className="flex min-w-0 flex-col p-4 sm:p-5">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                {esTrabajo && (
+                {(esTrabajo || esInmobiliaria) && (
                   <span
                     className={`mb-2 inline-flex rounded-full border px-3 py-1 text-xs font-bold tracking-wide ${
                       esOferta
@@ -307,7 +307,13 @@ export default function AnuncioCard({
                         : "border-blue-300 bg-blue-100 text-blue-800"
                     }`}
                   >
-                    {esOferta ? "💼 OFRECE EMPLEO" : "🙋 BUSCA EMPLEO"}
+                    {esTrabajo
+                      ? esOferta
+                        ? "💼 OFRECE EMPLEO"
+                        : "🙋 BUSCA EMPLEO"
+                      : esOferta
+                        ? "🏠 OFRECE VIVIENDA"
+                        : "🔎 BUSCA VIVIENDA"}
                   </span>
                 )}
                 {precioPrincipal && <p className="text-2xl font-bold text-stone-950">{precioPrincipal}</p>}
