@@ -10,3 +10,13 @@ export function trackGoogleAnalyticsEvent(
 
   window.gtag("event", eventName, parameters);
 }
+
+export function setGoogleAnalyticsUserProperties(
+  properties: Record<string, AnalyticsValue>,
+) {
+  if (typeof window === "undefined" || typeof window.gtag !== "function") {
+    return;
+  }
+
+  window.gtag("set", "user_properties", properties);
+}

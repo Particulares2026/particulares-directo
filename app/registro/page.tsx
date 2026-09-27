@@ -8,7 +8,10 @@ import CampoPassword from "@/components/CampoPassword";
 import Turnstile from "@/components/Turnstile";
 import { traducirErrorAuth } from "@/lib/errores-auth";
 import { CONSENTIMIENTO_LEGAL_REGISTRO } from "@/lib/legal";
-import { trackGoogleAnalyticsEvent } from "@/lib/analytics";
+import {
+  setGoogleAnalyticsUserProperties,
+  trackGoogleAnalyticsEvent,
+} from "@/lib/analytics";
 
 type RolUsuario = "particular" | "profesional";
 
@@ -31,7 +34,13 @@ export default function RegistroPage() {
   const registrarInicio = () => {
     if (registroIniciado.current) return;
     registroIniciado.current = true;
+    setGoogleAnalyticsUserProperties({ user_role: rolUsuario });
     trackGoogleAnalyticsEvent("registration_start", { role: rolUsuario });
+  };
+
+  const seleccionarRol = (role: RolUsuario) => {
+    setRolUsuario(role);
+    setGoogleAnalyticsUserProperties({ user_role: role });
   };
 
   const submit = async (e: FormEvent) => {
@@ -65,6 +74,7 @@ export default function RegistroPage() {
       return;
     }
 
+    setGoogleAnalyticsUserProperties({ user_role: rolUsuario });
     trackGoogleAnalyticsEvent("registration_submit", { role: rolUsuario });
     setLoading(true);
 
@@ -127,7 +137,7 @@ export default function RegistroPage() {
                   name="rolUsuario"
                   value={valor}
                   checked={rolUsuario === valor}
-                  onChange={() => setRolUsuario(valor)}
+                  onChange={() => seleccionarRol(valor)}
                   className="sr-only"
                 />
                 {etiqueta}

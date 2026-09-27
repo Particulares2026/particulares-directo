@@ -69,12 +69,27 @@ test("el registro mide el embudo sin enviar datos personales a GA4", () => {
   assert.match(registro, /registration_start[\s\S]{0,100}role:\s*rolUsuario/);
   assert.match(registro, /registration_submit[\s\S]{0,100}role:\s*rolUsuario/);
   assert.match(registro, /sign_up[\s\S]{0,100}role:\s*rolUsuario/);
+  assert.match(registro, /setGoogleAnalyticsUserProperties\(\{ user_role: rolUsuario \}\)/);
+  assert.match(registro, /setGoogleAnalyticsUserProperties\(\{ user_role: role \}\)/);
   const analyticsCalls = registro.match(/trackGoogleAnalyticsEvent\([\s\S]*?\);/g) || [];
   const analyticsPayloads = analyticsCalls.join("\n");
   assert.doesNotMatch(analyticsPayloads, /\bemail\s*[,}]/);
   assert.doesNotMatch(analyticsPayloads, /\bnombre\s*[,}]/);
   assert.doesNotMatch(analyticsPayloads, /\btelefono\s*:/);
   assert.match(analytics, /typeof window\.gtag !== "function"/);
+  assert.match(analytics, /window\.gtag\("set", "user_properties", properties\)/);
+});
+
+test("la publicación de anuncios mide el inicio y el éxito sin datos personales", () => {
+  const formulario = read("components/AnuncioForm.tsx");
+
+  assert.match(formulario, /trackGoogleAnalyticsEvent\("ad_publish_start"/);
+  assert.match(formulario, /trackGoogleAnalyticsEvent\("ad_publish_success"/);
+  assert.match(formulario, /ad_category:\s*categoria/);
+  assert.match(formulario, /is_first_ad:\s*!esEdicion && anunciosActivosTotales === 0/);
+  const analyticsCalls = formulario.match(/trackGoogleAnalyticsEvent\([\s\S]*?\);/g) || [];
+  const analyticsPayloads = analyticsCalls.join("\n");
+  assert.doesNotMatch(analyticsPayloads, /\b(?:email|nombre|telefono)\s*:/);
 });
 
 test("la pagina de registro puede indexarse y aparece en el sitemap", () => {

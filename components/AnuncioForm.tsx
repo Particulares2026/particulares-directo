@@ -26,6 +26,7 @@ import { comprimirImagen } from "@/lib/imagen";
 import AsistenteCurriculum from "@/components/AsistenteCurriculum";
 import AnuncioCard from "@/components/AnuncioCard";
 import { esEmpresaPorCantidad } from "@/lib/tipo-anunciante";
+import { trackGoogleAnalyticsEvent } from "@/lib/analytics";
 
 const SelectorUbicacion = dynamic(() => import("@/components/mapa/SelectorUbicacion"), {
   ssr: false,
@@ -88,6 +89,7 @@ export default function AnuncioForm({
   defaultTelefono,
   defaultEmail,
   anunciosActivosCategoria = 0,
+  anunciosActivosTotales = 0,
   anuncioExistente,
 }: {
   userId: string;
@@ -96,12 +98,24 @@ export default function AnuncioForm({
   defaultTelefono: string;
   defaultEmail: string;
   anunciosActivosCategoria?: number;
+  anunciosActivosTotales?: number;
   anuncioExistente?: AnuncioExistente;
 }) {
   const router = useRouter();
   const esInmobiliaria = categoria === "inmobiliaria";
   const esTrabajo = categoria === "trabajo";
   const esEdicion = Boolean(anuncioExistente);
+  const publicacionIniciada = useRef(false);
+
+  const registrarInicioPublicacion = () => {
+    if (publicacionIniciada.current) return;
+    publicacionIniciada.current = true;
+    trackGoogleAnalyticsEvent("ad_publish_start", {
+      ad_category: categoria,
+      action: esEdicion ? "edit" : "create",
+      is_first_ad: !esEdicion && anunciosActivosTotales === 0,
+    });
+  };
 
   const [tipo, setTipo] = useState<"busco" | "ofrezco">(anuncioExistente?.tipo ?? "busco");
   const [etiquetaBusco, etiquetaOfrezco] = etiquetasTipo(categoria);
@@ -383,6 +397,12 @@ export default function AnuncioForm({
       setError(data?.error || "No se pudo guardar el anuncio. Inténtalo de nuevo.");
       return;
     }
+    trackGoogleAnalyticsEvent("ad_publish_success", {
+      ad_category: categoria,
+      ad_type: tipo,
+      action: esEdicion ? "edit" : "create",
+      is_first_ad: !esEdicion && anunciosActivosTotales === 0,
+    });
     router.push("/mis-anuncios");
     router.refresh();
   };
@@ -434,7 +454,7 @@ export default function AnuncioForm({
 
   return (
     <div className="lg:grid lg:grid-cols-[1fr_360px] lg:gap-6 lg:items-start">
-    <form onSubmit={submit} className="space-y-3">
+    <form onSubmit={submit} onFocusCapture={registrarInicioPublicacion} className="space-y-3">
       <p className="text-xs text-stone-500">
         <span className="font-semibold text-red-600" aria-hidden="true">*</span> Campos obligatorios
       </p>
