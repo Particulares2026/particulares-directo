@@ -4,21 +4,9 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { trackGoogleAnalyticsEvent } from "@/lib/analytics";
 
-const CLAVE_AVISO = "pd_guia_registro_correo_v1";
-
 export default function GuiaPrimerAcceso() {
   const [abierto, setAbierto] = useState(false);
   const dialogoRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    try {
-      if (window.localStorage.getItem(CLAVE_AVISO) !== "visto") {
-        setAbierto(true);
-      }
-    } catch {
-      setAbierto(true);
-    }
-  }, []);
 
   useEffect(() => {
     if (!abierto) return;
@@ -40,16 +28,7 @@ export default function GuiaPrimerAcceso() {
     };
   }, [abierto]);
 
-  const marcarComoVisto = () => {
-    try {
-      window.localStorage.setItem(CLAVE_AVISO, "visto");
-    } catch {
-      // El aviso sigue siendo util aunque el navegador bloquee el almacenamiento.
-    }
-  };
-
   const cerrar = () => {
-    marcarComoVisto();
     setAbierto(false);
   };
 
@@ -62,26 +41,25 @@ export default function GuiaPrimerAcceso() {
   return (
     <>
       <section
-        className="mb-8 rounded-2xl border border-amber-300 bg-amber-50 p-5 shadow-sm sm:flex sm:items-center sm:justify-between sm:gap-6"
+        className="mt-8 rounded-2xl border border-fuchsia-200 bg-fuchsia-50 p-5 shadow-sm sm:flex sm:items-center sm:justify-between sm:gap-6"
         aria-labelledby="primeros-pasos-portada"
       >
         <div>
-          <p className="text-sm font-semibold uppercase tracking-wide text-amber-800">
-            Importante antes de publicar
+          <p className="text-sm font-semibold uppercase tracking-wide text-[#b80d5e]">
+            Publicar es gratis
           </p>
           <h2 id="primeros-pasos-portada" className="mt-1 font-serif text-xl text-stone-900">
-            Crea tu cuenta y confirma el correo
+            Crea tu cuenta en unos minutos
           </h2>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-stone-700">
-            Recibirás un mensaje para confirmar tu cuenta. Si no lo encuentras,
-            revisa también la carpeta de <strong>Correo no deseado</strong>.
+            Solo necesitas confirmar tu correo antes de publicar. Te explicamos el proceso paso a paso si lo necesitas.
           </p>
         </div>
         <div className="mt-4 flex shrink-0 flex-wrap gap-3 sm:mt-0 sm:justify-end">
           <button
             type="button"
             onClick={() => setAbierto(true)}
-            className="rounded-full border border-amber-500 bg-white px-4 py-2 text-sm font-semibold text-amber-900 hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2"
+            className="rounded-full border border-fuchsia-300 bg-white px-4 py-2 text-sm font-semibold text-[#9d0b50] hover:bg-fuchsia-100 focus:outline-none focus:ring-2 focus:ring-[#ec1178] focus:ring-offset-2"
           >
             Ver instrucciones
           </button>

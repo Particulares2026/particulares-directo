@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CATEGORIAS_DESTACADAS, colorCategoria } from "@/lib/categorias";
 import GuiaPrimerAcceso from "@/components/GuiaPrimerAcceso";
+import HomePublishActions from "@/components/HomePublishActions";
 
 export const metadata: Metadata = {
   title: "Particulares Directo | Anuncios de vivienda y empleo",
@@ -19,13 +20,12 @@ export default function HomePage() {
           particulares
         </span>
       </h1>
-      <p className="text-stone-600 mb-8 max-w-2xl">
-        Encuentra vivienda y oportunidades de empleo, o publica tu anuncio gratis para contactar directamente y sin intermediarios.
+      <p className="max-w-2xl text-stone-600">
+        ¿Buscas trabajo, personal o vivienda? Publica gratis y habla directamente con otras personas, sin agencias ni intermediarios.
       </p>
+      <HomePublishActions />
 
-      <GuiaPrimerAcceso />
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+      <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2">
         {CATEGORIAS_DESTACADAS.map((c) => {
           const color = colorCategoria(c.slug);
           return (
@@ -56,6 +56,8 @@ export default function HomePage() {
           );
         })}
       </div>
+
+      <GuiaPrimerAcceso />
 
       <section className="mt-12 rounded-3xl border border-fuchsia-100 bg-white/80 p-6 sm:p-8 shadow-sm" aria-labelledby="como-funciona">
         <h2 id="como-funciona" className="font-serif text-2xl text-stone-900">
