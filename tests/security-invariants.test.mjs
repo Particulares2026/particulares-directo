@@ -317,6 +317,8 @@ test("los cambios manuales de estado se autorizan solo en el servidor y los anun
   assert.match(route, /auth\.getUser\(\)/);
   assert.match(route, /\.eq\("user_id", user\.id\)/);
   assert.match(route, /accion !== "activar" && accion !== "desactivar"/);
+  assert.match(route, /\.update\(\{ activo: true \}\)[\s\S]{0,180}\.select\("activo"\)[\s\S]{0,80}\.single\(\)/);
+  assert.match(card, /setActivo\(data\.activo\)/);
   assert.doesNotMatch(route, /renovar|DIAS_DURACION|DIAS_ANTES_RENOVACION/);
   const cron = read("app/api/cron/mantenimiento-anuncios/route.ts");
   assert.doesNotMatch(cron, /DIAS_CADUCIDAD|textoAviso|anuncio caducado/);
@@ -339,6 +341,52 @@ test("la lista de anuncios prioriza foto, datos clave, favoritos y contacto", ()
   ]) {
     assert.doesNotMatch(read(listado), /md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4/);
   }
+});
+
+test("las tarjetas de trabajo priorizan el título y muestran el currículum completo", () => {
+  const card = read("components/AnuncioCard.tsx");
+  const gallery = read("components/GaleriaFotos.tsx");
+
+  assert.match(card, /const salarioSecundario = esTrabajo/);
+  assert.match(card, /<span className="font-semibold">Salario:<\/span> \{salarioSecundario\}/);
+  assert.match(card, /const claseImagen = esTrabajo \? "object-contain bg-white" : "object-cover"/);
+  assert.match(card, /mostrarCompleta=\{esTrabajo\}/);
+  assert.match(gallery, /mostrarCompleta \? "object-contain" : "object-cover"/);
+});
+
+test("las tarjetas compactas muestran el icono de WhatsApp para compartir", () => {
+  const card = read("components/AnuncioCard.tsx");
+  const compacta = card.slice(card.indexOf("if (!modoDetalle)"), card.indexOf("return (", card.indexOf("if (!modoDetalle)")) + 8000);
+
+  assert.match(compacta, /aria-label="Compartir por WhatsApp"/);
+  assert.match(compacta, /<svg viewBox="0 0 24 24" width="24" height="24"/);
+  assert.doesNotMatch(compacta, />Compartir<\/button>/);
+});
+
+test("los anuncios de trabajo distinguen ofertas y personas que buscan empleo", () => {
+  const card = read("components/AnuncioCard.tsx");
+  const filtros = read("components/FiltrosTrabajo.tsx");
+
+  assert.match(card, /OFRECE EMPLEO/);
+  assert.match(card, /BUSCA EMPLEO/);
+  assert.match(card, /border-green-300 bg-green-100 text-green-800/);
+  assert.match(card, /border-blue-300 bg-blue-100 text-blue-800/);
+  assert.match(filtros, /Ofertas de empleo/);
+  assert.match(filtros, /Personas que buscan empleo/);
+  assert.match(filtros, /aria-pressed=\{tipo === opcion\.valor\}/);
+  assert.doesNotMatch(filtros, /<select aria-label="Busco u ofrezco empleo"/);
+});
+
+test("los anuncios inmobiliarios distinguen quien busca y quien ofrece vivienda", () => {
+  const card = read("components/AnuncioCard.tsx");
+  const filtros = read("components/FiltrosInmobiliaria.tsx");
+
+  assert.match(card, /OFRECE VIVIENDA/);
+  assert.match(card, /BUSCA VIVIENDA/);
+  assert.match(filtros, /Busco vivienda/);
+  assert.match(filtros, /Ofrezco vivienda/);
+  assert.match(filtros, /aria-pressed=\{tipo === opcion\.valor\}/);
+  assert.doesNotMatch(filtros, /<select aria-label="Ofertas o demandas"/);
 });
 
 test("las altas simultáneas y el borrado directo de anuncios quedan bloqueados", () => {

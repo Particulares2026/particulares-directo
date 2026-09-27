@@ -84,7 +84,7 @@ export default function FiltrosInmobiliaria({
   const [orden, setOrden] = useState("relevancia");
 
   const filtrosSecundariosActivos = [
-    tipo, amueblado, duracionAlquiler, tamanoMin, tamanoMax,
+    amueblado, duracionAlquiler, tamanoMin, tamanoMax,
     habitaciones, banos, estado, soloFavoritos ? "si" : "",
   ].filter(Boolean).length + caracteristicas.length;
 
@@ -227,6 +227,35 @@ export default function FiltrosInmobiliaria({
         onChange={(e) => setQuery(e.target.value)}
       />
 
+      <div className="mb-4" aria-label="Filtrar por tipo de anuncio inmobiliario">
+        <p className="mb-2 text-sm font-semibold text-stone-800">¿Qué quieres ver?</p>
+        <div className="flex flex-wrap gap-2">
+          {[
+            { valor: "", label: "Todos" },
+            { valor: "busco", label: "🔎 Busco vivienda" },
+            { valor: "ofrezco", label: "🏠 Ofrezco vivienda" },
+          ].map((opcion) => (
+            <button
+              key={opcion.valor || "todos"}
+              type="button"
+              aria-pressed={tipo === opcion.valor}
+              onClick={() => setTipo(opcion.valor)}
+              className={`min-h-11 rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                tipo === opcion.valor
+                  ? opcion.valor === "ofrezco"
+                    ? "border-green-600 bg-green-600 text-white"
+                    : opcion.valor === "busco"
+                    ? "border-blue-600 bg-blue-600 text-white"
+                    : "border-stone-800 bg-stone-800 text-white"
+                  : "border-stone-300 bg-white text-stone-700 hover:border-stone-500"
+              }`}
+            >
+              {opcion.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="border border-fuchsia-100 bg-gradient-to-br from-fuchsia-50/60 to-teal-50/40 rounded-xl p-3 mb-5 space-y-2.5">
         <div className="flex flex-wrap gap-2">
           <select aria-label="Operación" className={SELECT_CLASS} value={operacion} onChange={(e) => setOperacion(e.target.value)}>
@@ -312,11 +341,6 @@ export default function FiltrosInmobiliaria({
         {masFiltrosAbierto && (
           <div className="space-y-2.5 pt-1 border-t border-stone-100">
             <div className="flex flex-wrap gap-2 pt-2">
-              <select aria-label="Ofertas o demandas" className={SELECT_CLASS} value={tipo} onChange={(e) => setTipo(e.target.value)}>
-                <option value="">Ofertas o demandas</option>
-                <option value="ofrezco">Ofertas</option>
-                <option value="busco">Demandas</option>
-              </select>
               <select aria-label="Amueblado" className={SELECT_CLASS} value={amueblado} onChange={(e) => setAmueblado(e.target.value)}>
                 <option value="">Amueblado o sin amueblar</option>
                 <option value="si">Amueblado</option>

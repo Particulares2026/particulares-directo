@@ -69,27 +69,37 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   }
 
   if (accion === "desactivar") {
-    const { error } = await admin
+    const { data: actualizado, error } = await admin
       .from("anuncios")
       .update({ activo: false })
       .eq("id", id)
-      .eq("user_id", user.id);
+      .eq("user_id", user.id)
+      .select("activo")
+      .single();
     if (error) return jsonPrivado({ error: "No se pudo desactivar el anuncio." }, 500);
-    return jsonPrivado({ ok: true, activo: false });
+    if (actualizado.activo !== false) {
+      return jsonPrivado({ error: "No se pudo confirmar que el anuncio quedara inactivo." }, 500);
+    }
+    return jsonPrivado({ ok: true, activo: actualizado.activo });
   }
 
-  const { error } = await admin
+  const { data: actualizado, error } = await admin
     .from("anuncios")
     .update({ activo: true })
     .eq("id", id)
-    .eq("user_id", user.id);
+    .eq("user_id", user.id)
+    .select("activo")
+    .single();
   if (error) {
     return jsonPrivado(
       { error: "No se pudo activar el anuncio." },
       500
     );
   }
+  if (actualizado.activo !== true) {
+    return jsonPrivado({ error: "No se pudo confirmar que el anuncio quedara activo." }, 500);
+  }
 
-  return jsonPrivado({ ok: true, activo: true });
+  return jsonPrivado({ ok: true, activo: actualizado.activo });
 }
 
