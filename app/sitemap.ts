@@ -16,11 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/terminos`, changeFrequency: "yearly", priority: 0.2 },
   ];
 
-  const paginasCategorias: MetadataRoute.Sitemap = CATEGORIAS_DESTACADAS.map((c) => ({
-    url: `${SITE_URL}/categoria/${c.slug}`,
-    changeFrequency: "daily",
-    priority: 0.7,
-  }));
+  const categoriasConAnuncios = new Set<string>();
 
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -30,16 +26,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const paginasAnuncios: MetadataRoute.Sitemap = [];
   for (let inicio = 0; ; inicio += 500) {
     // Use anonymous access so RLS limits this list to publicly visible rows.
-    const {data, error} = await supabase.from("anuncios").select("id")
+    const {data, error} = await supabase.from("anuncios").select("id,categoria")
       .eq("activo", true).order("id").range(inicio, inicio + 499);
     if (error) throw new Error("No se pudo generar el sitemap de anuncios.");
     for (const anuncio of data || []) {
+      categoriasConAnuncios.add(anuncio.categoria);
       if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(anuncio.id))
         paginasAnuncios.push({url:`${SITE_URL}/anuncio/${anuncio.id}`});
     }
-    if (paginasFijas.length + paginasCategorias.length + paginasAnuncios.length > 50000)
+    if (paginasFijas.length + CATEGORIAS_DESTACADAS.length + paginasAnuncios.length > 50000)
       throw new Error("El sitemap necesita dividirse antes de superar 50000 URLs.");
     if (!data || data.length < 500) break;
   }
+  const paginasCategorias: MetadataRoute.Sitemap = CATEGORIAS_DESTACADAS.filter(c=>categoriasConAnuncios.has(c.slug)).map(c=>({url:SITE_URL+"/categoria/"+c.slug,changeFrequency:"daily",priority:0.7}));
   return [...paginasFijas, ...paginasCategorias, ...paginasAnuncios];
 }

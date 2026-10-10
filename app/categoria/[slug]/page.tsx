@@ -1,3 +1,5 @@
+import { cache } from "react";
+import { createClient as createPublicClient } from "@supabase/supabase-js";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -17,12 +19,22 @@ const DESCRIPCIONES: Record<string, string> = {
   trabajo: "Ofertas y búsquedas de empleo publicadas directamente por particulares y pequeños negocios.",
 };
 
+// Share the same anonymous read between metadata and the visible listing.
+const anunciosPublicosCategoria = cache(async (slug: string) => {
+  const supabase = createPublicClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { auth: { persistSession: false, autoRefreshToken: false } });
+  const { data, error } = await supabase.from("anuncios").select(CAMPOS_PUBLICOS_ANUNCIO)
+    .eq("categoria", slug).eq("activo", true).order("created_at", { ascending: false }).limit(500);
+  if (error) throw new Error("No se pudieron cargar los anuncios. Inténtalo de nuevo.");
+  return data || [];
+});
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  if (!esCategoriaValida(slug)) return {};
+  if (!esCategoriaValida(slug)) return { robots: { index: false, follow: false } };
   const titulo = nombreCategoria(slug);
   const descripcion = DESCRIPCIONES[slug] ?? `Anuncios de ${titulo.toLowerCase()} entre particulares.`;
-  const indexable = CATEGORIAS.find((categoria) => categoria.slug === slug)?.destacada === true;
+  const anuncios = await anunciosPublicosCategoria(slug);
+  const indexable = anuncios.length > 0 && CATEGORIAS.find((categoria) => categoria.slug === slug)?.destacada === true;
   const canonical = `${SITE_URL}/categoria/${slug}`;
 
   return {
@@ -55,13 +67,7 @@ export default async function CategoriaPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: anuncios } = await supabase
-    .from("anuncios")
-    .select(CAMPOS_PUBLICOS_ANUNCIO)
-    .eq("categoria", slug)
-    .eq("activo", true)
-    .order("created_at", { ascending: false })
-    .limit(500);
+  const anuncios = await anunciosPublicosCategoria(slug);
 
   const anunciosOrdenados = marcarTipoAnunciante([...(anuncios || [])])
     .sort((a, b) => {
@@ -118,6 +124,7 @@ export default async function CategoriaPage({
         {DESCRIPCIONES[slug] ?? "Anuncios de " + nombreCategoria(slug).toLowerCase() + " entre particulares."}
       </p>
 
+      {anunciosOrdenados.length === 0 && <section className="rounded-xl border border-stone-200 bg-stone-50 p-5 mb-6"><h2 className="font-semibold mb-2">Todavía no hay anuncios disponibles aquí</h2><p>Vuelve a consultar esta sección más adelante o explora las demás categorías.</p><Link href="/" className="inline-block mt-3 text-[#b00859] underline">Ver otras categorías</Link></section>}
       {slug === "inmobiliaria" ? (
         <FiltrosInmobiliaria
           anuncios={anunciosOrdenados}
