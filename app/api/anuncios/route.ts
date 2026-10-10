@@ -459,12 +459,13 @@ function validarPayload(
 
   const contactoPublico = contieneContactoPublico(
     payload.titulo as string,
+    payload.nombre_contacto as string,
     typeof payload.descripcion === "string" ? payload.descripcion : null,
     typeof payload.ubicacion === "string" ? payload.ubicacion : null,
     Array.isArray(payload.palabras_clave) ? payload.palabras_clave.join(" ") : null
   );
   if (contactoPublico.encontrado) {
-    return "No escribas teléfonos, correos ni enlaces en el título o la descripción. Usa la sección Contacto para proteger tus datos.";
+    return "No escribas teléfonos, correos ni enlaces en el nombre de contacto ni en los textos públicos del anuncio. Usa los campos Teléfono y Email de la sección Contacto para proteger tus datos.";
   }
 
   return null;
@@ -719,5 +720,4 @@ export async function DELETE(request: Request) {
   notificarIndexNow();
   return NextResponse.json({ ok: true });
 }
-
 
