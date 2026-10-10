@@ -4,7 +4,7 @@ import { CATEGORIAS_DESTACADAS } from "@/lib/categorias";
 
 const SITE_URL = "https://www.particularesdirecto.com";
 
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const paginasFijas: MetadataRoute.Sitemap = [
@@ -22,28 +22,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      { auth: { persistSession: false, autoRefreshToken: false } }
-    );
-    const { data: anuncios } = await supabase
-      .from("anuncios")
-      .select("id,created_at,fecha_activacion")
-      .eq("activo", true)
-      .order("created_at", { ascending: false })
-      .limit(5000);
-
-    const paginasAnuncios: MetadataRoute.Sitemap = (anuncios || []).map((anuncio) => ({
-      url: `${SITE_URL}/anuncio/${anuncio.id}`,
-      lastModified: new Date(anuncio.fecha_activacion || anuncio.created_at),
-      changeFrequency: "weekly",
-      priority: 0.8,
-    }));
-
-    return [...paginasFijas, ...paginasCategorias, ...paginasAnuncios];
-  } catch {
-    return [...paginasFijas, ...paginasCategorias];
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { auth: { persistSession: false, autoRefreshToken: false } }
+  );
+  const paginasAnuncios: MetadataRoute.Sitemap = [];
+  for (let inicio = 0; ; inicio += 500) {
+    // Use anonymous access so RLS limits this list to publicly visible rows.
+    const {data, error} = await supabase.from("anuncios").select("id")
+      .eq("activo", true).order("id").range(inicio, inicio + 499);
+    if (error) throw new Error("No se pudo generar el sitemap de anuncios.");
+    for (const anuncio of data || []) {
+      if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(anuncio.id))
+        paginasAnuncios.push({url:`${SITE_URL}/anuncio/${anuncio.id}`});
+    }
+    if (paginasFijas.length + paginasCategorias.length + paginasAnuncios.length > 50000)
+      throw new Error("El sitemap necesita dividirse antes de superar 50000 URLs.");
+    if (!data || data.length < 500) break;
   }
+  return [...paginasFijas, ...paginasCategorias, ...paginasAnuncios];
 }
