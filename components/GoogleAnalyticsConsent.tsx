@@ -1,10 +1,9 @@
 "use client";
 
-import { GoogleAnalytics } from "@next/third-parties/google";
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
+import { GA_ID, CONSENT_STORAGE_KEY, contextoAnalitico } from "@/lib/analytics-privacy";
 
-const GA_ID = "G-M2F8SWTL4B";
-const CONSENT_STORAGE_KEY = "particulares-directo-cookie-consent";
 const OPEN_SETTINGS_QUERY = "cookie-settings";
 
 type ConsentChoice = "granted" | "denied" | null;
@@ -20,9 +19,7 @@ function prepareGoogleConsent() {
   window.dataLayer = window.dataLayer || [];
   window.gtag =
     window.gtag ||
-    ((...args: unknown[]) => {
-      window.dataLayer?.push(args);
-    });
+    function () { window.dataLayer?.push(arguments); };
 
   window.gtag("consent", "default", {
     analytics_storage: "granted",
@@ -56,6 +53,7 @@ function removeGoogleAnalyticsCookies() {
 }
 
 export default function GoogleAnalyticsConsent() {
+  const pathname = usePathname();
   const initialized = useRef(false);
   const [choice, setChoice] = useState<ConsentChoice>(null);
   const [ready, setReady] = useState(false);
@@ -69,7 +67,8 @@ export default function GoogleAnalyticsConsent() {
     }
     initialized.current = true;
 
-    const savedChoice = window.localStorage.getItem(CONSENT_STORAGE_KEY);
+    let savedChoice: string | null = null;
+    try { savedChoice = window.localStorage.getItem(CONSENT_STORAGE_KEY); } catch { /* No consent without storage. */ }
     const initialChoice: ConsentChoice =
       savedChoice === "granted" || savedChoice === "denied" ? savedChoice : null;
 
@@ -81,9 +80,6 @@ export default function GoogleAnalyticsConsent() {
       window.history.replaceState({}, "", currentUrl);
     }
 
-    if (initialChoice === "granted" && !openSavedSettings) {
-      prepareGoogleConsent();
-    }
 
     setAnalyticsEnabled(initialChoice === "granted");
     setChoice(openSavedSettings ? null : initialChoice);
@@ -92,13 +88,47 @@ export default function GoogleAnalyticsConsent() {
     setReady(true);
   }, []);
 
-  function saveChoice(nextChoice: Exclude<ConsentChoice, null>) {
-    const wasGranted = window.localStorage.getItem(CONSENT_STORAGE_KEY) === "granted";
-    window.localStorage.setItem(CONSENT_STORAGE_KEY, nextChoice);
+  useEffect(() => {
+    const sincronizar = (event: StorageEvent) => {
+      if (event.key !== CONSENT_STORAGE_KEY && event.key !== null) return;
+      const valor = event.newValue === "granted" ? "granted" : "denied";
+      if (valor === "denied") {
+        (window as unknown as Record<string, unknown>)[`ga-disable-${GA_ID}`] = true;
+        removeGoogleAnalyticsCookies();
+      }
+      setChoice(valor); setAnalyticsEnabled(valor === "granted");
+    };
+    window.addEventListener("storage", sincronizar);
+    return () => window.removeEventListener("storage", sincronizar);
+  }, []);
 
-    if (nextChoice === "granted") {
+  useEffect(() => {
+    const flags = window as unknown as Record<string, unknown>;
+    const contexto = contextoAnalitico(window.location.href, document.referrer);
+    flags[`ga-disable-${GA_ID}`] = choice !== "granted" || !contexto;
+    if (choice !== "granted" || !contexto) return;
+    if (!document.getElementById("pd-ga")) {
       prepareGoogleConsent();
-    } else if (wasGranted) {
+      window.gtag?.("js", new Date());
+      window.gtag?.("config", GA_ID, { ...contexto, send_page_view: false,
+        allow_google_signals: false, allow_ad_personalization_signals: false });
+      const script = document.createElement("script");
+      script.id = "pd-ga"; script.async = true; script.referrerPolicy = "no-referrer";
+      script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
+      document.head.appendChild(script);
+    }
+    window.gtag?.("set", contexto);
+    window.gtag?.("event", "page_view", contexto);
+    return () => { flags[`ga-disable-${GA_ID}`] = true; };
+  }, [choice, pathname]);
+
+  function saveChoice(nextChoice: Exclude<ConsentChoice, null>) {
+    const wasGranted = choice === "granted";
+    try { window.localStorage.setItem(CONSENT_STORAGE_KEY, nextChoice); }
+    catch { if (nextChoice === "granted") return; }
+
+    if (nextChoice === "denied") {
+      (window as unknown as Record<string, unknown>)[`ga-disable-${GA_ID}`] = true;
       window.gtag?.("consent", "update", {
         analytics_storage: "denied",
         ad_storage: "denied",
@@ -123,7 +153,6 @@ export default function GoogleAnalyticsConsent() {
 
   return (
     <>
-      {choice === "granted" ? <GoogleAnalytics gaId={GA_ID} /> : null}
 
       {showSettings ? (
         <div
@@ -160,7 +189,7 @@ export default function GoogleAnalyticsConsent() {
                   <span>
                     <span className="block font-medium text-stone-900">Analítica</span>
                     <span className="mt-1 block text-xs leading-relaxed text-stone-500">
-                      Ayuda a entender el uso de la web mediante Google Analytics 4.
+                      Mide páginas generales, procedencia reconocida y pasos de registro o publicación, sin textos de anuncios ni búsquedas.
                     </span>
                   </span>
                   <input

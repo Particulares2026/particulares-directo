@@ -77,7 +77,7 @@ test("el registro mide el embudo sin enviar datos personales a GA4", () => {
   assert.doesNotMatch(analyticsPayloads, /\bnombre\s*[,}]/);
   assert.doesNotMatch(analyticsPayloads, /\btelefono\s*:/);
   assert.match(analytics, /typeof window\.gtag !== "function"/);
-  assert.match(analytics, /window\.gtag\("set", "user_properties", properties\)/);
+  assert.match(analytics, /propiedadesUsuario\(properties\)/);
 });
 
 test("la publicación de anuncios mide el inicio y el éxito sin datos personales", () => {

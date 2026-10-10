@@ -137,7 +137,13 @@ export default function AvisoLegalPage() {
           <p className="mt-2">
             Solo si das tu consentimiento, activamos Google Analytics 4, prestado por Google
             Ireland Limited, para conocer de forma estadística qué páginas se visitan, desde qué
-            tipo de dispositivo o navegador y el país aproximado de acceso. Google Analytics puede
+            tipo de dispositivo o navegador y el país aproximado de acceso. Medimos las páginas
+            generales, categorías, guías y pasos de registro o publicación; excluimos las páginas
+            de cuentas, moderación, edición y los detalles individuales de anuncios. Enviamos
+            rutas sin parámetros, un título genérico y solo procedencias reconocidas de buscadores,
+            asistentes o campañas. No enviamos textos de anuncios, búsquedas, datos de contacto ni
+            identificadores de anuncios en nuestros eventos. La captura automática de formularios,
+            descargas y enlaces está desactivada. Google Analytics puede
             crear las cookies <strong>_ga</strong> y <strong>_ga_*</strong>, con una duración
             máxima habitual de dos años. No activamos mediante este aviso finalidades publicitarias
             ni personalización de anuncios.
