@@ -125,7 +125,7 @@ export default async function CategoriaPage({
       </p>
 
       {anunciosOrdenados.length === 0 && <section className="rounded-xl border border-stone-200 bg-stone-50 p-5 mb-6"><h2 className="font-semibold mb-2">Todavía no hay anuncios disponibles aquí</h2><p>Vuelve a consultar esta sección más adelante o explora las demás categorías.</p><Link href="/" className="inline-block mt-3 text-[#b00859] underline">Ver otras categorías</Link></section>}
-      {slug === "inmobiliaria" ? (
+      {anunciosOrdenados.length > 0 && (slug === "inmobiliaria" ? (
         <FiltrosInmobiliaria
           anuncios={anunciosOrdenados}
           currentUserId={user?.id ?? null}
@@ -144,7 +144,8 @@ export default async function CategoriaPage({
           currentUserId={user?.id ?? null}
           favoritosIniciales={favoritosIniciales}
         />
-      )}
+      ))}
     </main>
   );
 }
+
