@@ -1,3 +1,4 @@
+import { notificarIndexNow } from "@/lib/indexnow";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { esAdmin } from "@/lib/admin";
@@ -73,6 +74,7 @@ export async function POST(request: Request) {
     }
   }
 
+  notificarIndexNow();
   return NextResponse.json({ ok: true });
 }
 

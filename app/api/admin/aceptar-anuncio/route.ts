@@ -1,3 +1,4 @@
+import { notificarIndexNow } from "@/lib/indexnow";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -44,6 +45,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "El anuncio ya se había revisado o no existe." }, { status: 409 });
   }
 
+  notificarIndexNow(id);
   return NextResponse.json({ ok: true });
 }
 

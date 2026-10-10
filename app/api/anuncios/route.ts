@@ -1,3 +1,4 @@
+import { notificarIndexNow } from "@/lib/indexnow";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createClient } from "@/lib/supabase/server";
@@ -617,6 +618,7 @@ export async function POST(request: Request) {
     if (precioCambiado) {
       await admin.from("historial_precios").insert({ anuncio_id: anuncioId, precio: nuevoPrecio });
     }
+    notificarIndexNow(anuncioId);
     return NextResponse.json({ ok: true, id: anuncioId });
   }
 
@@ -647,6 +649,7 @@ export async function POST(request: Request) {
   if (camposLimpios.precio != null) {
     await admin.from("historial_precios").insert({ anuncio_id: data.id, precio: camposLimpios.precio });
   }
+  notificarIndexNow(data.id);
   const anunciosActivosCategoria = anunciosActivosCategoriaAntes + 1;
   return NextResponse.json({
     ok: true,
@@ -713,6 +716,7 @@ export async function DELETE(request: Request) {
     }
   }
 
+  notificarIndexNow();
   return NextResponse.json({ ok: true });
 }
 
