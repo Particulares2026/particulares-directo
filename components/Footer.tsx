@@ -5,7 +5,8 @@ export default function Footer() {
   return (
     <footer className="border-t border-stone-100 px-4 md:px-8 py-6 mt-10 text-sm text-stone-600 flex flex-wrap items-center justify-between gap-2">
       <span>© {new Date().getFullYear()} Particulares Directo</span>
-      <div className="flex gap-4">
+      <div className="flex flex-wrap gap-4">
+        <Link href="/guias" className="hover:text-stone-900">Guías y seguridad</Link>
         <Link href="/aviso-legal" className="hover:text-stone-900">
           Aviso legal y privacidad
         </Link>
