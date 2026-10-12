@@ -7,10 +7,12 @@ import DenunciarAnuncio from "@/components/DenunciarAnuncio";
 import { CAMPOS_PUBLICOS_ANUNCIO } from "@/lib/anuncios";
 import { nombreCategoria } from "@/lib/categorias";
 import { createClient } from "@/lib/supabase/server";
+import { anunciosRelacionados } from "@/lib/anuncios-relacionados";
 
 const SITE_URL = "https://www.particularesdirecto.com";
 
 const obtenerAnuncio = cache(async (id: string) => {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) return null;
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("anuncios")
@@ -18,7 +20,8 @@ const obtenerAnuncio = cache(async (id: string) => {
     .eq("id", id)
     .maybeSingle();
 
-  if (error || !data) return null;
+  if (error) throw new Error("No se pudo cargar el anuncio. Inténtalo de nuevo.");
+  if (!data) return null;
   return { ...data, telefono_contacto: null, email_contacto: null };
 });
 
@@ -64,6 +67,7 @@ export default async function AnuncioPage({ params }: { params: Promise<{ id: st
   const { id } = await params;
   const anuncio = await obtenerAnuncio(id);
   if (!anuncio) notFound();
+  const relacionados = await anunciosRelacionados(anuncio);
 
   const supabase = await createClient();
   const { count: anunciosActivosMismaCategoria } = await supabase
@@ -127,6 +131,13 @@ export default async function AnuncioPage({ params }: { params: Promise<{ id: st
           <DenunciarAnuncio anuncioId={anuncio.id} titulo={anuncio.titulo} />
         </div>
       </section>
+
+      {relacionados.length > 0 && <nav aria-label="Otros anuncios de la misma categoría" className="mt-8 border-t border-stone-200 pt-6">
+        <h2 className="font-serif text-xl mb-3">Otros anuncios de la misma categoría</h2>
+        <ul className="grid gap-3 sm:grid-cols-3">{relacionados.map(otro => <li key={otro.id}>
+          <Link href={`/anuncio/${otro.id}`} className="block h-full rounded-xl border border-stone-200 p-4 text-[#b00859] underline hover:bg-stone-50">{otro.titulo}</Link>
+        </li>)}</ul>
+      </nav>}
 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
     </main>
