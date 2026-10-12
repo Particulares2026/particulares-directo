@@ -1,4 +1,4 @@
-import { notificarIndexNow } from "@/lib/indexnow";
+import { notificarIndexNow, prepararRetiradaIndexNow } from "@/lib/indexnow";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -70,6 +70,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   }
 
   if (accion === "desactivar") {
+    const notificarRetirada = await prepararRetiradaIndexNow(id);
     const { data: actualizado, error } = await admin
       .from("anuncios")
       .update({ activo: false })
@@ -81,7 +82,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     if (actualizado.activo !== false) {
       return jsonPrivado({ error: "No se pudo confirmar que el anuncio quedara inactivo." }, 500);
     }
-    notificarIndexNow();
+    notificarRetirada();
     return jsonPrivado({ ok: true, activo: actualizado.activo });
   }
 

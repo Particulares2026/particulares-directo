@@ -1,4 +1,4 @@
-import { notificarIndexNow } from "@/lib/indexnow";
+import { prepararRetiradaIndexNow } from "@/lib/indexnow";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { esAdmin } from "@/lib/admin";
@@ -46,6 +46,7 @@ export async function POST(request: Request) {
       .eq("estado", "pendiente"),
   ]);
 
+  const notificarRetirada = await prepararRetiradaIndexNow(id);
   const { error } = await admin.from("anuncios").delete().eq("id", id);
   if (error) {
     return NextResponse.json({ error: "No se pudo eliminar el anuncio." }, { status: 500 });
@@ -74,7 +75,7 @@ export async function POST(request: Request) {
     }
   }
 
-  notificarIndexNow();
+  notificarRetirada();
   return NextResponse.json({ ok: true });
 }
 
